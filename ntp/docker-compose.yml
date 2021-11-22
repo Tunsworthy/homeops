@@ -1,3 +1,4 @@
+version: "3"
 networks: 
   ntp_net: 
     driver: bridge
@@ -6,7 +7,7 @@ networks:
         com.docker.network.bridge.name: "ntp"
         com.docker.network.bridge.enable_ip_masquerade: "true"
 services: 
-  ntp:
+  ntp_app:
       build: .
       image: cturra/ntp:latest
       container_name: ntp
