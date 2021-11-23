@@ -1,4 +1,4 @@
-version: "3"
+version: "3.4"
 networks: 
  pihole_net: 
     driver: bridge
@@ -12,7 +12,7 @@ services:
     container_name: pihole
     image: pihole/pihole:latest
     network: 
-      - pihole_net
+      - pihole
     ports:
       - "53:53/tcp"
       - "53:53/udp"
@@ -20,7 +20,6 @@ services:
       - "80:80/tcp"
     environment:
       TZ: 'Australia/Sydney'
-      DNS_FQDN_REQUIRED: false
       # WEBPASSWORD: 'set a secure password here or it will be random'
     # Volumes store your data between container upgrades
     volumes:
