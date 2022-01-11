@@ -38,7 +38,7 @@ services:
     networks: 
       - firefly_net
     ports:
-      - 81:8081
+      - 81:8080
 volumes:
    firefly_iii_upload:
    firefly_iii_db:
