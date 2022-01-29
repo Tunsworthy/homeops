@@ -16,5 +16,5 @@ services:
       - "1883:1883/tcp"
       - "9001:9001/tcp"
     volumes:
-      - /home/ubuntu/dockervol/mosquitto/:/mosquitto/:rw
+      - '/home/ubuntu/dockervol/mosquitto/:/mosquitto/'
     restart: unless-stopped
