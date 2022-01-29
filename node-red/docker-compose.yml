@@ -22,5 +22,5 @@ services:
     networks:
       - node-red_net
     volumes:
-      - /home/ubuntu/dockervol/node-red/:/data
+      - /home/ubuntu/dockervol/node-red/:/data:rw
     restart: unless-stopped
