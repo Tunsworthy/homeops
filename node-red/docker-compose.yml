@@ -10,7 +10,7 @@ networks:
     driver: bridge
     driver_opts:
         com.docker.network.bridge.host_binding_ipv4: 10.2.3.18
-        com.docker.network.bridge.name: "mosquitto"
+        com.docker.network.bridge.name: "node-red"
         com.docker.network.bridge.enable_ip_masquerade: "true"
 services:
   node-red:
