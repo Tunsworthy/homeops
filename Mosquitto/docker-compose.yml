@@ -6,9 +6,8 @@ networks:
         com.docker.network.bridge.host_binding_ipv4: 10.2.3.15
         com.docker.network.bridge.name: "mosquitto"
         com.docker.network.bridge.enable_ip_masquerade: "true"
-# More info at https://github.com/pi-hole/docker-pi-hole/ and https://docs.pi-hole.net/
 services:
-  pihole:
+  mosquitto:
     container_name: mosquitto
     image: eclipse-mosquitto
     networks: 
@@ -16,12 +15,6 @@ services:
     ports:
       - "1883:1883/tcp"
       - "9001:9001/tcp"
-    environment:
     volumes:
-      - '/home/ubuntu/dockervol/mosquitto/etc-pihole/:/etc/pihole/'
-      - '/home/ubuntu/dockervol/mosquitto/etc-dnsmasq.d/:/etc/dnsmasq.d/'
-    # Recommended but not required (DHCP needs NET_ADMIN)
-    #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
-    cap_add:
-      - NET_ADMIN
+      - /home/ubuntu/dockervol/mosquitto/:/mosquitto/:rw
     restart: unless-stopped
