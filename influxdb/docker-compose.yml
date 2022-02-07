@@ -10,7 +10,7 @@ networks:
 
 services:
   influxdb:
-    image: influxdb:latest
+    image: influxdb:1.8
     volumes:
       # Mount for influxdb data directory and configuration
       - /home/ubuntu/dockervol/influxdb/:/var/lib/influxdb2:rw
@@ -22,7 +22,7 @@ services:
   influxdb_cli:
     links:
       - influxdb
-    image: influxdb:latest
+    image: influxdb:1.8
     volumes:
       # Mount for influxdb data directory and configuration
       - /home/ubuntu/dockervol/influxcli/:/var/lib/influxdb2:rw
