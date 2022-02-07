@@ -25,7 +25,7 @@ services:
     image: influxdb:1.8
     volumes:
       # Mount for influxdb data directory and configuration
-      - /home/ubuntu/dockervol/influxcli/:/var/lib/influxdb2:rw
+      - /home/ubuntu/dockervol/influxdb/:/var/lib/influxdb2:rw
       - ./ssl/influxdb-selfsigned.crt:/etc/ssl/influxdb-selfsigned.crt:rw
       - ./ssl/influxdb-selfsigned.key:/etc/ssl/influxdb-selfsigned.key:rw
     environment: 
@@ -42,18 +42,5 @@ services:
     restart: unless-stopped
     depends_on:
       - influxdb
-  telegraf:
-    image: telegraf
-    links:
-      - influxdb
-    volumes:
-      # Mount for telegraf config
-      - /home/ubuntu/dockervol/telegraf/mytelegraf.conf:/etc/telegraf/telegraf.conf
-    environment: 
-      - DOCKER_INFLUXDB_INIT_ORG=home
-      - DOCKER_INFLUXDB_INIT_BUCKET=KFC
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=AReallyLongAdminToken
-    depends_on:
-      - influxdb_cli
 volumes:
   influxdb2:
