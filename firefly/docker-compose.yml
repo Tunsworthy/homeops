@@ -11,7 +11,7 @@ services:
     image: fireflyiii/core:latest
     restart: always
     volumes:
-      - firefly_iii_upload:/var/www/html/storage/upload
+      - /home/ubuntu/dockervol/firefly_iii_upload:/var/www/html/storage/upload
     env_file: .env
     networks: 
       - firefly_net
@@ -26,7 +26,7 @@ services:
        - POSTGRES_PASSWORD=limping-landowner-yam
        - POSTGRES_USER=firefly
     volumes:
-      - firefly_iii_db:/var/lib/postgresql
+      - /home/ubuntu/dockervol/firefly_iii_db:/var/lib/postgresql
     networks: 
       - firefly_net
   import:
