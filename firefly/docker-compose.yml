@@ -26,7 +26,8 @@ services:
        - POSTGRES_PASSWORD=limping-landowner-yam
        - POSTGRES_USER=firefly
     volumes:
-      - /home/ubuntu/dockervol/firefly_iii_db:/var/lib/postgresql/data
+      - /home/ubuntu/dockervol/firefly_iii_db/postgress:/var/lib/postgresql
+      - /home/ubuntu/dockervol/firefly_iii_db/data:/var/lib/postgresql/data
     networks: 
       - firefly_net
   import:
