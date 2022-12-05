@@ -20,7 +20,7 @@ services:
       - "80:80/tcp"
     environment:
       TZ: 'Australia/Sydney'
-      # WEBPASSWORD: 'set a secure password here or it will be random'
+      WEBPASSWORD: 'Rise-Relic-Antennae6'
     # Volumes store your data between container upgrades
     volumes:
       - '/home/ubuntu/dockervol/pihole/etc-pihole/:/etc/pihole/'
