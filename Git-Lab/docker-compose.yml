@@ -25,6 +25,6 @@ services:
       - '/home/ubuntu/dockervol/gitlab/data:/var/opt/gitlab'
     shm_size: '256m'
     networks:
-      - gitlab
+      - gitlab_net
 volumes:
    gitlab:
