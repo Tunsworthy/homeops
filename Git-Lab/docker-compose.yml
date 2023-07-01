@@ -1,6 +1,6 @@
 version: '3.6'
 networks: 
- firefly_net: 
+ gitlab_net: 
     driver: bridge
     driver_opts:
         com.docker.network.bridge.host_binding_ipv4: 10.2.5.11
