@@ -8,7 +8,7 @@ networks:
         com.docker.network.bridge.enable_ip_masquerade: "true"
 services:
   web:
-    image: 'gitlab/gitlab-ee:latest'
+    image: 'yrzr/gitlab-ce-arm64v8:latest'
     restart: always
     hostname: 'gitlab.example.com'
     environment:
