@@ -39,7 +39,7 @@ services:
     volumes:
       - /home/ubuntu/dockervol/chronograf-storage:/var/lib/chronograf
     depends_on:
-      - influxdb
+      - grafana
     environment:
       - INFLUXDB_URL=http://influxdb:8086
       - INFLUXDB_USERNAME=${INFLUXDB_USERNAME}

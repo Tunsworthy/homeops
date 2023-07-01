@@ -1,0 +1,30 @@
+version: '3.6'
+networks: 
+ firefly_net: 
+    driver: bridge
+    driver_opts:
+        com.docker.network.bridge.host_binding_ipv4: 10.2.5.11
+        com.docker.network.bridge.name: "gitlab"
+        com.docker.network.bridge.enable_ip_masquerade: "true"
+services:
+  web:
+    image: 'gitlab/gitlab-ee:latest'
+    restart: always
+    hostname: 'gitlab.example.com'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'https://gitlab.tomunsworth.net'
+        # Add any other gitlab.rb configuration here, each on its own line
+    ports:
+      - '80:80'
+      - '443:443'
+      - '22:22'
+    volumes:
+      - '/home/ubuntu/dockervol/gitlab/config:/etc/gitlab'
+      - '/home/ubuntu/dockervol/gitlab/logs:/var/log/gitlab'
+      - '/home/ubuntu/dockervol/gitlab/data:/var/opt/gitlab'
+    shm_size: '256m'
+    networks:
+      - gitlab
+volumes:
+   gitlab:
