@@ -17,7 +17,7 @@ services:
   influxdb:
     container_name: influxdb
     image: influxdb:1.8
-    restart: unless-stopped
+    restart: always
     networks:
       - influxdb_net
     ports:
@@ -30,7 +30,7 @@ services:
       - INFLUXDB_ADMIN_PASSWORD=${INFLUXDB_PASSWORD}
   chronograf:
     container_name: chronograf
-    restart: unless-stopped
+    restart: always
     image: chronograf:latest
     networks:
       - influxdb_net
@@ -46,7 +46,7 @@ services:
       - INFLUXDB_PASSWORD=${INFLUXDB_PASSWORD}
   grafana:
     container_name: grafana
-    restart: unless-stopped
+    restart: always
     image: grafana/grafana:latest
     networks:
       - grafana_net
