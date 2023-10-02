@@ -4,15 +4,21 @@ networks:
  influxdb_net: 
     driver: bridge
     driver_opts:
-        com.docker.network.bridge.host_binding_ipv4: 10.2.3.16
+        com.docker.network.bridge.host_binding_ipv4: ${influxdb_net_ip}
         com.docker.network.bridge.name: "influxdb_net"
         com.docker.network.bridge.enable_ip_masquerade: "true"
  grafana_net: 
     driver: bridge
     driver_opts:
-        com.docker.network.bridge.host_binding_ipv4: 10.2.3.17
+        com.docker.network.bridge.host_binding_ipv4: ${grafana_net_ip}
         com.docker.network.bridge.name: "grafana_net"
         com.docker.network.bridge.enable_ip_masquerade: "true"
+ DB_net:
+  name: DB_net
+  internal: true
+ external_net:
+  name: external_net
+
 services:
   influxdb:
     container_name: influxdb
@@ -39,7 +45,7 @@ services:
     volumes:
       - /home/ubuntu/dockervol/chronograf-storage:/var/lib/chronograf
     depends_on:
-      - grafana
+      - influxdb
     environment:
       - INFLUXDB_URL=http://influxdb:8086
       - INFLUXDB_USERNAME=${INFLUXDB_USERNAME}
@@ -60,3 +66,26 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USERNAME}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+  postgres:
+    container_name: postgres
+    restart: always
+    image: postgres
+    networks: 
+      - DB_net
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    depends_on: 
+     - postgres
+    networks:
+      - DB_net
+      - external_net
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
