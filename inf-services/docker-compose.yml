@@ -1,0 +1,60 @@
+version: '3.4'
+networks:
+  vlan23:
+    name: vlan23
+    driver: ipvlan
+    driver_opts:
+      parent: vlan23
+      ipvlan_mode: l2
+    ipam:
+      config: 
+        - subnet: 10.2.3.0/24
+          gateway: 10.2.3.1
+
+volumes: 
+  pihole_data: 
+  pihole_dnsmasq:
+
+services:
+  ntp:
+    build: .
+    image: cturra/ntp:latest
+    container_name: ntp
+    restart: always
+    networks:
+       vlan23:
+          ipv4_address: ${ntp_ip}
+    ports:
+      - 123:123/udp
+    read_only: true
+    tmpfs:
+      - /etc/chrony:rw,mode=1750
+      - /run/chrony:rw,mode=1750
+      - /var/lib/chrony:rw,mode=1750
+    environment:
+      NTP_SERVERS: ${NTP_SERVERS}
+      LOG_LEVEL: 0
+  
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    networks:
+       vlan23:
+          ipv4_address: ${pihole_ip}
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp"
+      - "80:80/tcp"
+    environment:
+      TZ: ${pihole_TZ}
+      WEBPASSWORD: ${pihole_WEBPASSWORD}
+    # Volumes store your data between container upgrades
+    volumes:
+      - pihole_data:/etc/pihole/
+      - pihole_dnsmasq:/etc/dnsmasq.d/
+    # Recommended but not required (DHCP needs NET_ADMIN)
+    #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped

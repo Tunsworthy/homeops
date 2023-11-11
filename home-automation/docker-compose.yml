@@ -1,23 +1,23 @@
 version: '3'
 networks: 
- DB_net:
-  name: DB_net
+ HA_DB_net:
+  name: HA_DB_net
   internal: true
  
- mqtt_net:
-  name: mqtt_net
+ HA_mqtt_net:
+  name: HA_mqtt_net
   internal: true
 
- ext_vlan:
-  name: ext_vlan
+ vlan23:
+  name: vlan23
   driver: ipvlan
   driver_opts:
-    parent: eth0
+    parent: vlan23
     ipvlan_mode: l2
   ipam:
     config: 
-      - subnet: 192.168.1.0/24
-        gateway: 192.168.1.1
+      - subnet: 10.2.3.0/24
+        gateway: 10.2.3.1
 
 volumes:
   nodered_data:
@@ -33,10 +33,10 @@ services:
     ports:
       - "1880:1880"
     networks:
-       ext_vlan:
+       vlan23:
           ipv4_address: ${nodered_ip}
-       DB_net:
-       mqtt_net:
+       HA_DB_net:
+       HA_mqtt_net:
     volumes:
       - nodered_data:/data
     restart: always
@@ -45,9 +45,9 @@ services:
     container_name: mosquitto
     image: eclipse-mosquitto:latest
     networks:
-       ext_vlan:
+       vlan23:
           ipv4_address: ${mosquitto_ip}
-       mqtt_net:
+       HA_mqtt_net:
     ports:
       - "1883:1883"
       - "9001:9001"
@@ -63,10 +63,9 @@ services:
     ports:
       - "8123:8123"
     networks:
-       ext_vlan:
+       vlan23:
           ipv4_address: ${homeassistant_ip}
-       DB_net:
-       mqtt_net:
+       HA_mqtt_net:
     volumes:
       - homeassistant_config:/config
     restart: always
