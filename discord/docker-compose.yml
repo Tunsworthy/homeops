@@ -1,0 +1,8 @@
+version: '3.3'
+
+services:
+  sarcasmbot:
+    image: sarcasimbot:0.1
+    restart: always
+    env_file: .env
+    network_mode: bridge

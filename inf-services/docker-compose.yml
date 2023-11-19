@@ -14,6 +14,7 @@ networks:
 volumes: 
   pihole_data: 
   pihole_dnsmasq:
+  portainer_data: 
 
 services:
   ntp:
@@ -57,4 +58,15 @@ services:
     #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
     cap_add:
       - NET_ADMIN
+    restart: unless-stopped
+  portainer:
+    image: portainer/portainer-ce:latest
+    networks:
+       vlan23:
+          ipv4_address: ${portainer_ip}
+    ports:
+      - 9443:80
+    volumes:
+        - portainer_data:/data
+        - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
