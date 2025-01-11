@@ -53,6 +53,7 @@ services:
     networks:
        vlan23:
           ipv4_address: ${pihole_ip}
+       cloudflare_ext:
     ports:
       - "53:53/tcp"
       - "53:53/udp"
