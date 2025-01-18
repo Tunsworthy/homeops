@@ -66,6 +66,7 @@ services:
        vlan23:
           ipv4_address: ${homeassistant_ip}
        HA_mqtt_net:
+       cloudflare_ext:
     volumes:
       - homeassistant_config:/config
     restart: always
