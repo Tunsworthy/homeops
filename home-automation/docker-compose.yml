@@ -19,6 +19,10 @@ networks:
       - subnet: 10.2.3.0/24
         gateway: 10.2.3.1
 
+  cloudflare_ext:
+    name: cloudflare_ext
+    internal: true
+
 volumes:
   nodered_data:
   mosquitto:
