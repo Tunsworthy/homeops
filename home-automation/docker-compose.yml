@@ -12,7 +12,7 @@ networks:
   name: vlan23
   driver: ipvlan
   driver_opts:
-    parent: vlan23
+    parent: eth0.23
     ipvlan_mode: l2
   ipam:
     config: 
