@@ -43,6 +43,7 @@ services:
         ipv4_address: ${NGINX_IP}
     restart: always
   certbot:
+    
     image: certbot/certbot:latest
     volumes:
       - ./certbot/www/:/var/www/certbot/:rw

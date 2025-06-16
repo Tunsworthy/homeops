@@ -11,7 +11,7 @@ networks:
     name: vlan23
     driver: ipvlan
     driver_opts:
-      parent: vlan23
+      parent: eth0.23
       ipvlan_mode: l2
     ipam:
       config: 
@@ -86,7 +86,7 @@ services:
   postgres:
     container_name: postgres
     restart: always
-    image: postgres:latest
+    image: postgres:14
     networks: 
       - RP_DB_net
     environment:
