@@ -33,32 +33,32 @@ jobs:
     - name: Check and Renew Certificates
       run: |
         DAYS_THRESHOLD=30
-        while IFS= read -r DOMAIN || [ -n "$DOMAIN" ]; do
-          CERT_PATH="/home/ubuntu/pi-dockercompose/inf-services/certbot/conf/live/$DOMAIN/fullchain.pem"
+        LIVE_DIR="$PWD/certbot/conf/live"
+
+        if [ ! -d "$LIVE_DIR" ]; then
+          echo "No existing certs found in $LIVE_DIR"
+          exit 0
+        fi
+
+        for DOMAIN in $(ls -1 "$LIVE_DIR"); do
+          CERT_PATH="$LIVE_DIR/$DOMAIN/fullchain.pem"
 
           echo "Processing domain: $DOMAIN"
 
           if [ ! -f "$CERT_PATH" ]; then
-            echo "No certificate found for $DOMAIN. Attempting to obtain new one..."
-            RENEW=true
-          else
-            EXPIRY_DATE=$(openssl x509 -enddate -noout -in "$CERT_PATH" | cut -d= -f2)
-            EXPIRY_EPOCH=$(date -d "$EXPIRY_DATE" +%s)
-            NOW_EPOCH=$(date +%s)
-            DAYS_LEFT=$(( (EXPIRY_EPOCH - NOW_EPOCH) / 86400 ))
-
-            echo "Certificate for $DOMAIN expires in $DAYS_LEFT days."
-
-            if [ "$DAYS_LEFT" -le "$DAYS_THRESHOLD" ]; then
-              echo "Renewing $DOMAIN (expires in $DAYS_LEFT days)"
-              RENEW=true
-            else
-              RENEW=false
-              echo "No renewal needed for $DOMAIN"
-            fi
+            echo "No certificate found for $DOMAIN. Skipping..."
+            continue
           fi
 
-          if [ "$RENEW" = true ]; then
+          EXPIRY_DATE=$(openssl x509 -enddate -noout -in "$CERT_PATH" | cut -d= -f2)
+          EXPIRY_EPOCH=$(date -d "$EXPIRY_DATE" +%s)
+          NOW_EPOCH=$(date +%s)
+          DAYS_LEFT=$(( (EXPIRY_EPOCH - NOW_EPOCH) / 86400 ))
+
+          echo "Certificate for $DOMAIN expires in $DAYS_LEFT days."
+
+          if [ "$DAYS_LEFT" -le "$DAYS_THRESHOLD" ]; then
+            echo "Renewing $DOMAIN (expires in $DAYS_LEFT days)"
             docker run --rm \
               -v "$PWD/certbot/conf:/etc/letsencrypt" \
               -v "$PWD/certbot/www:/var/www/certbot" \
@@ -69,8 +69,10 @@ jobs:
               -d "$DOMAIN" \
               --non-interactive --agree-tos --email mail@tomunsworth.net \
               --preferred-challenges dns-01
+          else
+            echo "No renewal needed for $DOMAIN"
           fi
-        done < domains.txt
+        done
 
     - name: Restart NGINX
       run: |
