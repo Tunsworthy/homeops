@@ -32,7 +32,7 @@ jobs:
 
     - name: Check and Renew Certificates
       run: |
-        cd ~/pi-dockercompose/inf-services/certbot/conf
+        cd ~/pi-dockercompose/inf-services/
         DAYS_THRESHOLD=30
         LIVE_DIR="$PWD/certbot/conf/live"
 
