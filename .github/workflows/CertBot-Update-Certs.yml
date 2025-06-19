@@ -1,0 +1,74 @@
+name: Check & Renew Let's Encrypt Certificates
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Every day at midnight UTC
+  workflow_dispatch:
+
+jobs:
+  check-renew:
+    runs-on: ubuntu-latest
+
+    env:
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v3
+
+    - name: Create Cloudflare credentials file
+      run: |
+        echo "dns_cloudflare_api_token = $CF_API_TOKEN" > /home/ubuntu/pi-dockercompose/inf-services/certbot/conf/cloudflare.ini
+        chmod 600 ./certbot/conf/cloudflare.ini
+
+    - name: Install OpenSSL (for cert date checking)
+      run: sudo apt-get install -y openssl
+
+    - name: Check and Renew Certificates
+      run: |
+        DAYS_THRESHOLD=30
+        while IFS= read -r DOMAIN || [ -n "$DOMAIN" ]; do
+          CERT_PATH="/home/ubuntu/pi-dockercompose/inf-services/certbot/conf/live/$DOMAIN/fullchain.pem"
+
+          echo "Processing domain: $DOMAIN"
+
+          if [ ! -f "$CERT_PATH" ]; then
+            echo "No certificate found for $DOMAIN. Attempting to obtain new one..."
+            RENEW=true
+          else
+            EXPIRY_DATE=$(openssl x509 -enddate -noout -in "$CERT_PATH" | cut -d= -f2)
+            EXPIRY_EPOCH=$(date -d "$EXPIRY_DATE" +%s)
+            NOW_EPOCH=$(date +%s)
+            DAYS_LEFT=$(( (EXPIRY_EPOCH - NOW_EPOCH) / 86400 ))
+
+            echo "Certificate for $DOMAIN expires in $DAYS_LEFT days."
+
+            if [ "$DAYS_LEFT" -le "$DAYS_THRESHOLD" ]; then
+              echo "Renewing $DOMAIN (expires in $DAYS_LEFT days)"
+              RENEW=true
+            else
+              RENEW=false
+              echo "No renewal needed for $DOMAIN"
+            fi
+          fi
+
+          if [ "$RENEW" = true ]; then
+            docker run --rm \
+              -v "$PWD/certbot/conf:/etc/letsencrypt" \
+              -v "$PWD/certbot/www:/var/www/certbot" \
+              certbot/dns-cloudflare \
+              certonly \
+              --dns-cloudflare \
+              --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini \
+              -d "$DOMAIN" \
+              --non-interactive --agree-tos --email mail@tomunsworth.net \
+              --preferred-challenges dns-01
+          fi
+        done < domains.txt
+
+    - name: Restart NGINX
+      run: |
+        docker-compose restart nginx
