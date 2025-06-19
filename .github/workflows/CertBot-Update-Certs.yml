@@ -22,8 +22,10 @@ jobs:
 
     - name: Create Cloudflare credentials file
       run: |
-        echo "dns_cloudflare_api_token = $CF_API_TOKEN" > /home/ubuntu/pi-dockercompose/inf-services/certbot/conf/cloudflare.ini
-        chmod 600 ./certbot/conf/cloudflare.ini
+        cd ~/pi-dockercompose/inf-services/certbot/conf
+        [ -f cloudflare.ini ] && rm cloudflare.ini
+        echo "dns_cloudflare_api_token = $CF_API_TOKEN" >> cloudflare.ini
+        chmod 600 cloudflare.ini
 
     - name: Install OpenSSL (for cert date checking)
       run: sudo apt-get install -y openssl
