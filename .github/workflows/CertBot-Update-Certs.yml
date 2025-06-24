@@ -12,14 +12,9 @@ jobs:
 
     env:
       CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+      EMAIL : ${{ vars.EMAIL }}
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v4
-
-    - name: Set up Docker
-      uses: docker/setup-buildx-action@v3
-
     - name: Create Cloudflare credentials file
       run: |
         cd ~/pi-dockercompose/inf-services/certbot/conf
@@ -68,7 +63,7 @@ jobs:
               --dns-cloudflare \
               --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini \
               -d "$DOMAIN" \
-              --non-interactive --agree-tos --email mail@tomunsworth.net \
+              --non-interactive --agree-tos --email $EMAIL \
               --preferred-challenges dns-01
           else
             echo "No renewal needed for $DOMAIN"
@@ -79,3 +74,7 @@ jobs:
       run: |
         cd ~/pi-dockercompose/inf-services/
         docker-compose restart nginx
+    - name: Remove Cloudflare credentials file
+      run: |
+        cd ~/pi-dockercompose/inf-services/certbot/conf
+        [ -f cloudflare.ini ] && rm cloudflare.ini
