@@ -142,7 +142,8 @@ services:
     volumes:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
-  
+    restart: unless-stopped
+    
   cloudflaredtunnel:
     container_name: cloudflared-tunnel
     image: cloudflare/cloudflared
@@ -175,7 +176,7 @@ services:
       # - "443:443/tcp" #DNS-over-HTTPS service (HTTP/1.1, HTTP/2)
       # - "80:80/tcp" #DNS-over-HTTP service (use with reverse proxy or certbot certificate renewal)
       # - "8053:8053/tcp" #DNS-over-HTTP service (use with reverse proxy)
-      # - "67:67/udp" #DHCP service
+      - "67:67/udp" #DHCP service
     environment:
       - DNS_SERVER_DOMAIN=technitium #The primary domain name used by this DNS Server to identify itself.
       - DNS_SERVER_ADMIN_PASSWORD=${technitium_password} #DNS web console admin user password.
