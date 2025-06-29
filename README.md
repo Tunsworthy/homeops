@@ -6,6 +6,7 @@ This repository documents and automates the rebuild of my homelab, with a focus 
 - Rebuild from scratch using automation and reproducibility
 - Document all infrastructure and network design
 - Apply professional DevOps and architectural principles at home
+- Make the homelab portable and reproducible across different hardware or environments
 
 ## 📚 Documentation
 
