@@ -1,32 +1,31 @@
-## 📊 Diagrams to Produce
+## 📊 Home Network Diagrams
 
 ### 1. 🖥️ Physical Network Diagram
 
 **Purpose:** Show the actual hardware layout and connectivity of devices.
 
-**Should Include:**
-- Router, switches, access points, servers (e.g., Raspberry Pi, NUC)
+**Includes:**
+- Router, switches, access points, servers (e.g., Raspberry Pi, AP)
 - Physical ports used (e.g., trunk vs access)
 - Cabling (Ethernet, fiber)
 - Patch panels or PoE injectors (if applicable)
-- Power and UPS setup
 
-**Use Case:** Helps with hardware upgrades, maintenance, and physical troubleshooting.
+![image L3](./Diagrams/NetworkDiagram-L2.png)
 
 ---
 
 ### 2. 🌐 Logical Network Topology
 
-**Purpose:** Describe how devices are logically segmented and routed through the network.
+**Purpose:** This diagram shows the logical segmentaiton of my network.
 
-**Should Include:**
+**Includes:**
 - VLANs and their purposes (e.g., IoT, Servers, Management, Guest)
 - Subnets and IP ranges
-- DHCP vs static assignments
-- Inter-VLAN routing rules and firewall boundaries
 - DNS/NTP services
 
-**Use Case:** Supports network planning, firewall rule design, and MikroTik configuration via Terraform.
+
+![image L3](./Diagrams/NetworkDiagram-L3.png)
+
 
 ---
 
