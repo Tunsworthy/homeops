@@ -12,7 +12,7 @@ This repository documents and automates the rebuild of my homelab, with a focus 
 
 - [DevOps Tooling](./docs/devops-tooling.md)
 - [Project Breakdown](./docs/project-breakdown.md)
-- [Architecture Diagrams](./docs/diagrams/)
+- [Architecture Diagrams](./docs/diagrams.md)
 - [System Architecture](./docs/architecture.md)
 
 ## 📦 Components
