@@ -28,7 +28,8 @@ jobs:
 
       - name: Run Ansible playbook
         run: |
-          ansible-playbook infrastructure\ubuntu\network\vlan_setup.yml \
+          cd infrastructure/ubuntu/network
+          ansible-playbook vlan_setup.yml \
             -i inventory.ini \
             -e "interface_name=${INTERFACE_NAME}" \
             -e "vlan24_ip=${VLAN24_IP}" \
