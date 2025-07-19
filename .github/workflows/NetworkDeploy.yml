@@ -30,7 +30,8 @@ jobs:
         run: |
           cd infrastructure/ubuntu/network
           ansible-playbook vlan_setup.yml \
-            -i inventory.ini \
+            -i localhost, \
+            --connection=localhost \
             -e "interface_name=${INTERFACE_NAME}" \
             -e "vlan24_ip=${VLAN24_IP}" \
             -e "vlan24_gw=${VLAN24_GW}"
