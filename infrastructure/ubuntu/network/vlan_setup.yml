@@ -1,0 +1,38 @@
+---
+- name: Configure VLANs and assign IP on VLAN 24
+  hosts: all
+  become: true
+  vars:
+    interface_name: "eth0"          # Default interface (can override)
+    vlan24_ip: "10.2.4.50/24"       # Default IP for VLAN 24 (can override)
+    vlan24_gw: "10.2.4.1"           # Default gateway for VLAN 24
+    vlan_ids:
+      - 23
+      - 24
+      - 25
+      - 26
+      - 27
+
+  tasks:
+    - name: Ensure 8021q module is loaded
+      ansible.builtin.lineinfile:
+        path: /etc/modules
+        line: 8021q
+        state: present
+
+    - name: Load 8021q kernel module
+      ansible.builtin.modprobe:
+        name: 8021q
+        state: present
+
+    - name: Generate netplan config for VLANs
+      ansible.builtin.template:
+        src: vlan-config.yaml.j2
+        dest: /etc/netplan/99-vlans.yaml
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Apply netplan
+      ansible.builtin.command: netplan apply
+      changed_when: false
