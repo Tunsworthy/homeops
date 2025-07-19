@@ -5,7 +5,7 @@ on:
     branches:
       - dev
     paths:
-      - 'infrastructure/ubuntu/network/**'
+      - '/infrastructure/ubuntu/network/**'
 
 jobs:
   setup-vlans:
