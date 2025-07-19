@@ -1,0 +1,35 @@
+name: VLAN Setup
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'ubuntu/network/**'
+
+jobs:
+  setup-vlans:
+    runs-on: ubuntu-latest
+
+    env:
+      INTERFACE_NAME: ${{ secrets.IFACE_NAME }}
+      VLAN24_IP: ${{ secrets.VLAN24_IP }}
+      VLAN24_GW: ${{ secrets.VLAN24_GW }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Ansible
+        run: sudo apt update && sudo apt install -y ansible
+
+      - name: Create Ansible inventory
+        run: echo "localhost ansible_connection=local" > inventory.ini
+
+      - name: Run Ansible playbook
+        run: |
+          ansible-playbook vlan_setup.yml \
+            -i inventory.ini \
+            -e "interface_name=${INTERFACE_NAME}" \
+            -e "vlan24_ip=${VLAN24_IP}" \
+            -e "vlan24_gw=${VLAN24_GW}"
