@@ -20,18 +20,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install Ansible
-        run: sudo apt update && sudo apt install -y ansible
+      - name: Ensure Ansible is Installed
+        run: |
+          if ! command -v ansible >/dev/null 2>&1; then
+            echo "Ansible not found. Installing..."
+            sudo apt update
+            sudo apt install -y ansible
+          else
+            echo "Ansible already installed."
+          fi
 
       - name: Create Ansible inventory
-        run: echo "localhost ansible_connection=local" > inventory.ini
+        run: |
+          cd infrastructure/ubuntu/network
+          echo "localhost ansible_connection=local" > inventory.ini
 
       - name: Run Ansible playbook
         run: |
           cd infrastructure/ubuntu/network
           ansible-playbook vlan_setup.yml \
-            -i localhost, \
-            --connection=localhost \
+            -i inventory.ini \
             -e "interface_name=${INTERFACE_NAME}" \
             -e "vlan24_ip=${VLAN24_IP}" \
             -e "vlan24_gw=${VLAN24_GW}"
