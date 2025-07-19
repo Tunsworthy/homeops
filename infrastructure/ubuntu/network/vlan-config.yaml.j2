@@ -1,0 +1,21 @@
+network:
+  version: 2
+  ethernets:
+    {{ interface_name }}: {}
+
+  vlans:
+{% for id in vlan_ids %}
+    {{ interface_name }}.{{ id }}:
+      id: {{ id }}
+      link: {{ interface_name }}
+      {% if id == 24 %}
+      addresses: [{{ vlan24_ip }}]
+      gateway4: {{ vlan24_gw }}
+      nameservers:
+        addresses: [8.8.8.8, 1.1.1.1]
+      dhcp4: false
+      {% else %}
+      dhcp4: false
+      addresses: []
+      {% endif %}
+{% endfor %}
