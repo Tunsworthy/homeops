@@ -12,14 +12,14 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      INTERFACE_NAME: ${{ vars.IFACE_NAME }}
-      VLAN24_IP: ${{ vars.VLAN24_IP }}
-      VLAN24_GW: ${{ vars.VLAN24_GW }}
+      INTERFACE_NAME: ${{ env.IFACE_NAME }}
+      VLAN24_IP: ${{ env.VLAN24_IP }}
+      VLAN24_GW: ${{ env.VLAN24_GW }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
+      - run: echo 'Interface ${{ env.IFACE_NAME }}'  
       - name: Ensure Ansible is Installed
         run: |
           if ! command -v ansible >/dev/null 2>&1; then
