@@ -11,7 +11,6 @@
       - 24
       - 25
       - 26
-      - 27
 
   tasks:
     - name: Ensure 8021q module is loaded
@@ -31,7 +30,7 @@
         dest: /etc/netplan/99-vlans.yaml
         owner: root
         group: root
-        mode: 0644
+        mode: '0600'
 
     - name: Apply netplan
       ansible.builtin.command: netplan apply

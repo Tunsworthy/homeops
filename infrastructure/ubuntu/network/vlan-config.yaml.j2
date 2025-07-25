@@ -13,9 +13,9 @@ network:
       gateway4: {{ vlan24_gw }}
       nameservers:
         addresses: [8.8.8.8, 1.1.1.1]
-      dhcp4: false
+        dhcp4: false
       {% else %}
-      dhcp4: false
       addresses: []
+      dhcp4: false
       {% endif %}
 {% endfor %}
