@@ -9,7 +9,7 @@ on:
 
 jobs:
   setup-vlans:
-    environment: Dev
+    environment: ${{ github.ref == 'refs/heads/master' && 'Production' || github.ref == 'refs/heads/release' && 'release' || 'Dev' }}
     runs-on: ubuntu-latest
     env:
       INTERFACE_NAME: ${{ vars.IFACE_NAME }}

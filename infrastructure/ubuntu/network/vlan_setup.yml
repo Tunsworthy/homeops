@@ -11,7 +11,7 @@
       - 24
       - 25
       - 26
-      
+      - 27
   tasks:
     - name: Ensure 8021q module is loaded
       ansible.builtin.lineinfile:
