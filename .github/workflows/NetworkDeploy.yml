@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'infrastructure/pi3/network/**'
+      - 'infrastructure/dev_ubuntu/network/**'
   workflow_dispatch:
 jobs:
   setup-vlans:
@@ -27,12 +27,12 @@ jobs:
 
       - name: Create Ansible inventory
         run: |
-          cd infrastructure/pi3/network
+          cd infrastructure/dev_ubuntu/network
           echo "localhost ansible_connection=local" > inventory.ini
 
       - name: Run Ansible playbook
         run: |
-          cd infrastructure/pi3/network
+          cd infrastructure/dev_ubuntu/network
           ansible-playbook vlan_setup.yml \
             -i inventory.ini
   validate-config:
@@ -58,9 +58,9 @@ jobs:
             fi
         - name: Create inventory
           run: |
-            cd infrastructure/pi3/network
+            cd infrastructure/dev_ubuntu/network
             echo "localhost ansible_connection=local" > inventory.ini
         - name: Run VLAN validation playbook
           run: |
-            cd infrastructure/pi3/network
+            cd infrastructure/dev_ubuntu/network
             ansible-playbook validate_vlan.yml -i inventory.ini
