@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - 'infrastructure/dev_ubuntu/network/**'
-  workflow_dispatch:
 jobs:
   setup-vlans:
     environment: Dev
