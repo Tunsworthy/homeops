@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'infrastructure/pi3/network/**'
-
+  workflow_dispatch:
 jobs:
   setup-vlans:
     environment: Dev
