@@ -10,7 +10,7 @@ on:
 jobs:
   setup-vlans:
     environment: Dev
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted,Dev]
 
     steps:
       - name: Checkout repository
@@ -38,7 +38,7 @@ jobs:
   validate-config:
       name: Validate VLAN Setup
       environment: Dev
-      runs-on: ubuntu-latest
+      runs-on: [self-hosted,Dev]
 
       needs: setup-vlans  # Ensures this runs *after* setup-config completes
       steps:
