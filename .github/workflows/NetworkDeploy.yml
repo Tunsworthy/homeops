@@ -46,6 +46,15 @@ jobs:
 
         - name: Checkout repo
           uses: actions/checkout@v3
+        - name: Ensure Ansible is Installed
+          run: |
+            if ! command -v ansible >/dev/null 2>&1; then
+              echo "Ansible not found. Installing..."
+              sudo apt update
+              sudo apt install -y ansible
+            else
+              echo "Ansible already installed."
+            fi
         - name: Create inventory
           run: |
             cd infrastructure/pi3/network
