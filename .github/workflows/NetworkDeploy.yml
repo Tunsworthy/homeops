@@ -35,13 +35,22 @@ jobs:
           cd infrastructure/pi3/network
           ansible-playbook vlan_setup.yml \
             -i inventory.ini
+  validate-config:
+      name: Validate VLAN Setup
+      environment: Dev
+      runs-on: self-hosted
+      needs: setup-vlans  # Ensures this runs *after* setup-config completes
+      steps:
+        - name: Wait for host to come back
+          run: sleep 60
 
-      - name: Wait for network to reconfigure
-        run: |
-          echo "Waiting for network to stabilize..."
-          sleep 30
-
-      - name: Run Ansible playbook to validate connectivity
-        run: |
-          cd infrastructure/pi3/network
-          ansible-playbook validate_vlan.yml -i inventory.ini
+        - name: Checkout repo
+          uses: actions/checkout@v3
+        - name: Create inventory
+          run: |
+            cd infrastructure/pi3/network
+            echo "localhost ansible_connection=local" > inventory.ini
+        - name: Run VLAN validation playbook
+          run: |
+            cd infrastructure/pi3/network
+            ansible-playbook validate_vlan.yml -i inventory.ini
