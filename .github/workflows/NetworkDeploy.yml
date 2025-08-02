@@ -35,3 +35,13 @@ jobs:
           cd infrastructure/pi3/network
           ansible-playbook vlan_setup.yml \
             -i inventory.ini
+
+      - name: Wait for network to reconfigure
+        run: |
+          echo "Waiting for network to stabilize..."
+          sleep 30
+
+      - name: Run Ansible playbook to validate connectivity
+        run: |
+          cd infrastructure/pi3/network
+          ansible-playbook validate_vlan.yml -i inventory.ini
