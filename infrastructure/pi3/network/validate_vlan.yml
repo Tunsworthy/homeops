@@ -11,7 +11,7 @@
       - vlan24
       - vlan25
       - vlan26
-    expected_vlan24_ip: "10.2.4.30"
+    expected_vlan24_ip: "10.2.4.20"
     expected_gateway: "10.2.4.1"
     dns_test_host: "google.com"
 

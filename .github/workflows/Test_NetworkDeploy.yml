@@ -1,0 +1,65 @@
+name: VLAN Setup
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'infrastructure/pi3/network/**'
+jobs:
+  setup-vlans:
+    environment: test
+    runs-on: [self-hosted,test]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Ensure Ansible is Installed
+        run: |
+          if ! command -v ansible >/dev/null 2>&1; then
+            echo "Ansible not found. Installing..."
+            echo "${{ secrets.SUDO }}" | sudo -S apt update
+            echo "${{ secrets.SUDO }}" | sudo -S apt install -y ansible
+          else
+            echo "Ansible already installed."
+          fi
+
+      - name: Create Ansible inventory
+        run: |
+          cd infrastructure/pi3/network
+          echo "localhost ansible_connection=local" > inventory.ini
+
+      - name: Run Ansible playbook
+        run: |
+          cd infrastructure/pi3/network
+          echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook vlan_setup.yml \
+            -i inventory.ini
+  validate-config:
+      name: Validate VLAN Setup
+      environment: test
+      runs-on: [self-hosted,test]
+
+      needs: setup-vlans  # Ensures this runs *after* setup-config completes
+      steps:
+        - name: Wait for host to come back
+          run: sleep 60
+
+        - name: Checkout repo
+          uses: actions/checkout@v3
+        - name: Ensure Ansible is Installed
+          run: |
+            if ! command -v ansible >/dev/null 2>&1; then
+              echo "Ansible not found. Installing..."
+              echo "${{ secrets.SUDO }}" | sudo -S apt update
+              echo "${{ secrets.SUDO }}" | sudo -S apt install -y ansible
+            else
+              echo "Ansible already installed."
+            fi
+        - name: Create inventory
+          run: |
+            cd infrastructure/dev_ubuntu/network
+            echo "localhost ansible_connection=local" > inventory.ini
+        - name: Run VLAN validation playbook
+          run: |
+            cd infrastructure/dev_ubuntu/network
+            echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook validate_vlan.yml -i inventory.ini
