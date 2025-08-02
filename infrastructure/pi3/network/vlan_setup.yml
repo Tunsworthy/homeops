@@ -2,15 +2,6 @@
 - name: Configure VLANs and assign IP on VLAN 24
   hosts: all
   become: true
-  vars:
-    interface_name: "eth0"          # Default interface (can override)
-    vlan24_ip: "10.2.4.50/24"       # Default IP for VLAN 24 (can override)
-    vlan24_gw: "10.2.4.1"           # Default gateway for VLAN 24
-    vlan_ids:
-      - 23
-      - 24
-      - 25
-      - 26
   tasks:
     - name: Ensure 8021q module is loaded
       ansible.builtin.lineinfile:

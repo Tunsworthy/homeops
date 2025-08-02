@@ -3,23 +3,18 @@ name: VLAN Setup
 on:
   push:
     branches:
-      - dev
+      - main
     paths:
-      - 'infrastructure/ubuntu/network/**'
+      - 'infrastructure/pi3/network/**'
 
 jobs:
   setup-vlans:
-    environment: ${{ github.ref == 'refs/heads/master' && 'Production' || github.ref == 'refs/heads/release' && 'release' || 'Dev' }}
+    environment: Dev
     runs-on: ubuntu-latest
-    env:
-      INTERFACE_NAME: ${{ vars.IFACE_NAME }}
-      VLAN24_IP: ${{ vars.VLAN24_IP }}
-      VLAN24_GW: ${{ vars.VLAN24_GW }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - run: echo 'Interface ${{ vars.IFACE_NAME }}'  
       - name: Ensure Ansible is Installed
         run: |
           if ! command -v ansible >/dev/null 2>&1; then
@@ -32,14 +27,11 @@ jobs:
 
       - name: Create Ansible inventory
         run: |
-          cd infrastructure/ubuntu/network
+          cd infrastructure/pi3/network
           echo "localhost ansible_connection=local" > inventory.ini
 
       - name: Run Ansible playbook
         run: |
-          cd infrastructure/ubuntu/network
+          cd infrastructure/pi3/network
           ansible-playbook vlan_setup.yml \
-            -i inventory.ini \
-            -e "interface_name=${INTERFACE_NAME}" \
-            -e "vlan24_ip=${VLAN24_IP}" \
-            -e "vlan24_gw=${VLAN24_GW}"
+            -i inventory.ini
