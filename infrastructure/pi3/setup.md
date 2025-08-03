@@ -31,7 +31,7 @@ sudo ./svc.sh start
 
 4) Allow runner to execute commands
 sudo tee /etc/sudoers.d/runner <<'EOF'
-runner ALL=(ALL) NOPASSWD: /usr/bin/apt update, /usr/bin/apt install *, /usr/bin/ansible, /usr/bin/ansible-playbook
+runner ALL=(ALL) NOPASSWD: /usr/bin/apt update, /usr/bin/apt install *, /usr/bin/ansible, /usr/bin/ansible-playbook,/usr/bin/ansible-galaxy
 EOF
 sudo chmod 440 /etc/sudoers.d/runner
 4) In github add the required tags (test)

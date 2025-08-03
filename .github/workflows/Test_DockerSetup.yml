@@ -27,15 +27,15 @@ jobs:
             echo "Ansible already installed."
           fi
 
+      - name: Install Required role
+        run: |
+          cd infrastructure/software/docker-install
+          echo "${{ secrets.SUDO }}" | sudo -S ansible-galaxy install geerlingguy.docker -p roles 
       - name: Create Ansible inventory
         run: |
           cd infrastructure/software/docker-install
           echo "localhost ansible_connection=local" > inventory.ini
      
-      - name: Install Required role
-        run: |
-          cd infrastructure/software/docker-install
-          echo "${{ secrets.SUDO }}" | sudo -S ansible-galaxy install geerlingguy.docker -p roles 
       - name: Run Ansible playbook
         run: |
           cd infrastructure/software/docker-install
