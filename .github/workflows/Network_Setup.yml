@@ -1,16 +1,26 @@
-name: Test Server - VLAN Setup
+name: VLAN Setup
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'infrastructure/pi3/network/**'
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'Test'
 jobs:
-  setup-vlans:
-    environment: test
-    runs-on: [self-hosted,test]
+  setup:
+    runs-on: ${{ 
+      (inputs.environment == 'Dev') && fromJSON('["self-hosted", "dev"]') ||
+      (inputs.environment == 'Test') && fromJSON('["self-hosted", "test"]') ||
+      fromJSON('["self-hosted", "prod"]') }}
+
+    env:
+      BASE_DIR: ${{ 
+        inputs.environment == 'Dev' && 'infrastructure/ubuntu/network' || 
+        inputs.environment == 'Test' && 'infrastructure/pi3/network' || 
+        'infrastructure/pi4/network'
+       }}
+
 
     steps:
       - name: Checkout repository
@@ -27,12 +37,12 @@ jobs:
 
       - name: Create Ansible inventory
         run: |
-          cd infrastructure/pi3/network
+          cd $BASE_DIR
           echo "localhost ansible_connection=local" > inventory.ini
 
       - name: Run Ansible playbook
         run: |
-          cd infrastructure/pi3/network
+          cd $BASE_DIR
           echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook vlan_setup.yml \
             -i inventory.ini
   validate-config:
@@ -55,9 +65,9 @@ jobs:
             fi
         - name: Create inventory
           run: |
-            cd infrastructure/pi3/network
+            cd $BASE_DIR
             echo "localhost ansible_connection=local" > inventory.ini
         - name: Run VLAN validation playbook
           run: |
-            cd infrastructure/pi3/network
+            cd $BASE_DIR
             echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook validate_vlan.yml -i inventory.ini
