@@ -15,10 +15,7 @@ jobs:
       fromJSON('["self-hosted", "prod"]') }}
 
     env:
-      BASE_DIR: ${{ 
-        inputs.environment == 'Dev' && 'infrastructure/ubuntu/network' || 
-        inputs.environment == 'Test' && 'infrastructure/pi3/network' || 
-        'infrastructure/pi4/network'}}
+      BASE_DIR: 'infrastructure/network'
 
     steps:
       - name: Checkout repository
@@ -68,4 +65,4 @@ jobs:
         - name: Run VLAN validation playbook
           run: |
             cd $BASE_DIR
-            echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook validate_vlan.yml -i inventory.ini
+            echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook validate_vlan.yml -i inventory.ini -e "environment=${{inputs.environment}}"
