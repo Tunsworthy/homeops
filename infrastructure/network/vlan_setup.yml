@@ -2,6 +2,8 @@
 - name: Configure VLANs and assign IP on VLAN 24
   hosts: all
   become: true
+  vars:
+    vlan_template_src: "vlan-config-{{ runner | lower }}.yaml.j2"
   tasks:
     - name: Ensure 8021q module is loaded
       ansible.builtin.lineinfile:
@@ -16,7 +18,7 @@
 
     - name: Generate netplan config for VLANs
       ansible.builtin.template:
-        src: vlan-config.yaml.j2
+        src: "{{ vlan_template_src }}"
         dest: /etc/netplan/99-vlans.yaml
         owner: root
         group: root
