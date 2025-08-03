@@ -18,8 +18,8 @@ jobs:
         run: |
           if ! command -v ansible >/dev/null 2>&1; then
             echo "Ansible not found. Installing..."
-            echo "${{ secrets.SUDO }}" | sudo -S apt update
-            echo "${{ secrets.SUDO }}" | sudo -S apt install -y ansible
+            sudo apt update
+            sudo apt install -y ansible
           else
             echo "Ansible already installed."
           fi
@@ -32,7 +32,7 @@ jobs:
       - name: Run Ansible playbook
         run: |
           cd infrastructure/pi3/network
-          echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook vlan_setup.yml \
+          sudo ansible-playbook vlan_setup.yml \
             -i inventory.ini
   validate-config:
       name: Validate VLAN Setup
@@ -50,8 +50,8 @@ jobs:
           run: |
             if ! command -v ansible >/dev/null 2>&1; then
               echo "Ansible not found. Installing..."
-              echo "${{ secrets.SUDO }}" | sudo -S apt update
-              echo "${{ secrets.SUDO }}" | sudo -S apt install -y ansible
+              sudo apt update
+              sudo apt install -y ansible
             else
               echo "Ansible already installed."
             fi
@@ -62,4 +62,4 @@ jobs:
         - name: Run VLAN validation playbook
           run: |
             cd infrastructure/dev_ubuntu/network
-            echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook validate_vlan.yml -i inventory.ini
+            sudo ansible-playbook validate_vlan.yml -i inventory.ini
