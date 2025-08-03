@@ -8,6 +8,15 @@ sudo useradd --system --no-create-home --shell /usr/sbin/nologin runner
 # 2. Set password on account
 sudo passwd runner
 
+sudo mkdir -p /home/runner
+
+# Set ownership to the 'runner' user and group
+sudo chown runner:runner /home/runner
+
+# Set appropriate permissions (700 is common for home dirs, or 755 if shared access is OK)
+sudo chmod 700 /home/runner
+
+
 # Deny SSH login in /etc/ssh/sshd_config
 echo 'DenyUsers runner' | sudo tee -a /etc/ssh/sshd_config
 sudo systemctl reload sshd
