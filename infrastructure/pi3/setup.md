@@ -5,8 +5,8 @@
 # 1. Create the user with no login shell and no home directory
 sudo useradd --system --no-create-home --shell /usr/sbin/nologin runner
 
-# 2. Ensure the user has no password set
-sudo passwd -l runner
+# 2. Set password on account
+sudo passwd runner
 
 # Deny SSH login in /etc/ssh/sshd_config
 echo 'DenyUsers runner' | sudo tee -a /etc/ssh/sshd_config
@@ -31,7 +31,7 @@ sudo ./svc.sh start
 
 4) Allow runner to execute commands
 sudo tee /etc/sudoers.d/runner <<'EOF'
-runner ALL=(ALL) NOPASSWD: /usr/bin/apt-get update, /usr/bin/apt-get install *, /usr/bin/ansible, /usr/bin/ansible-playbook
+runner ALL=(ALL) NOPASSWD: /usr/bin/apt update, /usr/bin/apt install *, /usr/bin/ansible, /usr/bin/ansible-playbook
 EOF
 
 sudo chmod 440 /etc/sudoers.d/runner
