@@ -1,0 +1,29 @@
+---
+- name: Configure VLANs and assign IP on VLAN 24
+  hosts: all
+  become: true
+  tasks:
+    - name: Ensure 8021q module is loaded
+      ansible.builtin.lineinfile:
+        path: /etc/modules
+        line: 8021q
+        state: present
+
+    - name: Load 8021q kernel module
+      ansible.builtin.modprobe:
+        name: 8021q
+        state: present
+
+    - name: Generate netplan config for VLANs
+      ansible.builtin.template:
+        src: vlan-config.yaml.j2
+        dest: /etc/netplan/99-vlans.yaml
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Apply netplan with safe delay
+      ansible.builtin.shell: |
+        nohup bash -c 'sleep 5 && netplan apply' >/dev/null 2>&1 &
+      become: true
+
