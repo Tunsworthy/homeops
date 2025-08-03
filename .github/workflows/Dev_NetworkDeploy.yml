@@ -1,4 +1,4 @@
-name: VLAN Setup
+name: Dev Server - VLAN Setup
 
 on:
   push:
