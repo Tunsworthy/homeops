@@ -55,9 +55,9 @@ jobs:
             fi
         - name: Create inventory
           run: |
-            cd infrastructure/dev_ubuntu/network
+            cd infrastructure/pi3/network
             echo "localhost ansible_connection=local" > inventory.ini
         - name: Run VLAN validation playbook
           run: |
-            cd infrastructure/dev_ubuntu/network
+            cd infrastructure/pi3/network
             echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook validate_vlan.yml -i inventory.ini
