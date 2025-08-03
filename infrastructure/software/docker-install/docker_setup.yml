@@ -1,6 +1,6 @@
 # infrastructure/software/docker-install/docker_setup.yml
 - name: Install Docker
-  hosts: targets
+  hosts: all
   become: true
   roles:
     - geerlingguy.docker
