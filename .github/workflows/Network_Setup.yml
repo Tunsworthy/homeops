@@ -8,7 +8,7 @@ on:
         required: true
         default: 'Test'
 jobs:
-  setup:
+  setup-vlans:
     runs-on: ${{ 
       (inputs.environment == 'Dev') && fromJSON('["self-hosted", "dev"]') ||
       (inputs.environment == 'Test') && fromJSON('["self-hosted", "test"]') ||
@@ -19,6 +19,7 @@ jobs:
         inputs.environment == 'Dev' && 'infrastructure/ubuntu/network' || 
         inputs.environment == 'Test' && 'infrastructure/pi3/network' || 
         'infrastructure/pi4/network'}}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
