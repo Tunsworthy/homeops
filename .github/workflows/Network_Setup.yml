@@ -39,7 +39,7 @@ jobs:
         run: |
           cd $BASE_DIR
           echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook vlan_setup.yml \
-            -i inventory.ini -e "environment=${{inputs.environment}}"
+            -i inventory.ini -e "runner=${{inputs.environment}}"
   validate-config:
       name: Validate VLAN Setup
       environment: test

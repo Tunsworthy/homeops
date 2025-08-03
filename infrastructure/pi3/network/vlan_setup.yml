@@ -3,7 +3,7 @@
   hosts: all
   become: true
   vars:
-  vlan_template_src: "vlan-config-{{ env | lower }}.yaml.j2"
+  vlan_template_src: "vlan-config-{{ runner | lower }}.yaml.j2"
   tasks:
     - name: Ensure 8021q module is loaded
       ansible.builtin.lineinfile:
