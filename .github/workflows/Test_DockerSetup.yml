@@ -8,7 +8,7 @@ on:
         required: true
         default: 'Test'
 jobs:
-  setup-docker:
+  setup:
     runs-on: [self-hosted, ${{ github.event.inputs.environment }}]
 
     steps:
