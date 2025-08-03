@@ -18,10 +18,7 @@ jobs:
       BASE_DIR: ${{ 
         inputs.environment == 'Dev' && 'infrastructure/ubuntu/network' || 
         inputs.environment == 'Test' && 'infrastructure/pi3/network' || 
-        'infrastructure/pi4/network'
-       }}
-
-
+        'infrastructure/pi4/network'}}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
