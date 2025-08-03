@@ -9,7 +9,10 @@ on:
         default: 'Test'
 jobs:
   setup:
-    runs-on: [self-hosted, test]
+    runs-on: ${{ 
+      (inputs.environment == 'Dev') && fromJSON('["self-hosted", "dev"]') ||
+      (inputs.environment == 'Test') && fromJSON('["self-hosted", "test"]') ||
+      fromJSON('["self-hosted", "prod"]') }}
 
     steps:
       - name: Checkout repository
