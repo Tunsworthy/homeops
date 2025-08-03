@@ -39,4 +39,5 @@ jobs:
       - name: Run Ansible playbook
         run: |
           cd infrastructure/software/docker-install
-          echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook docker_setup.yml -i inventory.ini
+          echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook docker_setup.yml \ 
+          -i inventory.ini
