@@ -42,9 +42,6 @@ jobs:
 
       needs: setup-vlans  # Ensures this runs *after* setup-config completes
       steps:
-        - name: Wait for host to come back
-          run: sleep 60
-
         - name: Checkout repo
           uses: actions/checkout@v3
         - name: Ensure Ansible is Installed

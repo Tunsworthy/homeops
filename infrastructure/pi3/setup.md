@@ -33,8 +33,13 @@ sudo ./svc.sh start
 sudo tee /etc/sudoers.d/runner <<'EOF'
 runner ALL=(ALL) NOPASSWD: /usr/bin/apt update, /usr/bin/apt install *, /usr/bin/ansible, /usr/bin/ansible-playbook
 EOF
-
 sudo chmod 440 /etc/sudoers.d/runner
-
-
 4) In github add the required tags (test)
+
+5) Once runner is up you can run the Network workflow this will add the rquired VLANs
+
+6) Run the docker setup script
+
+##Things to do##
+-Created docker installer ansible playbook
+https://docs.docker.com/engine/install/linux-postinstall/
