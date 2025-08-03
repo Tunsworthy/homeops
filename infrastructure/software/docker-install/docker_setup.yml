@@ -4,3 +4,10 @@
   become: true
   roles:
     - geerlingguy.docker
+
+  tasks:
+    - name: Add runner user to docker group
+      user:
+        name: runner
+        groups: docker
+        append: yes
