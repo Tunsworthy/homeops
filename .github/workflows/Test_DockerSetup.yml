@@ -1,27 +1,16 @@
 name: Test Server - Docker Setup
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'infrastructure/software/docker-install/**'
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'Test'
 jobs:
   setup-docker:
-    if: github.ref_name == 'dev' || github.ref_name == 'test' || github.ref_name == 'main'
-    runs-on: [self-hosted, ${{ matrix.runner }}]
-    environment: ${{ matrix.environment }}
-    strategy:
-      matrix:
-        include:
-          - environment: dev
-            runner: dev
-          - environment: test
-            runner: test
-          - environment: main
-            runner: prod
-            
+    runs-on: [self-hosted, ${{ github.event.inputs.environment }}]
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
