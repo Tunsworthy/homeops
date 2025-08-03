@@ -1,0 +1,47 @@
+name: Test Server - Docker Setup
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'infrastructure/software/docker-install/**'
+  workflow_dispatch:
+jobs:
+  setup-docker:
+    if: github.ref_name == 'dev' || github.ref_name == 'test' || github.ref_name == 'main'
+    runs-on: [self-hosted, ${{ matrix.runner }}]
+    environment: ${{ matrix.environment }}
+    strategy:
+      matrix:
+        include:
+          - environment: dev
+            runner: dev
+          - environment: test
+            runner: test
+          - environment: main
+            runner: prod
+            
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Ensure Ansible is Installed
+        run: |
+          if ! command -v ansible >/dev/null 2>&1; then
+            echo "Ansible not found. Installing..."
+            echo "${{ secrets.SUDO }}" | sudo -S apt update
+            echo "${{ secrets.SUDO }}" | sudo -S apt install -y ansible
+          else
+            echo "Ansible already installed."
+          fi
+
+      - name: Create Ansible inventory
+        run: |
+          cd infrastructure/software/docker-install
+          echo "localhost ansible_connection=local" > inventory.ini
+
+      - name: Run Ansible playbook
+        run: |
+          cd infrastructure/software/docker-install
+          echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook docker_setup.yml \
+            -i inventory.ini
