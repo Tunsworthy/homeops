@@ -42,8 +42,13 @@ jobs:
             -i inventory.ini -e "runner=${{inputs.environment}}"
   validate-config:
       name: Validate VLAN Setup
-      environment: test
-      runs-on: [self-hosted,test]
+      runs-on: ${{ 
+      (inputs.environment == 'Dev') && fromJSON('["self-hosted", "dev"]') ||
+      (inputs.environment == 'Test') && fromJSON('["self-hosted", "test"]') ||
+      fromJSON('["self-hosted", "prod"]') }}
+
+    env:
+      BASE_DIR: 'infrastructure/host/network'
 
       needs: setup-vlans  # Ensures this runs *after* setup-config completes
       steps:
