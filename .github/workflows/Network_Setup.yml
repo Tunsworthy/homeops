@@ -43,12 +43,11 @@ jobs:
   validate-config:
       name: Validate VLAN Setup
       runs-on: ${{ 
-      (inputs.environment == 'Dev') && fromJSON('["self-hosted", "dev"]') ||
-      (inputs.environment == 'Test') && fromJSON('["self-hosted", "test"]') ||
-      fromJSON('["self-hosted", "prod"]') }}
-
-    env:
-      BASE_DIR: 'infrastructure/host/network'
+        (inputs.environment == 'Dev') && fromJSON('["self-hosted", "dev"]') ||
+        (inputs.environment == 'Test') && fromJSON('["self-hosted", "test"]') ||
+        fromJSON('["self-hosted", "prod"]') }}
+      env:
+        BASE_DIR: 'infrastructure/host/network'
 
       needs: setup-vlans  # Ensures this runs *after* setup-config completes
       steps:
