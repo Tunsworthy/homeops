@@ -15,7 +15,7 @@ jobs:
       fromJSON('["self-hosted", "prod"]') }}
 
     env:
-      BASE_DIR: 'infrastructure/network'
+      BASE_DIR: 'infrastructure/host/network'
 
     steps:
       - name: Checkout repository

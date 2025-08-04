@@ -13,7 +13,8 @@ jobs:
       (inputs.environment == 'Dev') && fromJSON('["self-hosted", "dev"]') ||
       (inputs.environment == 'Test') && fromJSON('["self-hosted", "test"]') ||
       fromJSON('["self-hosted", "prod"]') }}
-
+    env:
+      BASE_DIR: 'infrastructure/host/software'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -29,15 +30,15 @@ jobs:
 
       - name: Install Required role
         run: |
-          cd infrastructure/software/docker-install
+          cd $BASE_DIR
           ansible-galaxy install geerlingguy.docker -p roles 
       - name: Create Ansible inventory
         run: |
-          cd infrastructure/software/docker-install
+          cd $BASE_DIR
           echo "localhost ansible_connection=local" > inventory.ini
      
       - name: Run Ansible playbook
         run: |
-          cd infrastructure/software/docker-install
+          cd $BASE_DIR
           echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook docker_setup.yml \
             -i inventory.ini
