@@ -69,5 +69,5 @@ jobs:
         - name: Run VLAN validation playbook
           run: |
             cd $BASE_DIR
-            echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook validate_vlan.yml -i inventory.ini \
+            echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook validate_vlan.yml \
             -i inventory.ini -e "runner=${{inputs.environment}}"

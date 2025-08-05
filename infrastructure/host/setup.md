@@ -3,7 +3,7 @@
     1b) Added in public key to allow passwordless login ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCRjIhIDVrQMJv74Xj9aB5f4+dthIDdzmk2blFDwAmWjbykP4eTK0DODXp8Q0mqiVt/G1k5ekCI0bT3KnkiY+7lkBe3X/KBfWvPMfI5iqRkoF8wfgXUJNEa2YhF4Gq+CStD2/zlr1u29PGN14ppnCIp0/AAkAjw3K5g1P3ukVfThWQEvD0LZk126zXb10ISc0lfrNW6moMzDdvDCDJrqol1WDzacxEPsGKtSwBUYHFTwSSzgZYxtex6kgfWPUBhQLFKJWWr/8bONU9R94q5lgGljRqdjml+6N2pgWyJuveI31ZMvcTdgoBa0jPzzREo2kzKev27L3YjeSVu4w6cyXsx rsa-key-20231005
 2) Once booted created another user account for github runner
 # 1. Create the user with no login shell and no home directory
-sudo useradd --system --no-create-home --shell /usr/sbin/nologin runner
+sudo useradd --system --shell /usr/sbin/nologin runner
 
 # 2. Set password on account
 sudo passwd runner
