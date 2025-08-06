@@ -24,7 +24,7 @@
 
     - name: Read rendered VLAN config
       ansible.builtin.slurp:
-      src: "/tmp/rendered-vlan.yaml"
+        src: "/tmp/rendered-vlan.yaml"
       register: rendered_vlan_file
 
     - name: Parse YAML from rendered template
