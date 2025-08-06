@@ -43,7 +43,7 @@
 
     - name: Validate IP address of vlan24
       ansible.builtin.assert:
-        that: "'{{ expected_vlan24_ip }}' in vlan24_ip_info.stdout"
+        that: "{{ expected_vlan24_ip }} in vlan24_ip_info.stdout"
         fail_msg: "Expected IP {{ expected_vlan24_ip }} not found on vlan24"
         success_msg: "IP address for vlan24 matches expected"
 
