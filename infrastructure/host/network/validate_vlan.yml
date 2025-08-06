@@ -44,3 +44,15 @@
       changed_when: false
       failed_when: vlan_links.rc != 0
       loop: "{{ expected_vlan_interfaces }}"
+
+    - name: Validate IP address of vlan24
+      ansible.builtin.assert:
+        that: "'{{ expected_vlan24_ip }}' in vlan24_ip_info.stdout"
+        fail_msg: "Expected IP {{ expected_vlan24_ip }} not found on vlan24"
+        success_msg: "IP address for vlan24 matches expected"
+
+    - name: Validate default gateway of vlan24
+      ansible.builtin.assert:
+        that: "'{{ expected_gateway }}' in vlan24_gateway_info.stdout"
+        fail_msg: "Expected gateway {{ expected_gateway }} not found for vlan24"
+        success_msg: "Gateway for vlan24 matches expected"
