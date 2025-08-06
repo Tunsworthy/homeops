@@ -45,11 +45,21 @@
       failed_when: vlan_links.rc != 0
       loop: "{{ expected_vlan_interfaces }}"
 
+    - name: Get IP address of vlan24
+      ansible.builtin.command: ip -4 addr show vlan24
+      register: vlan24_ip_info
+      changed_when: false
+
     - name: Validate IP address of vlan24
       ansible.builtin.assert:
         that: "'{{ expected_vlan24_ip }}' in vlan24_ip_info.stdout"
         fail_msg: "Expected IP {{ expected_vlan24_ip }} not found on vlan24"
         success_msg: "IP address for vlan24 matches expected"
+
+    - name: Get default route via vlan24
+      ansible.builtin.command: ip route show default dev vlan24
+      register: vlan24_gateway_info
+      changed_when: false
 
     - name: Validate default gateway of vlan24
       ansible.builtin.assert:
