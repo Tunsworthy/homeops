@@ -75,7 +75,7 @@
 
     - name: Validate expected nameservers are configured
       ansible.builtin.assert:
-       that:
-        - expected_nameservers | map('regex_search', vlan24_dns_info.stdout) | list | length == expected_nameservers | length
-      fail_msg: "Not all expected nameservers ({{ expected_nameservers }}) are listed for vlan24"
-      success_msg: "All expected nameservers found in systemd-resolved output for vlan24"
+        that:
+          - expected_nameservers | map('regex_search', vlan24_dns_info.stdout) | list | length == expected_nameservers | length
+        fail_msg: "Not all expected nameservers ({{ expected_nameservers }}) are listed for vlan24"
+        success_msg: "All expected nameservers found in systemd-resolved output for vlan24"
