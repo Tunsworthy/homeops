@@ -66,3 +66,16 @@
         that: "'{{ expected_gateway }}' in vlan24_gateway_info.stdout"
         fail_msg: "Expected gateway {{ expected_gateway }} not found for vlan24"
         success_msg: "Gateway for vlan24 matches expected"
+    
+    - name: Get DNS info from systemd-resolved
+      ansible.builtin.command: resolvectl status vlan24
+        register: vlan24_dns_info
+        changed_when: false
+      failed_when: false
+
+    - name: Validate expected nameservers are configured
+      ansible.builtin.assert:
+       that:
+        - expected_nameservers | map('regex_search', vlan24_dns_info.stdout) | list | length == expected_nameservers | length
+      fail_msg: "Not all expected nameservers ({{ expected_nameservers }}) are listed for vlan24"
+      success_msg: "All expected nameservers found in systemd-resolved output for vlan24"
