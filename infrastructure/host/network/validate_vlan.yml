@@ -69,8 +69,8 @@
     
     - name: Get DNS info from systemd-resolved
       ansible.builtin.command: resolvectl status vlan24
-        register: vlan24_dns_info
-        changed_when: false
+      register: vlan24_dns_info
+      changed_when: false
       failed_when: false
 
     - name: Validate expected nameservers are configured
