@@ -5,15 +5,6 @@
   gather_facts: true
   vars:
     vlan_template_src: "vlan-config-{{ runner | lower }}.yaml.j2"
-    vlan_interfaces:
-      - vlan22
-      - vlan23
-      - vlan24
-      - vlan25
-      - vlan26
-    expected_vlan24_ip: "10.2.4.20"
-    expected_gateway: "10.2.4.1"
-    dns_test_host: "google.com"
 
   tasks:
     - name: Render VLAN config template to local temp file
