@@ -41,35 +41,8 @@ jobs:
           cd $BASE_DIR
           echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook vlan_setup.yml \
             -i inventory.ini -e "runner=${{inputs.host}}"
-  validate-config:
-      name: Validate VLAN Setup
-      environment: hosts
-      runs-on: ${{ 
-        (inputs.host == 'desktopdocker') && fromJSON('["self-hosted", "desktopdocker"]') ||
-        (inputs.host == 'pi3') && fromJSON('["self-hosted", "pi3"]') ||
-        fromJSON('["self-hosted", "pi4"]') }}
-      env:
-        BASE_DIR: 'infrastructure/host/network'
-
-      needs: setup-vlans  # Ensures this runs *after* setup-config completes
-      steps:
-        - name: Checkout repo
-          uses: actions/checkout@v3
-        - name: Ensure Ansible is Installed
-          run: |
-            if ! command -v ansible >/dev/null 2>&1; then
-              echo "Ansible not found. Installing..."
-              echo "${{ secrets.SUDO }}" | sudo -S apt update
-              echo "${{ secrets.SUDO }}" | sudo -S apt install -y ansible
-            else
-              echo "Ansible already installed."
-            fi
-        - name: Create inventory
-          run: |
-            cd $BASE_DIR
-            echo "localhost ansible_connection=local" > inventory.ini
-        - name: Run VLAN validation playbook
-          run: |
-            cd $BASE_DIR
-            echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook validate_vlan.yml \
-            -i inventory.ini -e "runner=${{inputs.host}}"
+      - name: Run VLAN validation playbook
+        run: |
+          cd $BASE_DIR
+          echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook validate_vlan.yml \
+          -i inventory.ini -e "runner=${{inputs.host}}"]]
