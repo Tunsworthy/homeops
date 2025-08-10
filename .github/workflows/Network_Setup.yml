@@ -1,5 +1,4 @@
 name: VLAN Setup
-name: Network Setup
 on:
   workflow_call:
     inputs:
