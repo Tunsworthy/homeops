@@ -26,6 +26,6 @@
 
     - name: Apply netplan with safe delay
       ansible.builtin.shell: |
-        nohup bash -c 'sleep 5 && netplan apply' >/dev/null 2>&1 &
+        netplan apply
       become: true
 
