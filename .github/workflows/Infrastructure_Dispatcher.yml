@@ -1,4 +1,4 @@
-name: infrastructure Dispatcher
+name: Infrastructure Dispatcher
 on:
   workflow_dispatch:
     inputs:
@@ -21,6 +21,8 @@ jobs:
     outputs:
       env: ${{ steps.set-vars.outputs.env }}
       runner: ${{ steps.set-vars.outputs.runner }}
+    env:
+      BASE_DIR: 'infrastructure/host'
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -31,6 +33,7 @@ jobs:
       - name: Read config
         id: set-vars
         run: |
+          cd $BASE_DIR
           HOST="${{ github.event.inputs.host }}"
           ENV=$(yq -r ".hosts.${HOST}.environment" hosts-config.yml)
           RUNNER=$(yq -r ".hosts.${HOST}.runner" hosts-config.yml)
