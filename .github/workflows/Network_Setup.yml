@@ -3,16 +3,17 @@ name: VLAN Setup
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'Target environment'
+      host:
+        description: 'Target Host'
         required: true
-        default: 'Test'
+        default: 'pi3'
 jobs:
   setup-vlans:
+    environment: hosts
     runs-on: ${{ 
-      (inputs.environment == 'Dev') && fromJSON('["self-hosted", "dev"]') ||
-      (inputs.environment == 'Test') && fromJSON('["self-hosted", "test"]') ||
-      fromJSON('["self-hosted", "prod"]') }}
+      (inputs.host == 'desktopdocker') && fromJSON('["self-hosted", "desktopdocker"]') ||
+      (inputs.host == 'pi3') && fromJSON('["self-hosted", "pi3"]') ||
+      fromJSON('["self-hosted", "pi4"]') }}
 
     env:
       BASE_DIR: 'infrastructure/host/network'
@@ -39,13 +40,14 @@ jobs:
         run: |
           cd $BASE_DIR
           echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook vlan_setup.yml \
-            -i inventory.ini -e "runner=${{inputs.environment}}"
+            -i inventory.ini -e "runner=${{inputs.host}}"
   validate-config:
       name: Validate VLAN Setup
+      environment: hosts
       runs-on: ${{ 
-        (inputs.environment == 'Dev') && fromJSON('["self-hosted", "dev"]') ||
-        (inputs.environment == 'Test') && fromJSON('["self-hosted", "test"]') ||
-        fromJSON('["self-hosted", "prod"]') }}
+        (inputs.host == 'desktopdocker') && fromJSON('["self-hosted", "desktopdocker"]') ||
+        (inputs.host == 'pi3') && fromJSON('["self-hosted", "pi3"]') ||
+        fromJSON('["self-hosted", "pi4"]') }}
       env:
         BASE_DIR: 'infrastructure/host/network'
 
@@ -70,4 +72,4 @@ jobs:
           run: |
             cd $BASE_DIR
             echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook validate_vlan.yml \
-            -i inventory.ini -e "runner=${{inputs.environment}}"
+            -i inventory.ini -e "runner=${{inputs.host}}"

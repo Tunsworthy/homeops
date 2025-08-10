@@ -39,13 +39,13 @@ This phase focuses on laying the groundwork for a clean and structured environme
   - Apply basic firewall rules to isolate and control traffic
 
 - **Prepare Raspberry Pi 3**
-  - Flash and harden the OS (e.g., Raspberry Pi OS Lite or Ubuntu Server)
-  - Assign a static IP and place it in the correct VLAN
-  - Install necessary tools (e.g., Docker, SSH, monitoring agent)
+  - Flash and harden the OS - Done
+  - Assign a static IP and place it in the correct VLAN - Done
+  - Install necessary tools (e.g., Docker, SSH, monitoring agent) - Done
   - Set up backups for its configuration and persistent data
 
 - **Create Initial GitHub Repository Structure**
-  - Organise directories for Terraform, Ansible, Docker, Diagrams, and Docs
+  - Organise directories for Ansible, Docker, Diagrams, and Docs
   - Commit baseline network documentation
   - Create `.gitignore`, `README.md`, and project board/issues
 
