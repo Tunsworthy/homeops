@@ -24,7 +24,7 @@
         group: root
         mode: '0600'
 
-    - name: Apply netplan with safe delay
+    - name: Apply netplan
       ansible.builtin.shell: |
         netplan apply
       become: true
