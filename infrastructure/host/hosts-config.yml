@@ -1,0 +1,10 @@
+hosts:
+  pi3:
+    environment: hosts
+    runner: pi3
+  pi4:
+    environment: hosts
+    runner: pi4
+  pi5:
+    environment: hosts
+    runner: dockerdesktop

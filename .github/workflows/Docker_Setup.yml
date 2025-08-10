@@ -1,22 +1,26 @@
 name: Docker Setup
-
 on:
-  workflow_dispatch:
-    inputs:      
+  workflow_call:
+    inputs:
       host:
-        description: 'Target Host'
         required: true
-        default: 'pi3'
+        type: string
+      environment:
+        required: true
+        type: string
+      runs_on:
+        required: true
+        type: string
 jobs:
   setup:
-    environment: hosts
-    runs-on: ${{ 
-      (inputs.host == 'desktopdocker') && fromJSON('["self-hosted", "desktopdocker"]') ||
-      (inputs.host == 'pi3') && fromJSON('["self-hosted", "pi3"]') ||
-      fromJSON('["self-hosted", "pi4"]') }}
+    runs-on: ${{ inputs.runs_on }}
+    environment: ${{ inputs.environment }}
     env:
       BASE_DIR: 'infrastructure/host/software'
     steps:
+      - name: Run docker configuration
+        run: |
+          echo "Running Docker setup for host: ${{ inputs.host }}"
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Ensure Ansible is Installed

@@ -1,0 +1,62 @@
+name: infrastructure Dispatcher
+on:
+  workflow_dispatch:
+    inputs:
+      host:
+        description: 'Target Host'
+        required: true
+        default: 'pi3'
+      setup_type:
+        description: 'Which setup to run'
+        required: true
+        default: 'network'
+        type: choice
+        options:
+          - network
+          - docker
+          - all
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    outputs:
+      env: ${{ steps.set-vars.outputs.env }}
+      runner: ${{ steps.set-vars.outputs.runner }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install yq
+        run: sudo apt-get install -y yq
+
+      - name: Read config
+        id: set-vars
+        run: |
+          HOST="${{ github.event.inputs.host }}"
+          ENV=$(yq -r ".hosts.${HOST}.environment" hosts-config.yml)
+          RUNNER=$(yq -r ".hosts.${HOST}.runner" hosts-config.yml)
+
+          if [[ "$ENV" == "null" || "$RUNNER" == "null" ]]; then
+            echo "Unknown host: $HOST"
+            exit 1
+          fi
+
+          echo "env=$ENV" >> $GITHUB_OUTPUT
+          echo "runner=$RUNNER" >> $GITHUB_OUTPUT
+
+  call_network:
+    if: ${{ github.event.inputs.setup_type == 'network' || github.event.inputs.setup_type == 'all' }}
+    uses: ./.github/workflows/Network_Setup.yml
+    with:
+      host: ${{ github.event.inputs.host }}
+      environment: ${{ needs.dispatch.outputs.env }}
+      runs_on: ${{ needs.dispatch.outputs.runner }}
+    needs: dispatch
+
+  call_docker:
+    if: ${{ github.event.inputs.setup_type == 'docker' || github.event.inputs.setup_type == 'all' }}
+    uses: ./.github/workflows/Docker_Setup.yml
+    with:
+      host: ${{ github.event.inputs.host }}
+      environment: ${{ needs.dispatch.outputs.env }}
+      runs_on: ${{ needs.dispatch.outputs.runner }}
+    needs: dispatch
