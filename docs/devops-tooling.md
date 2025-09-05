@@ -16,7 +16,7 @@
 - **Purpose:** Automate system configuration, package installation, service management, and OS patching.
 - **DevOps Role:** Idempotent and versioned provisioning for base OS configuration and application layer setup.
 - **Use Cases:**
-  - Install and configure software on Raspberry Pi and Linux servers
+  - Install and configure software on Raspberry Pi
   - Enforce system hardening policies
   - Manage Docker host environments and file permissions
   - Schedule regular OS and security patching

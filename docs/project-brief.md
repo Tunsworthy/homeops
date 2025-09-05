@@ -16,6 +16,7 @@ Given that I spend my professional life designing and documenting enterprise env
 - Undocumented and "complex" network.
 - Devices in the IoT VLAN have internet access, which was never intended but evolved over time.
 - Containers currently reside in the IoT VLAN; these should be separated out.
+- No 'DR' if my primary devices goes down my home is offline
 
 ---
 

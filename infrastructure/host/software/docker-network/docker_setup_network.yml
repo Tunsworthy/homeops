@@ -1,0 +1,13 @@
+---
+- name: Docker networkS
+  hosts: all
+  become: true
+  tasks:
+    - name: Create a Docker bridge network
+      community.docker.docker_network:
+        name: custom_bridge
+        driver: bridge
+        ipam_config:
+          - subnet: 192.168.100.0/24
+            gateway: 192.168.100.1
+        state: present

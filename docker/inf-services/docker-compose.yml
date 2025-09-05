@@ -157,7 +157,7 @@ services:
 
   
   dns-server:
-    container_name: technitium
+    container_name:  
     hostname: technitium
     image: technitium/dns-server:latest
     # For DHCP deployments, use "host" network mode and remove all the port mappings, including the ports array by commenting them

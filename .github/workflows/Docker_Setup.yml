@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ inputs.runs_on }}
     environment: ${{ inputs.environment }}
     env:
-      BASE_DIR: 'infrastructure/host/software'
+      BASE_DIR: 'infrastructure/host/software/docker-install'
     steps:
       - name: Run docker configuration
         run: |
