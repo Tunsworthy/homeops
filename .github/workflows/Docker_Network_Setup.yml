@@ -16,11 +16,11 @@ jobs:
     runs-on: ${{ inputs.runs_on }}
     environment: ${{ inputs.environment }}
     env:
-      BASE_DIR: 'infrastructure/host/software/docker-install'
+      BASE_DIR: 'infrastructure/host/software/docker-network'
     steps:
       - name: Run docker configuration
         run: |
-          echo "Running Docker setup for host: ${{ inputs.host }}"
+          echo "Running Docker Network setup for host: ${{ inputs.host }}"
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Ensure Ansible is Installed
@@ -33,10 +33,6 @@ jobs:
             echo "Ansible already installed."
           fi
 
-      - name: Install Required role
-        run: |
-          cd $BASE_DIR
-          ansible-galaxy install geerlingguy.docker -p roles 
       - name: Create Ansible inventory
         run: |
           cd $BASE_DIR
@@ -45,5 +41,5 @@ jobs:
       - name: Run Docker Setup
         run: |
           cd $BASE_DIR
-          echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook docker_setup.yml \
+          echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook docker_setup_network.yml \
             -i inventory.ini

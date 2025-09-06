@@ -1,13 +1,12 @@
----
 - name: Docker networkS
   hosts: all
   become: true
   tasks:
-    - name: Create a Docker bridge network
+    - name: Create VLAN 22
       community.docker.docker_network:
-        name: custom_bridge
-        driver: bridge
+        name: VLAN22
+        driver: macvlan
         ipam_config:
-          - subnet: 192.168.100.0/24
-            gateway: 192.168.100.1
+          - subnet: 10.2.2.0/24
+            gateway: 10.2.2.1
         state: present

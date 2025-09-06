@@ -12,8 +12,9 @@ on:
         default: 'network'
         type: choice
         options:
-          - network
-          - docker
+          - host network
+          - docker install
+          - docker network
           - all
 jobs:
   dispatch:
@@ -47,7 +48,7 @@ jobs:
           echo "runner=$RUNNER" >> $GITHUB_OUTPUT
 
   call_network:
-    if: ${{ github.event.inputs.setup_type == 'network' || github.event.inputs.setup_type == 'all' }}
+    if: ${{ github.event.inputs.setup_type == 'host network' || github.event.inputs.setup_type == 'all' }}
     uses: ./.github/workflows/Network_Setup.yml
     with:
       host: ${{ github.event.inputs.host }}
@@ -56,7 +57,16 @@ jobs:
     needs: dispatch
 
   call_docker:
-    if: ${{ github.event.inputs.setup_type == 'docker' || github.event.inputs.setup_type == 'all' }}
+    if: ${{ github.event.inputs.setup_type == 'docker install' || github.event.inputs.setup_type == 'all' }}
+    uses: ./.github/workflows/Docker_Setup.yml
+    with:
+      host: ${{ github.event.inputs.host }}
+      environment: ${{ needs.dispatch.outputs.env }}
+      runs_on: ${{ needs.dispatch.outputs.runner }}
+    needs: dispatch
+
+  call_docker_network:
+    if: ${{ github.event.inputs.setup_type == 'docker network' || github.event.inputs.setup_type == 'all' }}
     uses: ./.github/workflows/Docker_Setup.yml
     with:
       host: ${{ github.event.inputs.host }}
