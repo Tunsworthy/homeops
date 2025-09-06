@@ -67,7 +67,7 @@ jobs:
 
   call_docker_network:
     if: ${{ github.event.inputs.setup_type == 'docker network' || github.event.inputs.setup_type == 'all' }}
-    uses: ./.github/workflows/Docker_Network_setup.yml
+    uses: ./.github/workflows/Docker_Network_Setup.yml
     with:
       host: ${{ github.event.inputs.host }}
       environment: ${{ needs.dispatch.outputs.env }}
