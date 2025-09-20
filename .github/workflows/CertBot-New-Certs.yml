@@ -48,4 +48,4 @@ jobs:
         run: |
           cd $BASE_DIR
           echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook newcert.yml \
-            -i inventory.ini -e "domain_name=${{inputs.domain_name}}" "email=${$email}" "cloudflare_api_token=${{secrets.CF_API_TOKEN}}"
+            -i inventory.ini -e "domain_name=${{inputs.domain_name}}" "email=${{$email}}" "cloudflare_api_token=${{secrets.CF_API_TOKEN}}"
