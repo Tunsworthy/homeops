@@ -6,9 +6,9 @@
     - community.docker
 
   vars:
-    domain_name: "example.com"
-    email: "admin@example.com"
-    cloudflare_api_token: "YOUR_CLOUDFLARE_API_TOKEN"   # use Ansible Vault in prod
+    domain_name: "{{domain_name}}"
+    email: "{{email_address}}"
+    cloudflare_api_token: "{{cloudflare_api}}"   # use Ansible Vault in prod
 
   tasks:
     - name: Ensure letsencrypt directory exists
@@ -45,9 +45,3 @@
         volumes:
           - /etc/letsencrypt/:/etc/letsencrypt
           - letsencrypt-certs:/var/www/certbot
-
-    - name: Remove Cloudflare credentials file
-      ansible.builtin.file:
-        path: /etc/letsencrypt/cloudflare.ini
-        state: absent
-      become: true
