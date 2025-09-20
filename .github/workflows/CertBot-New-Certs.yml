@@ -21,7 +21,8 @@ jobs:
 
     env:
       BASE_DIR: 'docker/certbot'
-      email: ${{vars.email}}
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+      EMAIL : ${{ vars.EMAIL }}
 
     steps:
       - name: Starting
@@ -48,4 +49,4 @@ jobs:
         run: |
           cd $BASE_DIR
           echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook newcert.yml \
-            -i inventory.ini -e "domain_name=${{inputs.domain_name}}" "email=${{$email}}" "cloudflare_api_token=${{secrets.CF_API_TOKEN}}"
+            -i inventory.ini -e "domain_name=${{inputs.domain_name}}" "email=""$EMAIL" "cloudflare_api_token="$CF_API_TOKEN
