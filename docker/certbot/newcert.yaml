@@ -1,0 +1,53 @@
+---
+- name: Run Certbot with Cloudflare DNS plugin in Docker
+  hosts: all
+  become: true
+  collections:
+    - community.docker
+
+  vars:
+    domain_name: "example.com"
+    email: "admin@example.com"
+    cloudflare_api_token: "YOUR_CLOUDFLARE_API_TOKEN"   # use Ansible Vault in prod
+
+  tasks:
+    - name: Ensure letsencrypt directory exists
+      ansible.builtin.file:
+        path: /etc/letsencrypt
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Create Cloudflare credentials file
+      ansible.builtin.copy:
+        dest: /etc/letsencrypt/cloudflare.ini
+        content: |
+          dns_cloudflare_api_token = {{ cloudflare_api_token }}
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Run Certbot container to request certificate
+      community.docker.docker_container:
+        name: certbot_run
+        image: certbot/dns-cloudflare:latest
+        state: started
+        auto_remove: true
+        command: >
+          certonly
+          --non-interactive
+          --agree-tos
+          --email {{ email }}
+          --dns-cloudflare
+          --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini
+          -d {{ domain_name }}
+        volumes:
+          - /etc/letsencrypt/:/etc/letsencrypt
+          - letsencrypt-certs:/var/www/certbot
+
+    - name: Remove Cloudflare credentials file
+      ansible.builtin.file:
+        path: /etc/letsencrypt/cloudflare.ini
+        state: absent
+      become: true

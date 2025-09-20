@@ -1,0 +1,51 @@
+name: New Certificate
+on:
+  workflow_call:
+    inputs:
+      host:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+      domain_name:
+        required: true
+        type: string
+      runs_on:
+        required: true
+        type: string
+jobs:
+  setup-vlans:
+    runs-on: ${{ inputs.runs_on }}
+    environment: ${{ inputs.environment }}
+
+    env:
+      BASE_DIR: 'docker/certbot'
+      email: ${{vars.email}}
+
+    steps:
+      - name: Starting
+        run: |
+          echo "Running certificate request: ${{ inputs.host }}"
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Ensure Ansible is Installed
+        run: |
+          if ! command -v ansible >/dev/null 2>&1; then
+            echo "Ansible not found. Installing..."
+            echo "${{ secrets.SUDO }}" | sudo -S apt update
+            echo "${{ secrets.SUDO }}" | sudo -S apt install -y ansible
+          else
+            echo "Ansible already installed."
+          fi
+
+      - name: Create Ansible inventory
+        run: |
+          cd $BASE_DIR
+          echo "localhost ansible_connection=local" > inventory.ini
+
+      - name: Run Ansible playbook
+        run: |
+          cd $BASE_DIR
+          echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook newcert.yml \
+            -i inventory.ini -e "domain_name=${{inputs.domain_name}}","email=$email","cloudflare_api_token=${{secrets.CF_API_TOKEN}}"
