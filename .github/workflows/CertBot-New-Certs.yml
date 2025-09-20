@@ -1,5 +1,6 @@
 name: New Certificate
 on:
+  workflow_dispatch:
   workflow_call:
     inputs:
       host:
