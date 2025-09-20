@@ -1,7 +1,6 @@
 name: New Certificate
 on:
   workflow_dispatch:
-  workflow_call:
     inputs:
       host:
         required: true
@@ -16,7 +15,7 @@ on:
         required: true
         type: string
 jobs:
-  setup-vlans:
+  Creating-Certificate:
     runs-on: ${{ inputs.runs_on }}
     environment: ${{ inputs.environment }}
 
