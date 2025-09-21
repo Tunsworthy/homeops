@@ -29,12 +29,18 @@
         mode: '0600'
       become: true
 
+    - name: Ensure letsencrypt-certs volume exists
+      community.docker.docker_volume:
+       name: letsencrypt-certs
+       state: present
+
     - name: Run Certbot container to request certificate
       community.docker.docker_container:
         name: certbot_run
         image: certbot/dns-cloudflare:latest
         state: started
-        #auto_remove: true
+        auto_remove: true
+        detach: false
         recreate: no
         command: >
           certonly
@@ -48,3 +54,9 @@
         volumes:
           - /etc/letsencrypt/:/etc/letsencrypt
           - letsencrypt-certs:/var/www/certbot
+
+    - name: Remove Cloudflare credentials file
+      ansible.builtin.file:
+        path: /etc/letsencrypt/cloudflare.ini
+        state: absent
+      become: true
