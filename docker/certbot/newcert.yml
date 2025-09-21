@@ -11,9 +11,14 @@
     cloudflare_api_token: "{{cloudflare_api}}"   # use Ansible Vault in prod
 
   tasks:
+    - name: Ensure letsencrypt-certs volume exists
+      community.docker.docker_volume:
+       name: letsencrypt-certs
+       state: present
+
     - name: Ensure letsencrypt directory exists
       ansible.builtin.file:
-        path: /etc/letsencrypt
+        path: /var/lib/docker/volumes/letsencrypt-certs
         state: directory
         owner: root
         group: root
@@ -21,18 +26,13 @@
 
     - name: Create Cloudflare credentials file
       ansible.builtin.copy:
-        dest: /etc/letsencrypt/cloudflare.ini
+        dest: var/lib/docker/volumes/letsencrypt-certs/cloudflare.ini
         content: |
           dns_cloudflare_api_token = {{ cloudflare_api_token }}
         owner: root
         group: root
         mode: '0600'
       become: true
-
-    - name: Ensure letsencrypt-certs volume exists
-      community.docker.docker_volume:
-       name: letsencrypt-certs
-       state: present
 
     - name: Run Certbot container to request certificate
       community.docker.docker_container:
@@ -41,7 +41,7 @@
         state: started
         auto_remove: true
         detach: false
-        #recreate: no
+        recreate: no
         command: >
           certonly
           --non-interactive
@@ -52,5 +52,10 @@
           --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini
           -d {{ domain_name }}
         volumes:
-          - /etc/letsencrypt/:/etc/letsencrypt
-          - letsencrypt-certs:/var/www/certbot
+          - letsencrypt:/etc/letsencrypt
+
+    - name: Remove Cloudflare credentials file
+      ansible.builtin.file:
+        path: /etc/letsencrypt/cloudflare.ini
+        state: absent
+      become: true
