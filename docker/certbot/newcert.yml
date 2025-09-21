@@ -41,7 +41,7 @@
         state: started
         auto_remove: true
         detach: false
-        recreate: no
+        #recreate: no
         command: >
           certonly
           --non-interactive
