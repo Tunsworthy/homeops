@@ -44,7 +44,7 @@
           -d {{ domain_name }}
           --preferred-challenges dns-01
         volumes:
-          - /etc/letsencrypt/:/etc/letsencrypt
+          - /etc/letsencrypt:/etc/letsencrypt
           - letsencrypt-certs:/var/www/certbot
 
     - name: Remove Cloudflare credentials file
