@@ -44,7 +44,7 @@
           --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini
           -d {{ domain_name }}
         volumes:
-          - /etc/letsencrypt:/etc/letsencrypt
+          - /etc/letsencrypt/:/etc/letsencrypt
           - letsencrypt-certs:/var/www/certbot
 
     - name: Remove Cloudflare credentials file
