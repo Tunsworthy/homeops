@@ -39,7 +39,7 @@
         name: certbot_run
         image: certbot/dns-cloudflare:latest
         state: started
-        auto_remove: false
+        auto_remove: true
         detach: false
         command: >
           certonly
