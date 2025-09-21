@@ -26,7 +26,7 @@
 
     - name: Create Cloudflare credentials file
       ansible.builtin.copy:
-        dest: var/lib/docker/volumes/letsencrypt-certs/cloudflare.ini
+        dest: /var/lib/docker/volumes/letsencrypt-certs/cloudflare.ini
         content: |
           dns_cloudflare_api_token = {{ cloudflare_api_token }}
         owner: root
