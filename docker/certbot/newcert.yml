@@ -27,6 +27,7 @@
         owner: root
         group: root
         mode: '0600'
+      become: true
 
     - name: Run Certbot container to request certificate
       community.docker.docker_container:
@@ -47,9 +48,3 @@
         volumes:
           - /etc/letsencrypt/:/etc/letsencrypt
           - letsencrypt-certs:/var/www/certbot
-
-    - name: Remove Cloudflare credentials file
-      ansible.builtin.file:
-        path: /etc/letsencrypt/cloudflare.ini
-        state: absent
-      become: true
