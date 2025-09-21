@@ -21,7 +21,7 @@
 
     - name: Create Cloudflare credentials file
       ansible.builtin.copy:
-        dest: /etc/letsencrypt/cloudflare.ini
+        dest: /var/lib/docker/volumes/letsencrypt-creds/cloudflare.ini
         content: |
           dns_cloudflare_api_token = {{ cloudflare_api_token }}
         owner: root
@@ -39,12 +39,12 @@
           --non-interactive
           --agree-tos
           --email {{ email }}
+          --preferred-challenges dns-01
           --dns-cloudflare
           --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini
           -d {{ domain_name }}
-          --preferred-challenges dns-01
         volumes:
-          - /etc/letsencrypt:/etc/letsencrypt
+          - letsencrypt-creds:/etc/letsencrypt
           - letsencrypt-certs:/var/www/certbot
 
     - name: Remove Cloudflare credentials file
