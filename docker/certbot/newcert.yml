@@ -15,8 +15,8 @@
       ansible.builtin.file:
         path: /etc/letsencrypt
         state: directory
-        owner: runner
-        group: runner
+        owner: root
+        group: root
         mode: '0755'
 
     - name: Create Cloudflare credentials file
@@ -24,8 +24,8 @@
         dest: /etc/letsencrypt/cloudflare.ini
         content: |
           dns_cloudflare_api_token = {{ cloudflare_api_token }}
-        owner: runner
-        group: runner
+        owner: root
+        group: root
         mode: '0600'
 
     - name: Run Certbot container to request certificate
@@ -34,6 +34,7 @@
         image: certbot/dns-cloudflare:latest
         state: started
         #auto_remove: true
+        recreate: no
         command: >
           certonly
           --non-interactive
@@ -51,3 +52,4 @@
       ansible.builtin.file:
         path: /etc/letsencrypt/cloudflare.ini
         state: absent
+      become: true
