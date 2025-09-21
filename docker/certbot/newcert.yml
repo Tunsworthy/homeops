@@ -39,9 +39,8 @@
         name: certbot_run
         image: certbot/dns-cloudflare:latest
         state: started
-        auto_remove: true
+        auto_remove: false
         detach: false
-        recreate: no
         command: >
           certonly
           --non-interactive
@@ -56,6 +55,6 @@
 
     - name: Remove Cloudflare credentials file
       ansible.builtin.file:
-        path: /etc/letsencrypt/cloudflare.ini
+        path: /var/lib/docker/volumes/letsencrypt-certs/cloudflare.ini
         state: absent
       become: true
