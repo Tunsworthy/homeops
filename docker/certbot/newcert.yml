@@ -18,7 +18,7 @@
 
     - name: Ensure letsencrypt directory exists
       ansible.builtin.file:
-        path: /var/lib/docker/volumes/letsencrypt
+        path: /var/lib/docker/volumes/letsencrypt/_data
         state: directory
         owner: root
         group: root
@@ -26,7 +26,7 @@
 
     - name: Create Cloudflare credentials file
       ansible.builtin.copy:
-        dest: /var/lib/docker/volumes/letsencrypt/cloudflare.ini
+        dest: /var/lib/docker/volumes/letsencrypt/_data/cloudflare.ini
         content: |
           dns_cloudflare_api_token = {{ cloudflare_api_token }}
         owner: root
@@ -55,6 +55,6 @@
 
     - name: Remove Cloudflare credentials file
       ansible.builtin.file:
-        path: /var/lib/docker/volumes/letsencrypt/cloudflare.ini
+        path: /var/lib/docker/volumes/letsencrypt/_data/cloudflare.ini
         state: absent
       become: true
