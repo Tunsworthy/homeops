@@ -1,0 +1,57 @@
+- name: Deploying Container
+  hosts: all
+  become: true
+  collections:
+    - community.docker
+
+  vars:
+    fqdn: "{{fqdn}}"
+    container_name: "{{name}}"
+    dedicated_ip: "{{dedicated_ip}}"
+    dns_admin_password: "{{dns_admin_password}}"
+
+#becuase we want to SSL we need to use the letsencrypt volume
+  tasks:
+    - name: Ensure letsencrypt volume exists
+      community.docker.docker_volume:
+       name: letsencrypt
+       state: present
+
+    - name: Creates/Ensures technitium volume exists
+      community.docker.docker_volume:
+       name: technitium-data
+       state: present
+
+    - name: Creates/Ensures technitium exists
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/technitium-data/_data
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Copy settings file to volume
+      ansible.builtin.copy:
+        dest: /var/lib/docker/volumes/technitium-data/_data/settings.json
+        owner: root
+        group: root
+        mode: '0600'
+      become: true
+    
+    - name: Deploy Technitium DNS container
+      community.docker.docker_container:
+        name: technitium-dns
+        image: technitium/dns-server:latest
+        pull: yes
+        state: started
+        restart_policy: unless-stopped
+        env:
+          DNS_SERVER_DOMAIN: "{{ fqdn }}"
+          DNS_SERVER_ADMIN_PASSWORD: "{{ dns_admin_password }}"
+          DNS_SERVER_ENABLE_API: "true"
+        volumes:
+          - technitium-data:/etc/dns
+          - letsencrypt:/etc/letsencrypt:ro
+        networks:
+          - name: VLAN25
+            ipv4_address: "{{ dedicated_ip | default(omit) }}"

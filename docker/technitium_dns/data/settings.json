@@ -1,0 +1,38 @@
+{
+  "ServerSettings": {
+    "ServerName": "dns1.tomunsworth.net",
+    "WebUIPort": 5380,
+    "EnableAPI": true,
+    "EnableDNSOverHTTPS": true
+  },
+  "DNSSettings": {
+    "Forwarders": [
+      { "Address": "1.1.1.1", "Port": 853, "Protocol": "TLS" },
+      { "Address": "8.8.8.8", "Port": 443, "Protocol": "HTTPS" }
+    ],
+    "CacheTTL": 300,
+    "EnableCache": true,
+    "EnableEDNS": true
+  },
+  "Security": {
+    "AllowExternalAccess": false,
+    "EnableTLS": true,
+    "CertificatePath": "/etc/letsencrypt/live/dns1.tomunsworth.net/fullchain.pem",
+    "PrivateKeyPath": "/etc/letsencrypt/live/dns1.tomunsworth.net/privkey.pem",
+    "EnableAdBlocking": true,
+    "AdBlockListURLs": [
+    "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
+    "https://mirror1.malwaredomains.com/files/justdomains",
+    "https://someonewhocares.org/hosts/zero/hosts"
+  ]
+  },
+  "Zones": [
+  {
+    "Name": "tomunsworth.net",
+    "Type": "Master",
+    "Forwarders": [],
+    "Records": []
+  }
+],
+  "StaticRecords": []
+}

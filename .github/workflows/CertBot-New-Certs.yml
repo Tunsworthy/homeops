@@ -2,9 +2,6 @@ name: New Certificate
 on:
   workflow_call:
     inputs:
-      host:
-        required: true
-        type: string
       environment:
         required: true
         type: string
@@ -27,7 +24,7 @@ jobs:
     steps:
       - name: Starting
         run: |
-          echo "Running certificate request: ${{ inputs.host }}"
+          echo "Running certificate request: ${{ inputs.runs_on }}"
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Ensure Ansible is Installed

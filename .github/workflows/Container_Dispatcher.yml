@@ -1,0 +1,53 @@
+name: Container Dispatcher
+
+on:
+  push:
+    paths:
+      - 'docker/**'
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changed-containers: ${{ steps.set-containers.outputs.containers }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Detect changed containers
+        id: set-containers
+        run: |
+          # List unique top-level container directories under /docker that have changed files
+          CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^docker/' | cut -d'/' -f2 | sort -u)
+          echo "Changed containers: $CHANGED"
+          # Export as GitHub Actions output
+          echo "containers=$CHANGED" >> $GITHUB_OUTPUT
+
+  dispatch-jobs:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.detect-changes.outputs.changed-containers != '' }}
+    steps:
+      - name: Set branch-specific runner
+        id: runner
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            echo "runner_label=productionr" >> $GITHUB_OUTPUT
+          elif [[ "${GITHUB_REF_NAME}" == "test" ]]; then
+            echo "runner_label=test" >> $GITHUB_OUTPUT
+          else
+            echo "runner_label=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Trigger container workflows
+        uses: peter-evans/workflow-dispatch@v2
+        with:
+          workflow: Container_Deployment.yml  # replace with your workflow name
+          # Loop over changed containers
+          matrix: ${{ fromJson('["' + needs.detect-changes.outputs.changed-containers | replace(' ', '","') + '"]') }}
+          ref: ${{ github.ref_name }}
+          inputs: |
+            container_name: ${{ matrix }}
+            branch: ${{ github.ref_name }}
+            runner_label: ${{ steps.runner.outputs.runner_label }}

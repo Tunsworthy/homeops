@@ -1,0 +1,78 @@
+name: Container Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      container_name:
+        description: 'Name of the container to deploy'
+        required: true
+      branch:
+        description: 'Branch that triggered this workflow'
+        required: true
+      runner_label:
+        description: 'Runner label to use'
+        required: true
+
+jobs:
+  deploy-container:
+    runs-on: ${{ github.event.inputs.runner_label }}
+    environment: ${{ github.event.inputs.branch }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set container variables
+        id: set-vars
+        run: |
+          CONTAINER="${{ github.event.inputs.container_name }}"
+          CONFIG_PATH="docker/$CONTAINER/configuration.yml"
+          echo "CONFIG_PATH=$CONFIG_PATH" >> $GITHUB_ENV
+
+      - name: Read configuration.yml
+        id: read-config
+        run: |
+          NAME=$(yq -r '.name' "$CONFIG_PATH")
+          FQDN=$(yq -r '.fqdn' "$CONFIG_PATH")
+          CERT=$(yq -r '.certificate' "$CONFIG_PATH")
+          EXTERNAL=$(yq -r '.external_access' "$CONFIG_PATH")
+          DEDICATED_IP=$(yq -r '.dedicated_ip' "$CONFIG_PATH")
+          ENVIRONMENT=$(yq -r '.environment' "$CONFIG_PATH")
+
+          echo "NAME=$NAME" >> $GITHUB_ENV
+          echo "FQDN=$FQDN" >> $GITHUB_ENV
+          echo "CERT=$CERT" >> $GITHUB_ENV
+          echo "EXTERNAL=$EXTERNAL" >> $GITHUB_ENV
+          echo "DEDICATED_IP=$DEDICATED_IP" >> $GITHUB_ENV
+          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
+
+      - name: Run CertBot-New-Certs workflow (if required)
+        if: ${{ env.CERT == 'true' }}
+        uses: ./.github/workflows/CertBot-New-Certs.yml
+        with:
+          environment: "hosts"
+          domain_name: ${{ env.FQDN }}
+          runs_on: ${{ github.event.inputs.runner_label }}
+
+      - name: Allocate Dedicated IP (if required)
+        if: ${{ env.DEDICATED_IP == 'true' }}
+        run: |
+          echo "Allocating dedicated IP for ${{ env.NAME }}"
+          # Example: pull from your Infrastructure/Network/IPList CSV
+          # and update internal DNS or config file
+
+      - name: Update Cloudflare Tunnel (if required)
+        if: ${{ env.EXTERNAL == 'true' }}
+        run: |
+          echo "Adding ${{ env.NAME }} to Cloudflare Tunnel"
+          # Example: curl/CLI to add service to tunnel
+
+      - name: Deploy container via Ansible
+        run: |
+          echo "Deploying container ${{ env.NAME }}"
+          ansible-playbook docker/${{ github.event.inputs.container_name }}/container_playbook.yml \
+            -i docker/${{ github.event.inputs.container_name }}/inventory.ini \
+            -e "fqdn=${{ env.FQDN }}" \
+            -e "dedicated_ip=${{ env.DEDICATED_IP }}" \
+            -e "certificate=${{ env.CERT }}" \
+            -e "external_access=${{ env.EXTERNAL }}"
