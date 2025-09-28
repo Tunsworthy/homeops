@@ -9,23 +9,31 @@ jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      changed-containers: ${{ steps.set-containers.outputs.containers }}
-      
+      changed-containers: ${{ steps.get-changes.outputs.containers }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Detect changed containers
-        id: set-containers
+      - name: Get changed files
+        id: get-changes
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            docker/**
+
+      - name: Extract top-level container folders
+        id: extract-folders
         run: |
-          # List unique top-level container directories under /docker that have changed files
-          CHANGED_CONTAINERS=$(git diff --name-only HEAD^ HEAD \
-            | grep '^docker/' \
+          # Get unique first-level folders under /docker
+          FOLDERS=$(echo "${{ steps.get-changes.outputs.all_changed_files }}" \
+            | tr ' ' '\n' \
             | awk -F'/' '{print $2}' \
-            | sort -u)
-          echo "Changed containers: $CHANGED_CONTAINERS"
-          # Export as GitHub Actions output
-          echo "containers=$CHANGED_CONTAINERS" >> $GITHUB_OUTPUT
+            | sort -u \
+            | paste -sd "," -)
+          
+          echo "Changed container folders: $FOLDERS"
+          echo "containers=$FOLDERS" >> $GITHUB_OUTPUT
   detect-branch:
     needs: detect-changes
     runs-on: ubuntu-latest
