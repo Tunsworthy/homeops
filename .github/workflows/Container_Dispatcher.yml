@@ -9,7 +9,7 @@ jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      changed-containers: ${{ steps.get-changes.outputs.containers }}
+      changed-containers: ${{ steps.extract-folders.outputs.containers }}
 
     steps:
       - name: Checkout code
