@@ -34,19 +34,29 @@ Certificate_Creation - Done
         certbot:/etc/letsencrypt/
 
 CloudFlare Tunnel 
-    I workflow that will add a container to the cloudflare tunnel confguation 
+    A workflow that will add a container to the cloudflare tunnel confguation 
 
 Container_Deployment
 Containers will be deployed with the use of ansible rather than docker compose
 
 A config file will be created to mange various aspects of the container:
     -Name
-    -Image?
+    -FQDN
     -Certificate (true/false)
-        -yes: Creates certificate with letsencrypt (runs workflow)
-    -Externally avaliable (true/false)
-        -yes : Creates external DNS entry
-    -External IP (true/false)
+        Creates certificate with letsencrypt (runs workflow) - passes the FQDN over
+    -Dedicated IP
+        Pulls IP from Infrastrucutre/Network/IPList
+        This will just be a CSV with the FQDN and the IP (when a new entry is added to this list it will trigger a workflow to add this address to the internal DNS)
+    -External access
+        Add service to Clould flare tunnel
+        
+
         
     Run
         on change or creation of config file
+
+    Folder Structure
+        Docker\<Container Name>
+            Configuration.yml (configuration for github action)
+            Container_Playbook.yml (Ansbile File that has the docker deployment)
+            \data (used for any container run /config files)

@@ -1,0 +1,36 @@
+name: OS Updater
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Every day at midnight UTC
+  workflow_dispatch:
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    outputs:
+      env: ${{ steps.set-vars.outputs.env }}
+      runner: ${{ steps.set-vars.outputs.runner }}
+    env:
+      BASE_DIR: 'infrastructure/host'
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install yq
+        run: sudo apt-get install -y yq
+
+      - name: Read config
+        id: set-vars
+        run: |
+          cd $BASE_DIR
+          HOST="${{ github.event.inputs.host }}"
+          ENV=$(yq -r ".hosts.${HOST}.environment" hosts-config.yml)
+          RUNNER=$(yq -r ".hosts.${HOST}.runner" hosts-config.yml)
+
+          if [[ "$ENV" == "null" || "$RUNNER" == "null" ]]; then
+            echo "Unknown host: $HOST"
+            exit 1
+          fi
+
+          echo "env=$ENV" >> $GITHUB_OUTPUT
+          echo "runner=$RUNNER" >> $GITHUB_OUTPUT

@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       changed-containers: ${{ steps.set-containers.outputs.containers }}
-
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -23,14 +23,15 @@ jobs:
           echo "Changed containers: $CHANGED"
           # Export as GitHub Actions output
           echo "containers=$CHANGED" >> $GITHUB_OUTPUT
-
-  dispatch-jobs:
+  detect-branch:
     needs: detect-changes
     runs-on: ubuntu-latest
+    outputs:
+        runner_label: ${{steps.detect-runner.outputs.runner_label}}
     if: ${{ needs.detect-changes.outputs.changed-containers != '' }}
     steps:
       - name: Set branch-specific runner
-        id: runner
+        id: detect-runner
         run: |
           if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
             echo "runner_label=productionr" >> $GITHUB_OUTPUT
@@ -40,14 +41,32 @@ jobs:
             echo "runner_label=dev" >> $GITHUB_OUTPUT
           fi
 
-      - name: Trigger container workflows
-        uses: peter-evans/workflow-dispatch@v2
-        with:
-          workflow: Container_Deployment.yml  # replace with your workflow name
-          # Loop over changed containers
-          matrix: ${{ fromJson('["' + needs.detect-changes.outputs.changed-containers | replace(' ', '","') + '"]') }}
-          ref: ${{ github.ref_name }}
-          inputs: |
-            container_name: ${{ matrix }}
-            branch: ${{ github.ref_name }}
-            runner_label: ${{ steps.runner.outputs.runner_label }}
+  read-config:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: get container configuration file
+        id: get-config
+        run: |
+          CONTAINER="${{ needs.detect-changes.outputs.containers }}"
+          CONFIG_PATH="docker/$CONTAINER/configuration.yml"
+          echo "CONFIG_PATH=$CONFIG_PATH" >> $GITHUB_ENV
+      - name: Read configuration.yml
+        id: read-config
+        run: |
+          NAME=$(yq -r '.name' "$CONFIG_PATH")
+          FQDN=$(yq -r '.fqdn' "$CONFIG_PATH")
+          CERT=$(yq -r '.certificate' "$CONFIG_PATH")
+          EXTERNAL=$(yq -r '.external_access' "$CONFIG_PATH")
+          DEDICATED_IP=$(yq -r '.dedicated_ip' "$CONFIG_PATH")
+          ENVIRONMENT=$(yq -r '.environment' "$CONFIG_PATH")
+
+          echo "NAME=$NAME" >> $GITHUB_ENV
+          echo "FQDN=$FQDN" >> $GITHUB_ENV
+          echo "CERT=$CERT" >> $GITHUB_ENV
+          echo "EXTERNAL=$EXTERNAL" >> $GITHUB_ENV
+          echo "DEDICATED_IP=$DEDICATED_IP" >> $GITHUB_ENV
+          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
