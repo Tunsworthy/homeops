@@ -39,7 +39,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
         runner_label: ${{steps.detect-runner.outputs.runner_label}}
-    if: ${{ needs.detect-changes.outputs.changed-containers != '' }}
     steps:
       - name: Set branch-specific runner
         id: detect-runner
@@ -62,7 +61,7 @@ jobs:
       - name: get container configuration file
         id: get-config
         run: |
-          CONTAINER="${{ needs.detect-changes.outputs.containers }}"
+          CONTAINER="${{ needs.detect-changes.outputs.changed-containers }}"
           CONFIG_PATH="docker/$CONTAINER/configuration.yml"
           echo "CONFIG_PATH=$CONFIG_PATH" >> $GITHUB_ENV
       - name: Read configuration.yml
