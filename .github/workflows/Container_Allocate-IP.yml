@@ -84,4 +84,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ipam-${{ inputs.docker_host }}
-          path: ./ipam/${HOST}.csv
+          path: ./ipam/${{ inputs.docker_host }}.csv
