@@ -9,6 +9,9 @@ on:
       container_name:
         required: true
         type: string
+      docker_host:
+        required: true
+        type: string
     outputs:
       ip_address:
         description: "Allocated IP address for the container"
@@ -24,31 +27,40 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Download previous IPAM artifact
+        id: download
+        uses: actions/download-artifact@v4
+        with:
+          name: ipam-${{ inputs.docker_host }}
+          path: ./ipam
+        continue-on-error: true  # allow if artifact doesn't exist yet
+
       - name: Allocate or reuse IP
         id: allocate
         run: |
           set -e
-          ENV="${{ inputs.environment }}"
+
+          HOST="${{ inputs.docker_host }}"
           CONTAINER="${{ inputs.container_name }}"
 
-          if [ "$ENV" = "production" ]; then
-            FILE="infrastructure/ipam/production.csv"
+          if [ "$HOST" = "pi4" ]; then
             SUBNET="10.2.5"
           else
-            FILE="infrastructure/ipam/test.csv"
             SUBNET="10.2.6"
           fi
 
-          # Ensure CSV file exists
-          mkdir -p "$(dirname "$FILE")"
+          FILE="./ipam/${HOST}.csv"
+          mkdir -p ./ipam
           touch "$FILE"
+
+          # Ensure header exists
           if ! grep -q '^ip,container' "$FILE"; then
             echo "ip,container" > tmp.csv
             grep -v '^ip,container' "$FILE" >> tmp.csv || true
             mv tmp.csv "$FILE"
           fi
 
-          # Check if container already has IP
+          # Check if container already has an IP
           EXISTING_IP=$(awk -F',' -v c="$CONTAINER" '$2==c {print $1}' "$FILE" | head -n1)
 
           if [ -n "$EXISTING_IP" ]; then
@@ -57,7 +69,7 @@ jobs:
             exit 0
           fi
 
-          # Find next available IP
+          # Allocate next free IP
           for i in $(seq 2 254); do
             IP="$SUBNET.$i"
             if ! grep -q "$IP" "$FILE"; then
@@ -68,10 +80,8 @@ jobs:
             fi
           done
 
-      - name: Commit updated IPAM file
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add infrastructure/ipam/*.csv
-          git commit -m "Allocated IP for ${{ inputs.container_name }} in ${{ inputs.environment }}" || echo "No changes"
-          git push
+      - name: Upload updated IPAM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipam-${{ inputs.environment }}
+          path: ./ipam/${ENV}.csv
