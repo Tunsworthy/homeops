@@ -1,0 +1,77 @@
+name: Allocate IP Address
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      container_name:
+        required: true
+        type: string
+    outputs:
+      ip_address:
+        description: "Allocated IP address for the container"
+        value: ${{ jobs.allocate-ip.outputs.ip_address }}
+
+jobs:
+  allocate-ip:
+    runs-on: ubuntu-latest
+    outputs:
+      ip_address: ${{ steps.allocate.outputs.ip_address }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Allocate or reuse IP
+        id: allocate
+        run: |
+          set -e
+          ENV="${{ inputs.environment }}"
+          CONTAINER="${{ inputs.container_name }}"
+
+          if [ "$ENV" = "production" ]; then
+            FILE="infrastructure/ipam/production.csv"
+            SUBNET="10.2.5"
+          else
+            FILE="infrastructure/ipam/test.csv"
+            SUBNET="10.2.6"
+          fi
+
+          # Ensure CSV file exists
+          mkdir -p "$(dirname "$FILE")"
+          touch "$FILE"
+          if ! grep -q '^ip,container' "$FILE"; then
+            echo "ip,container" > tmp.csv
+            grep -v '^ip,container' "$FILE" >> tmp.csv || true
+            mv tmp.csv "$FILE"
+          fi
+
+          # Check if container already has IP
+          EXISTING_IP=$(awk -F',' -v c="$CONTAINER" '$2==c {print $1}' "$FILE" | head -n1)
+
+          if [ -n "$EXISTING_IP" ]; then
+            echo "Container already has IP: $EXISTING_IP"
+            echo "ip_address=$EXISTING_IP" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Find next available IP
+          for i in $(seq 2 254); do
+            IP="$SUBNET.$i"
+            if ! grep -q "$IP" "$FILE"; then
+              echo "$IP,$CONTAINER" >> "$FILE"
+              echo "Allocated $IP to $CONTAINER"
+              echo "ip_address=$IP" >> $GITHUB_OUTPUT
+              break
+            fi
+          done
+
+      - name: Commit updated IPAM file
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add infrastructure/ipam/*.csv
+          git commit -m "Allocated IP for ${{ inputs.container_name }} in ${{ inputs.environment }}" || echo "No changes"
+          git push

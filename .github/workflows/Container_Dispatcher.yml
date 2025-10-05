@@ -102,3 +102,13 @@ jobs:
       domain_name: ${{ needs.read-config.outputs.fqdn }}
       runs_on: ${{ needs.detect-branch.outputs.runner_label}}
     secrets: inherit
+
+  allocate-ip:
+    needs:
+      - read-config
+      - detect-branch
+    if: ${{ needs.read-config.outputs.dedicated-ip == 'true' }}
+    uses: ./.github/workflows/Container_Allocate-IP.yml
+    with:
+      environment: ${{ needs.detect-branch.outputs.runner_label }}
+      container_name: ${{ needs.read-config.outputs.container-name }}
