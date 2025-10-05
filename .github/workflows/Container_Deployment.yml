@@ -29,7 +29,7 @@ jobs:
       - name: Set deployment variables
         id: set-vars
         run: |
-          echo "CONTAINER_FOLDER=${{ inputs.container_folder}} >> $GITHUB_ENV"
+          echo "CONTAINER_FOLDER=${{ inputs.container_folder}}" >> $GITHUB_ENV
           echo "CONTAINER_NAME=${{ inputs.container_name }}" >> $GITHUB_ENV
           echo "ENVIRONMENT=${{ inputs.environment }}" >> $GITHUB_ENV
           if [ "${{ inputs.allocated_ip }}" != " " ]; then
@@ -44,7 +44,7 @@ jobs:
             echo "Error: Playbook $ANSIBLE_PLAYBOOK_PATH does not exist."
             exit 1
           fi
-      
+
           ansible-playbook "$ANSIBLE_PLAYBOOK_PATH" \
             -e "container_name=$CONTAINER_NAME" \
             -e "environment=$ENVIRONMENT" \
