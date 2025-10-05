@@ -44,7 +44,7 @@ jobs:
         id: detect-runner
         run: |
           if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
-            echo "runner_label=productionr" >> $GITHUB_OUTPUT
+            echo "runner_label=test" >> $GITHUB_OUTPUT
           elif [[ "${GITHUB_REF_NAME}" == "test" ]]; then
             echo "runner_label=test" >> $GITHUB_OUTPUT
           else
