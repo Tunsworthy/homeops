@@ -54,6 +54,7 @@ jobs:
   read-config:
     needs: detect-changes
     runs-on: ubuntu-latest
+    
     outputs:
       container-name: ${{ steps.read-config.outputs.name }}
       fqdn: ${{ steps.read-config.outputs.fqdn }}
@@ -100,3 +101,4 @@ jobs:
       environment: "hosts"
       domain_name: ${{ needs.read-config.outputs.fqdn }}
       runs_on: ${{ needs.detect-branch.outputs.runner_label}}
+    secrets: inherit
