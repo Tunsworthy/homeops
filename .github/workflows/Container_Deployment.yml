@@ -15,9 +15,6 @@ on:
       docker_host:
         required: false
         type: string
-      dedicated_ip:
-        required: true
-        type: boolean
       container_folder:
         required: true
         type: string
@@ -35,7 +32,7 @@ jobs:
           echo "CONTAINER_FOLDER=${{ inputs.container_folder}} >> $GITHUB_ENV"
           echo "CONTAINER_NAME=${{ inputs.container_name }}" >> $GITHUB_ENV
           echo "ENVIRONMENT=${{ inputs.environment }}" >> $GITHUB_ENV
-          if [ "${{ inputs.dedicated_ip }}" == "true" ]; then
+          if [ "${{ inputs.allocated_ip }}" != " " ]; then
             echo "DEDICATED_IP=${{ inputs.allocated_ip }}" >> $GITHUB_ENV
           fi
 

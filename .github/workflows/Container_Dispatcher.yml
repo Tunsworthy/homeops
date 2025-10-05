@@ -130,7 +130,6 @@ jobs:
     with:
       environment: ${{ needs.detect-branch.outputs.runner_label }}
       container_name: ${{ needs.read-config.outputs.container-name }}
-      dedicated_ip: "${{ needs.read-config.outputs.dedicated-ip }}"
       allocated_ip: ${{ needs.allocate-ip.outputs.ip_address || '' }}
       docker_host: ${{ needs.read-config.outputs.container-host }}
       container_folder: ${{ needs.read-config.outputs.config-path }}
