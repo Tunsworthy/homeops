@@ -19,7 +19,7 @@ on:
 
 jobs:
   allocate-ip:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.docker_host }}
     outputs:
       ip_address: ${{ steps.allocate.outputs.ip_address }}
 
