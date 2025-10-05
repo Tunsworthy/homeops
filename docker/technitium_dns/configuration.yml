@@ -6,4 +6,4 @@ container_host: pi3
 certificate: false             # needs Let's Encrypt cert
 external_access: false         # should be exposed via Cloudflare Tunnel
 dedicated_ip: true            # should get an IP from IP allocation CSV
-update: true
+update: false
