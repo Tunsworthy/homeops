@@ -35,6 +35,7 @@ jobs:
           ENV="${{ inputs.environment }}"
           CONTAINER="${{ inputs.container_name }}"
           DOCKER_HOST="${{ inputs.docker_host }}"
+          HOST_PATH="$HOME/ipam"   # Persistent location
 
           # Map environment to subnet
           if [ "$DOCKER_HOST" = "pi4" ]; then
@@ -43,9 +44,11 @@ jobs:
             SUBNET="10.2.5"
           fi
 
+          # Ensure directory exists
+          mkdir -p "$HOST_PATH"
+
           # CSV file path per docker host
-          FILE="${DOCKER_HOST}/ipam-${DOCKER_HOST}.csv"
-          mkdir -p "$(dirname "$FILE")"
+          FILE="{$HOST_PATH}/ipam-${DOCKER_HOST}.csv"
           touch "$FILE"
 
           # Ensure CSV header exists
