@@ -27,33 +27,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download previous IPAM artifact
-        id: download
-        uses: actions/download-artifact@v4
-        with:
-          name: ipam-${{ inputs.docker_host }}
-          path: ./ipam
-        continue-on-error: true  # allow if artifact doesn't exist yet
-
       - name: Allocate or reuse IP
         id: allocate
         run: |
           set -e
 
-          HOST="${{ inputs.docker_host }}"
+          ENV="${{ inputs.environment }}"
           CONTAINER="${{ inputs.container_name }}"
+          DOCKER_HOST="${{ inputs.docker_host }}"
 
-          if [ "$HOST" = "pi4" ]; then
-            SUBNET="10.2.5"
-          else
+          # Map environment to subnet
+          if [ "$DOCKER_HOST" = "pi4" ]; then
             SUBNET="10.2.6"
+          else
+            SUBNET="10.2.5"
           fi
 
-          FILE="./ipam/${HOST}.csv"
-          mkdir -p ./ipam
+          # CSV file path per docker host
+          FILE="${DOCKER_HOST}/ipam-${DOCKER_HOST}.csv"
+          mkdir -p "$(dirname "$FILE")"
           touch "$FILE"
 
-          # Ensure header exists
+          # Ensure CSV header exists
           if ! grep -q '^ip,container' "$FILE"; then
             echo "ip,container" > tmp.csv
             grep -v '^ip,container' "$FILE" >> tmp.csv || true
@@ -79,9 +74,3 @@ jobs:
               break
             fi
           done
-
-      - name: Upload updated IPAM artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ipam-${{ inputs.docker_host }}
-          path: ./ipam/${{ inputs.docker_host }}.csv
