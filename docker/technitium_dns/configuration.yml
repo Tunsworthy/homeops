@@ -1,4 +1,4 @@
-name: technitium-dns
+name: technitium-dns1
 fqdn: dns1.tomunsworth.net
 container_host: pi3
 
