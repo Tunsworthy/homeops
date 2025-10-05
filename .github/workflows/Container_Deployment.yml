@@ -34,7 +34,7 @@ jobs:
       - name: Run Ansible playbook
         run: |
           cd $BASE_DIR
-          echo "container_deploy.yml \
+          echo container_deploy.yml \
             -i inventory.ini \
             -e "container_name=${{ inputs.container_name }}" \
             -e "environment=${{ inputs.environment }}" \
