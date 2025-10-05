@@ -83,5 +83,5 @@ jobs:
       - name: Upload updated IPAM artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ipam-${{ inputs.environment }}
-          path: ./ipam/${ENV}.csv
+          name: ipam-${{ inputs.docker_host }}
+          path: ./ipam/${HOST}.csv
