@@ -38,7 +38,7 @@ jobs:
 
       - name: Run container deployment playbook
         run: |
-          ANSIBLE_PLAYBOOK_PATH="docker/${CONTAINER_FOLDER}/container_deploy.yml"
+          ANSIBLE_PLAYBOOK_PATH="${CONTAINER_FOLDER}/container_deploy.yml"
           if [ ! -f "$ANSIBLE_PLAYBOOK_PATH" ]; then
             echo "Error: Playbook $ANSIBLE_PLAYBOOK_PATH does not exist."
             exit 1
