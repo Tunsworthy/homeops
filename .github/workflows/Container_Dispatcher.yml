@@ -121,9 +121,9 @@ jobs:
       docker_host: ${{ needs.read-config.outputs.container-host }}
 
   deploy-container:
+    if: ${{ always() && needs.read-config.result == 'success' && needs.detect-branch.result == 'success' }}
     needs:
       - read-config
-      - create-cert
       - allocate-ip
       - detect-branch
     uses: ./.github/workflows/Container_Deployment.yml
