@@ -1,9 +1,9 @@
 name: technitium-dns
 fqdn: dns1.tomunsworth.net
-docker-host: pi3
+docker_host: pi3
 
 # High-level flags for GitHub Actions orchestration
-certificate: true             # needs Let's Encrypt cert
+certificate: false             # needs Let's Encrypt cert
 external_access: false         # should be exposed via Cloudflare Tunnel
 dedicated_ip: true            # should get an IP from IP allocation CSV
-update: true
+update: false

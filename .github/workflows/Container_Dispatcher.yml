@@ -62,7 +62,7 @@ jobs:
       external: ${{ steps.read-config.outputs.external }}
       dedicated-ip: ${{ steps.read-config.outputs.dedicated_ip }}
       environment: ${{ steps.read-config.outputs.environment }}
-      docker-host: ${{ steps.read-config.outputs.docker-host }}
+      container-host: ${{ steps.read-config.outputs.container_host }}
 
     steps:
       - name: Checkout repository
@@ -84,7 +84,7 @@ jobs:
           EXTERNAL=$(yq -r '.external_access' "$CONFIG_PATH")
           DEDICATED_IP=$(yq -r '.dedicated_ip' "$CONFIG_PATH")
           ENVIRONMENT=$(yq -r '.environment' "$CONFIG_PATH")
-          CONTAINER_HOST=$(yq -r '.docker-host' "$CONFIG_PATH")
+          CONTAINER_HOST=$(yq -r '.container_host' "$CONFIG_PATH")
 
           echo "name=$NAME" >> $GITHUB_OUTPUT
           echo "fqdn=$FQDN" >> $GITHUB_OUTPUT
@@ -92,7 +92,7 @@ jobs:
           echo "external=$EXTERNAL" >> $GITHUB_OUTPUT
           echo "dedicated_ip=$DEDICATED_IP" >> $GITHUB_OUTPUT
           echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
-          echo "docker-host=$CONTAINER-HOST" >> $GITHUB_OUTPUT
+          echo "container_host=$CONTAINER_HOST" >> $GITHUB_OUTPUT
 
   create-cert:
     needs: 
@@ -115,4 +115,4 @@ jobs:
     with:
       environment: ${{ needs.detect-branch.outputs.runner_label }}
       container_name: ${{ needs.read-config.outputs.container-name }}
-      docker_host: ${{ needs.read-config.outputs.docker-host }}
+      docker_host: ${{ needs.read-config.outputs.container-host }}
