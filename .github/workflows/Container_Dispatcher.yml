@@ -116,3 +116,18 @@ jobs:
       environment: ${{ needs.detect-branch.outputs.runner_label }}
       container_name: ${{ needs.read-config.outputs.container-name }}
       docker_host: ${{ needs.read-config.outputs.container-host }}
+
+  deploy-container:
+    needs:
+      - detect-changes
+      - read-config
+      - create-cert
+      - allocate-ip
+    uses: ./.github/workflows/Container_Deployment.yml
+    with:
+      containers_folder: ${{ needs.detect-changes.outputs.changed-containers }}
+      container_name: ${{ needs.read-config.outputs.container-name }}
+      dedicated_ip: ${{ needs.read-config.outputs.dedicated-ip }}
+      allocated_ip: ${{ needs.allocate-ip.outputs.ip_address || '' }}
+      docker_host: ${{ needs.read-config.outputs.container-host }}
+      
