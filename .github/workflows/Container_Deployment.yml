@@ -21,31 +21,21 @@ on:
 jobs:
   deploy-container:
     runs-on: ${{ inputs.docker_host }}
-
+    env:
+      BASE_DIR: 'docker/${{ inputs.container_folder}}'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set deployment variables
-        id: set-vars
+      - name: Create Ansible inventory
         run: |
-          echo "CONTAINER_FOLDER=${{ inputs.container_folder}}" >> $GITHUB_ENV
-          echo "CONTAINER_NAME=${{ inputs.container_name }}" >> $GITHUB_ENV
-          echo "ENVIRONMENT=${{ inputs.environment }}" >> $GITHUB_ENV
-          if [ "${{ inputs.allocated_ip }}" != " " ]; then
-            echo "DEDICATED_IP=${{ inputs.allocated_ip }}" >> $GITHUB_ENV
-          fi
-
-      - name: Run container deployment playbook
+          cd $BASE_DIR
+          echo "localhost ansible_connection=local" > inventory.ini
+      - name: Run Ansible playbook
         run: |
-          
-          ANSIBLE_PLAYBOOK_PATH="docker/${CONTAINER_FOLDER}/container_deploy.yml"
-          if [ ! -f "$ANSIBLE_PLAYBOOK_PATH" ]; then
-            echo "Error: Playbook $ANSIBLE_PLAYBOOK_PATH does not exist."
-            exit 1
-          fi
-
-          ansible-playbook "$ANSIBLE_PLAYBOOK_PATH" \
-            -e "container_name=$CONTAINER_NAME" \
-            -e "environment=$ENVIRONMENT" \
-            -e "dedicated_ip=$DEDICATED_IP"
+          cd $BASE_DIR
+          echo "${{ secrets.SUDO }}" | sudo -S container_deploy.yml \
+            -i inventory.ini \
+            -e "container_name=${{ inputs.container_name }}" \
+            -e "environment=${{ inputs.environment }}" \
+            -e "dedicated_ip=${{ inputs.allocated_ip }}"
