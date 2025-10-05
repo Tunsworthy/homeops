@@ -48,7 +48,7 @@ jobs:
           mkdir -p "$HOST_PATH"
 
           # CSV file path per docker host
-          FILE="{$HOST_PATH}/ipam-${DOCKER_HOST}.csv"
+          FILE="${HOST_PATH}/ipam-${DOCKER_HOST}.csv"
           touch "$FILE"
 
           # Ensure CSV header exists
