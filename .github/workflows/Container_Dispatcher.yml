@@ -54,16 +54,25 @@ jobs:
   read-config:
     needs: detect-changes
     runs-on: ubuntu-latest
+    outputs:
+      container-name: ${{ steps.read-config.outputs.name }}
+      fqdn: ${{ steps.read-config.outputs.fqdn }}
+      cert: ${{ steps.read-config.outputs.cert }}
+      external: ${{ steps.read-config.outputs.external }}
+      dedicated-ip: ${{ steps.read-config.outputs.dedicated_ip }}
+      environment: ${{ steps.read-config.outputs.environment }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: get container configuration file
+
+      - name: Get container configuration file
         id: get-config
         run: |
           CONTAINER="${{ needs.detect-changes.outputs.changed-containers }}"
           CONFIG_PATH="docker/$CONTAINER/configuration.yml"
           echo "CONFIG_PATH=$CONFIG_PATH" >> $GITHUB_ENV
+
       - name: Read configuration.yml
         id: read-config
         run: |
@@ -74,9 +83,20 @@ jobs:
           DEDICATED_IP=$(yq -r '.dedicated_ip' "$CONFIG_PATH")
           ENVIRONMENT=$(yq -r '.environment' "$CONFIG_PATH")
 
-          echo "NAME=$NAME" >> $GITHUB_ENV
-          echo "FQDN=$FQDN" >> $GITHUB_ENV
-          echo "CERT=$CERT" >> $GITHUB_ENV
-          echo "EXTERNAL=$EXTERNAL" >> $GITHUB_ENV
-          echo "DEDICATED_IP=$DEDICATED_IP" >> $GITHUB_ENV
-          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+          echo "fqdn=$FQDN" >> $GITHUB_OUTPUT
+          echo "cert=$CERT" >> $GITHUB_OUTPUT
+          echo "external=$EXTERNAL" >> $GITHUB_OUTPUT
+          echo "dedicated_ip=$DEDICATED_IP" >> $GITHUB_OUTPUT
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+
+  create-cert:
+    needs: 
+      - read-config
+      - detect-branch
+    if: ${{ needs.read-config.outputs.cert == 'true' }}
+    uses: ./.github/workflows/CertBot-New-Certs.yml
+    with:
+      environment: 'hosts'
+      domain_name: ${{ needs.read-config.outputs.fqdn }}
+      runs_on: ${{ needs.detect-branch.outputs.runner_label}}
