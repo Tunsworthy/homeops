@@ -97,6 +97,6 @@ jobs:
     if: ${{ needs.read-config.outputs.cert == 'true' }}
     uses: ./.github/workflows/CertBot-New-Certs.yml
     with:
-      environment: 'hosts'
+      environment: "hosts"
       domain_name: ${{ needs.read-config.outputs.fqdn }}
       runs_on: ${{ needs.detect-branch.outputs.runner_label}}
