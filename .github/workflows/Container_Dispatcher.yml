@@ -63,6 +63,7 @@ jobs:
       dedicated-ip: ${{ steps.read-config.outputs.dedicated_ip }}
       environment: ${{ steps.read-config.outputs.environment }}
       container-host: ${{ steps.read-config.outputs.container_host }}
+      config-path: ${{ steps.get-config.outputs.CONFIG_PATH }}
 
     steps:
       - name: Checkout repository
@@ -74,6 +75,7 @@ jobs:
           CONTAINER="${{ needs.detect-changes.outputs.changed-containers }}"
           CONFIG_PATH="docker/$CONTAINER/configuration.yml"
           echo "CONFIG_PATH=$CONFIG_PATH" >> $GITHUB_ENV
+          echo "CONFIG_PATH=$CONFIG_PATH" >> $GITHUB_OUTPUT
 
       - name: Read configuration.yml
         id: read-config
@@ -93,6 +95,7 @@ jobs:
           echo "dedicated_ip=$DEDICATED_IP" >> $GITHUB_OUTPUT
           echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
           echo "container_host=$CONTAINER_HOST" >> $GITHUB_OUTPUT
+          
 
   create-cert:
     needs: 
@@ -117,3 +120,16 @@ jobs:
       container_name: ${{ needs.read-config.outputs.container-name }}
       docker_host: ${{ needs.read-config.outputs.container-host }}
 
+  deploy-container:
+    needs:
+      - read-config
+      - create-cert
+      - allocate-ip
+    uses: ./.github/workflows/Container_Deployment.yml
+    with:
+      container_name: ${{ needs.read-config.outputs.container-name }}
+      dedicated_ip: ${{ needs.read-config.outputs.dedicated-ip }}
+      allocated_ip: ${{ needs.allocate-ip.outputs.ip_address || '' }}
+      docker_host: ${{ needs.read-config.outputs.container-host }}
+      containers_folder: ${{ needs.read-config.outputs.config-path }}
+      
