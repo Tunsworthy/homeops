@@ -33,6 +33,7 @@
     - name: Copy settings file to volume
       ansible.builtin.copy:
         dest: /var/lib/docker/volumes/technitium-data/_data/settings.json
+        src: date/settings.json
         owner: root
         group: root
         mode: '0600'
@@ -47,7 +48,7 @@
         restart_policy: unless-stopped
         env:
           DNS_SERVER_DOMAIN: "{{ fqdn }}"
-          #DNS_SERVER_ADMIN_PASSWORD: "{{ dns_admin_password }}"
+          DNS_SERVER_ADMIN_PASSWORD: "{{ dns_admin_password }}"
           DNS_SERVER_ENABLE_API: "true"
         volumes:
           - technitium-data:/etc/dns
