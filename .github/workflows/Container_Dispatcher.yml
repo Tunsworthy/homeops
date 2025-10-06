@@ -34,23 +34,6 @@ jobs:
           
           echo "Changed container folders: $FOLDERS"
           echo "containers=$FOLDERS" >> $GITHUB_OUTPUT
-  detect-branch:
-    needs: detect-changes
-    runs-on: ubuntu-latest
-    outputs:
-        runner_label: ${{steps.detect-runner.outputs.runner_label}}
-    steps:
-      - name: Set branch-specific runner
-        id: detect-runner
-        run: |
-          if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
-            echo "runner_label=test" >> $GITHUB_OUTPUT
-          elif [[ "${GITHUB_REF_NAME}" == "test" ]]; then
-            echo "runner_label=test" >> $GITHUB_OUTPUT
-          else
-            echo "runner_label=dev" >> $GITHUB_OUTPUT
-          fi
-
   read-config:
     needs: detect-changes
     runs-on: ubuntu-latest
@@ -61,9 +44,10 @@ jobs:
       cert: ${{ steps.read-config.outputs.cert }}
       external: ${{ steps.read-config.outputs.external }}
       dedicated-ip: ${{ steps.read-config.outputs.dedicated_ip }}
-      environment: ${{ steps.read-config.outputs.environment }}
+      container-environment: ${{ steps.read-config.outputs.container_environment }}
       container-host: ${{ steps.read-config.outputs.container_host }}
       container-folder: ${{ steps.get-config.outputs.CONTAINER_FOLDER }}
+      
 
     steps:
       - name: Checkout repository
@@ -85,38 +69,37 @@ jobs:
           CERT=$(yq -r '.certificate' "$CONFIG_PATH")
           EXTERNAL=$(yq -r '.external_access' "$CONFIG_PATH")
           DEDICATED_IP=$(yq -r '.dedicated_ip' "$CONFIG_PATH")
-          ENVIRONMENT=$(yq -r '.environment' "$CONFIG_PATH")
+          CONTAINER_ENVIRONMENT=$(yq -r '.container_environment' "$CONFIG_PATH")
           CONTAINER_HOST=$(yq -r '.container_host' "$CONFIG_PATH")
+          
 
           echo "name=$NAME" >> $GITHUB_OUTPUT
           echo "fqdn=$FQDN" >> $GITHUB_OUTPUT
           echo "cert=$CERT" >> $GITHUB_OUTPUT
           echo "external=$EXTERNAL" >> $GITHUB_OUTPUT
           echo "dedicated_ip=$DEDICATED_IP" >> $GITHUB_OUTPUT
-          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "container_environment=$CONTAINER_ENVIRONMENT" >> $GITHUB_OUTPUT
           echo "container_host=$CONTAINER_HOST" >> $GITHUB_OUTPUT
           
 
   create-cert:
     needs: 
       - read-config
-      - detect-branch
     if: ${{ needs.read-config.outputs.cert == 'true' }}
     uses: ./.github/workflows/CertBot-New-Certs.yml
     with:
-      environment: "hosts"
+      environment: ${{ needs.read-config.outputs.container-host}}
       domain_name: ${{ needs.read-config.outputs.fqdn }}
-      runs_on: ${{ needs.detect-branch.outputs.runner_label}}
+      runs_on: ${{ needs.read-config.outputs.container-host}}
     secrets: inherit
 
   allocate-ip:
     needs:
       - read-config
-      - detect-branch
     if: ${{ needs.read-config.outputs.dedicated-ip == 'true' }}
     uses: ./.github/workflows/Container_Allocate-IP.yml
     with:
-      environment: ${{ needs.detect-branch.outputs.runner_label }}
+      environment: ${{ needs.read-config.outputs.container-host}}
       container_name: ${{ needs.read-config.outputs.container-name }}
       docker_host: ${{ needs.read-config.outputs.container-host }}
 
@@ -125,12 +108,12 @@ jobs:
     needs:
       - read-config
       - allocate-ip
-      - detect-branch
     uses: ./.github/workflows/Container_Deployment.yml
     with:
-      environment: ${{ needs.detect-branch.outputs.runner_label }}
+      environment: ${{ needs.read-config.outputs.container-environment }}
       container_name: ${{ needs.read-config.outputs.container-name }}
       allocated_ip: ${{ needs.allocate-ip.outputs.ip_address || '' }}
       docker_host: ${{ needs.read-config.outputs.container-host }}
       container_folder: ${{ needs.read-config.outputs.container-folder }}
+    secrets: inherit
       
