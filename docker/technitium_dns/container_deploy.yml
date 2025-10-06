@@ -48,7 +48,7 @@
         restart_policy: unless-stopped
         env:
           DNS_SERVER_DOMAIN: "{{ fqdn }}"
-          DNS_SERVER_ADMIN_PASSWORD: "{{ dns_admin_password }}"
+          #DNS_SERVER_ADMIN_PASSWORD: "{{ dns_admin_password }}"
           DNS_SERVER_ENABLE_API: "true"
         volumes:
           - technitium-data:/etc/dns
