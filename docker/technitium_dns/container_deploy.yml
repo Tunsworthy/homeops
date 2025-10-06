@@ -64,7 +64,7 @@
           DNS_SERVER_RECURSION: "AllowOnlyForPrivateNetworks"
           DNS_SERVER_ENABLE_BLOCKING: "true"
           DNS_SERVER_ALLOW_TXT_BLOCKING_REPORT: "true"
-          DNS_SERVER_BLOCK_LIST_URLS: "https://mirror1.malwaredomains.com/files/justdomains,https://someonewhocares.org/hosts/zero/hosts"
+          DNS_SERVER_BLOCK_LIST_URLS: "https://someonewhocares.org/hosts/zero/hosts"
           DNS_SERVER_FORWARDERS: "1.1.1.1,8.8.8.8"
           DNS_SERVER_FORWARDER_PROTOCOL: "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
           DNS_SERVER_LOG_USING_LOCAL_TIME: "true"
