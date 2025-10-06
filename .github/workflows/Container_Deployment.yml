@@ -21,6 +21,7 @@ on:
 jobs:
   deploy-container:
     runs-on: ${{ inputs.docker_host }}
+    environment: ${{ inputs.environment }}
     env:
       BASE_DIR: 'docker/${{ inputs.container_folder}}'
     steps:
@@ -37,5 +38,4 @@ jobs:
            echo "${{ secrets.SUDO }}" | sudo -S echo container_deploy.yml \
             -i inventory.ini \
             -e "container_name=${{ inputs.container_name }}" \
-            -e "environment=${{ inputs.environment }}" \
             -e "dedicated_ip=${{ inputs.allocated_ip }}"
