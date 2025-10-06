@@ -104,7 +104,7 @@ jobs:
       docker_host: ${{ needs.read-config.outputs.container-host }}
 
   deploy-container:
-    if: ${{ always() && needs.read-config.result == 'success' && needs.detect-branch.result == 'success' }}
+    if: ${{ always() && needs.read-config.result == 'success' }}
     needs:
       - read-config
       - allocate-ip
