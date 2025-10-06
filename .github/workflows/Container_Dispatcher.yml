@@ -115,5 +115,6 @@ jobs:
       allocated_ip: ${{ needs.allocate-ip.outputs.ip_address || '' }}
       docker_host: ${{ needs.read-config.outputs.container-host }}
       container_folder: ${{ needs.read-config.outputs.container-folder }}
+      fqdn: ${{ needs.read-config.outputs.fqdn }}
     secrets: inherit
       
