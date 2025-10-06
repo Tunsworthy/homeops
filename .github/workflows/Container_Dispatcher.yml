@@ -88,7 +88,7 @@ jobs:
     if: ${{ needs.read-config.outputs.cert == 'true' }}
     uses: ./.github/workflows/CertBot-New-Certs.yml
     with:
-      environment: ${{ needs.read-config.outputs.container-host}}
+      environment: ${{ needs.read-config.outputs.container-environment}}
       domain_name: ${{ needs.read-config.outputs.fqdn }}
       runs_on: ${{ needs.read-config.outputs.container-host}}
     secrets: inherit
@@ -99,7 +99,7 @@ jobs:
     if: ${{ needs.read-config.outputs.dedicated-ip == 'true' }}
     uses: ./.github/workflows/Container_Allocate-IP.yml
     with:
-      environment: ${{ needs.read-config.outputs.container-host}}
+      environment: ${{ needs.read-config.outputs.container-environment}}
       container_name: ${{ needs.read-config.outputs.container-name }}
       docker_host: ${{ needs.read-config.outputs.container-host }}
 
