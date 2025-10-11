@@ -35,7 +35,7 @@ jobs:
           cd $BASE_DIR
           echo ansible-playbook create_A_record.yml \
             -i inventory.ini \
-            -e "technitium_api_token=${{ secret.TECHNITIUM_DNS }}" \
+            -e "technitium_api_token=${{ secrets.TECHNITIUM_DNS }}" \
             -e "allocated_ip=${{ inputs.allocated_ip }}" \
             -e "fqdn=${{ inputs.fqdn }}" \
-            -e "dns_server=${{var.dns_server}}"
+            -e "dns_server=${{vars.dns_server}}"
