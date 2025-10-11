@@ -1,0 +1,41 @@
+name: Internal A Record
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      allocated_ip:
+        required: false
+        type: string
+      docker_host:
+        required: false
+        type: string
+      fqdn:
+        required: false
+        type: string
+
+jobs:
+  create-arecord:
+    runs-on: ${{ inputs.docker_host }}
+    environment: ${{ inputs.environment }}
+    env:
+      BASE_DIR: 'infrastructure/internal/'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create Ansible inventory
+        run: |
+          cd $BASE_DIR
+          echo "localhost ansible_connection=local" > inventory.ini
+      - name: Run Ansible playbook
+        run: |
+          cd $BASE_DIR
+          echo ansible-playbook create_A_record.yml \
+            -i inventory.ini \
+            -e "technitium_api_token=${{ secret.TECHNITIUM_DNS }}" \
+            -e "allocated_ip=${{ inputs.allocated_ip }}" \
+            -e "fqdn=${{ inputs.fqdn }}" \
+            -e "dns_server=${{var.dns_server}}"

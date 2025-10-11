@@ -1,0 +1,24 @@
+
+- name: Create A record in Technitium DNS
+  hosts: all
+  vars:
+    technitium_api_url: "https://{{ dns_server }}:8443/api/zones/records/add"
+    dns_zone: "{{ fqdn.split('.', 1)[1] }}"   # Extracts zone from FQDN (e.g. host.example.com → example.com)
+    token: "{{ technitium_api_token }}"
+  uri:
+    url: "{{ technitium_api_url }}"
+    method: POST
+    body_format: json
+    body:
+      token: "{{ technitium_api_token }}"
+      domain: "{{ dns_zone }}"
+      name: "{{ fqdn.split('.')[0] }}"
+      type: "A"
+      ttl: 3600
+      data: "{{ allocated_ip }}"
+    validate_certs: true  # (set true if you’re using valid HTTPS)
+  register: add_record_response
+
+- name: Show response
+  debug:
+    var: add_record_response.json

@@ -1,0 +1,24 @@
+- name: Get Technitium API token
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    dns_server: "{{ dns_server }}"
+    technitium_username: "{{ technitium_username }}"
+    technitium_password: "{{ technitium_password }}"
+
+  tasks:
+    - name: Authenticate with Technitium DNS API
+      uri:
+        url: "https://{{ dns_server }}/api/user/login"
+        method: POST
+        body_format: json
+        body:
+          user: "{{ technitium_username }}"
+          pass: "{{ technitium_password }}"
+        validate_certs: false
+      register: technitium_login
+
+    - name: Return the token
+      set_fact:
+        technitium_api_token: "{{ technitium_login.json.token }}"
