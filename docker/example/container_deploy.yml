@@ -1,0 +1,37 @@
+---
+- name: Test Container Deployment Playbook
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    container_name: "{{ container_name | default('undefined') }}"
+    environment: "{{ environment | default('undefined') }}"
+    dedicated_ip: "{{ dedicated_ip | default('undefined') }}"
+    allocated_ip: "{{ allocated_ip | default('undefined') }}"
+    docker_host: "{{ docker_host | default('undefined') }}"
+    container_folder: "{{ container_folder | default('undefined') }}"
+
+  tasks:
+    - name: Display start message
+      debug:
+        msg: "🚀 Starting test container deployment workflow"
+
+    - name: Print input variables
+      debug:
+        msg:
+          - "Container Name: {{ container_name }}"
+          - "Environment: {{ environment }}"
+          - "Allocated IP: {{ allocated_ip }}"
+          - "Docker Host: {{ docker_host }}"
+
+    - name: Simulate container deployment
+      debug:
+        msg: "✅ Pretending to deploy container '{{ container_name }}' to '{{ docker_host }}' in environment '{{ environment }}'."
+
+    - name: Simulate success output
+      set_fact:
+        deployment_result: "success"
+
+    - name: Print completion message
+      debug:
+        msg: "🎉 Test deployment complete — result: {{ deployment_result }}"

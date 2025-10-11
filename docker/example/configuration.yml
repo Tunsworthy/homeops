@@ -1,0 +1,12 @@
+name: example
+fqdn: example.tomunsworth.net
+#defines the hosts that the container will be deployed onto
+container_host: pi3
+#defines the network the container will be deployed to
+container_environment: pi3
+
+# High-level flags for GitHub Actions orchestration
+certificate: false             # needs Let's Encrypt cert
+external_access: false         # should be exposed via Cloudflare Tunnel
+dedicated_ip: true            # should get an IP from IP allocation CSV
+update: true

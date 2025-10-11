@@ -102,6 +102,18 @@ jobs:
       environment: ${{ needs.read-config.outputs.container-environment}}
       container_name: ${{ needs.read-config.outputs.container-name }}
       docker_host: ${{ needs.read-config.outputs.container-host }}
+  
+  create-internal-a-record:
+      needs:
+        - allocate-ip
+        - read-config
+      uses: ./.github/workflows/DNS_Internal_New_A_Recrod.yml
+      
+      with:
+        environment: ${{ needs.read-config.outputs.container-environment}}
+        docker_host: ${{ needs.read-config.outputs.container-host }}
+        fqdn: ${{ needs.read-config.outputs.fqdn }}
+        allocated_ip: ${{ needs.allocate-ip.outputs.ip_address || '' }}
 
   deploy-container:
     if: ${{ always() && needs.read-config.result == 'success' }}
