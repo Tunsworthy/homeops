@@ -9,7 +9,7 @@
     # - fqdn
     # - allocated_ip
     # - technitium_api_token
-    api_port: 5380
+    api_port: 8443
     record_name: "{{ fqdn.split('.')[0] }}"
     dns_zone: "{{ fqdn.split('.', 1)[1] }}"
     technitium_api_url: >-
