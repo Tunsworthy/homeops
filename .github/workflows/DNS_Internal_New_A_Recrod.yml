@@ -38,4 +38,5 @@ jobs:
             -e "technitium_api_token=${{ secrets.TECHNITIUM_DNS }}" \
             -e "allocated_ip=${{ inputs.allocated_ip }}" \
             -e "fqdn=${{ inputs.fqdn }}" \
-            -e "dns_server=${{vars.dns_server}}"
+            -e "dns_server=${{vars.dns_server}}" \
+            -vvv
