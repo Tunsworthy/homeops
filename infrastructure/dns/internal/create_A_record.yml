@@ -26,6 +26,15 @@
           - 400  # sometimes returned if record exists
       register: add_record_response
 
+    - name: Parse JSON response
+      ansible.builtin.set_fact:
+        response_json: "{{ add_record_response.json }}"
+
+    - name: Fail if API returned error
+      ansible.builtin.fail:
+        msg: "Technitium API returned an error: {{ response_json.message | default(response_json.status) }}"
+      when: response_json.status != 'Success'
+
     - name: Show response from Technitium
       ansible.builtin.debug:
         var: add_record_response.content
