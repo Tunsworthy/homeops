@@ -7,7 +7,6 @@
     container_name: "{{ container_name | default('undefined') }}"
     environment: "{{ environment | default('undefined') }}"
     dedicated_ip: "{{ dedicated_ip | default('undefined') }}"
-    allocated_ip: "{{ allocated_ip | default('undefined') }}"
     docker_host: "{{ docker_host | default('undefined') }}"
     container_folder: "{{ container_folder | default('undefined') }}"
 
@@ -21,7 +20,6 @@
         msg:
           - "Container Name: {{ container_name }}"
           - "Environment: {{ environment }}"
-          - "Allocated IP: {{ allocated_ip }}"
           - "Docker Host: {{ docker_host }}"
 
     - name: Simulate container deployment

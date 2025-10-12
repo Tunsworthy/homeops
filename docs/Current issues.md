@@ -10,7 +10,7 @@ Current issues
 Design principles
 *Only things that need internet access should get it
 *Only containers that need their Own IP should get it - eg. DNS, NTP,NGINX
-*All webservices should sit behind NGINX where possible
+*All webservices that cannot load their own certificates should be behind NGINX
 *seperation where possbile
 *SSL all the things
 *Access provided from Internet by CloudFlare
@@ -56,7 +56,7 @@ Diagrams
 
 Tooling
 -Terraform (future) - Will be used to configure Mikrotik and Ubuntu
--Ansible (future) - Used to keep systems upto date
+-Ansible - Used to keep systems upto date and deploy containers
 -Github
 -Github Actions
 

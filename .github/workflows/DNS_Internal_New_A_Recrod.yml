@@ -1,4 +1,4 @@
-name: Internal A Record
+name: DNS Internal New A Record
 
 on:
   workflow_call:
