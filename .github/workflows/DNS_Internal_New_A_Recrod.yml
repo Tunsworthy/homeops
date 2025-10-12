@@ -33,10 +33,9 @@ jobs:
       - name: Run Ansible playbook
         run: |
           cd $BASE_DIR
-          echo ansible-playbook create_A_record.yml \
+          echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook create_A_record.yml \
             -i inventory.ini \
             -e "technitium_api_token=${{ secrets.TECHNITIUM_DNS }}" \
             -e "allocated_ip=${{ inputs.allocated_ip }}" \
             -e "fqdn=${{ inputs.fqdn }}" \
-            -e "dns_server=${{vars.dns_server}}" \
-            -vvv
+            -e "dns_server=${{vars.dns_server}}"
