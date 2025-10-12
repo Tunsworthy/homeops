@@ -3,7 +3,7 @@ fqdn: ntp1.tomunsworth.net
 #defines the hosts that the container will be deployed onto
 container_host: pi3
 #defines the network the container will be deployed to
-container_environment: hosts
+container_environment: pi3
 
 # High-level flags for GitHub Actions orchestration
 certificate: false             # needs Let's Encrypt cert
