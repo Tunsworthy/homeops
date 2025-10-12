@@ -33,7 +33,7 @@
     - name: Fail if API returned error
       ansible.builtin.fail:
         msg: "Technitium API returned an error: {{ response_json.message | default(response_json.status) }}"
-      when: response_json.status != 'Success'
+      when: response_json.status != 'ok'
 
     - name: Show response from Technitium
       ansible.builtin.debug:
