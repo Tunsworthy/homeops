@@ -17,11 +17,11 @@ on:
         type: string
 
 jobs:
-  create-arecord:
+  create-a-record:
     runs-on: ${{ inputs.docker_host }}
     environment: ${{ inputs.environment }}
     env:
-      BASE_DIR: 'infrastructure/internal/'
+      BASE_DIR: 'infrastructure/dns/internal/'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
