@@ -3,28 +3,16 @@
   hosts: localhost
   gather_facts: false
 
-  vars:
-    container_name: "{{ container_name | default('undefined') }}"
-    environment: "{{ environment | default('undefined') }}"
-    dedicated_ip: "{{ dedicated_ip | default('undefined') }}"
-    docker_host: "{{ docker_host | default('undefined') }}"
-    container_folder: "{{ container_folder | default('undefined') }}"
+
 
   tasks:
     - name: Display start message
       debug:
         msg: "🚀 Starting test container deployment workflow"
 
-    - name: Print input variables
-      debug:
-        msg:
-          - "Container Name: {{ container_name }}"
-          - "Environment: {{ environment }}"
-          - "Docker Host: {{ docker_host }}"
-
     - name: Simulate container deployment
       debug:
-        msg: "✅ Pretending to deploy container '{{ container_name }}' to '{{ docker_host }}' in environment '{{ environment }}'."
+        msg: "✅ Pretending to deploy container"
 
     - name: Simulate success output
       set_fact:
