@@ -13,7 +13,7 @@
     record_name: "{{ fqdn.split('.')[0] }}"
     dns_zone: "{{ fqdn.split('.', 1)[1] }}"
     technitium_api_url: >-
-      http://{{ dns_server }}:{{ api_port }}/api/zones/records/add?token={{ technitium_api_token }}&domain={{ dns_zone }}&zone={{ dns_zone }}&name={{ record_name }}&type=A&ttl=3600&data={{ allocated_ip }}&ptr=true
+      https://{{ dns_server }}:{{ api_port }}/api/zones/records/add?token={{ technitium_api_token }}&domain={{ fqdn }}&zone={{ dns_zone }}&type=A&ttl=3600&ipAddress={{ allocated_ip }}&ptr=true
 
   tasks:
     - name: Add A record via Technitium API
