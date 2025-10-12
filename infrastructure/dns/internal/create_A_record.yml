@@ -9,33 +9,30 @@
     # - fqdn
     # - allocated_ip
     # - technitium_api_token
-    technitium_api_url: "https://{{ dns_server }}:8443/api/zones/records/add"
-    dns_zone: "{{ fqdn.split('.', 1)[1] }}"   # Extracts zone: host.example.com → example.com
-    record_name: "{{ fqdn.split('.')[0] }}"   # Extracts host: host.example.com → host
+    api_port: 5380
+    record_name: "{{ fqdn.split('.')[0] }}"
+    dns_zone: "{{ fqdn.split('.', 1)[1] }}"
+    technitium_api_url: >-
+      http://{{ dns_server }}:{{ api_port }}/api/zones/records/add
+      ?token={{ technitium_api_token }}
+      &domain={{ dns_zone }}
+      &zone={{ dns_zone }}
+      &name={{ record_name }}
+      &type=A
+      &ttl=3600
+      &data={{ allocated_ip }}
 
   tasks:
-
-    - name: Create A record
+    - name: Add A record via Technitium API
       ansible.builtin.uri:
-        url: "{{ technitium_api_url }}"
-        method: POST
-        headers:
-          Content-Type: "application/json"
-        body_format: json
-        body:
-          token: "{{ technitium_api_token }}"
-          domain: "{{ dns_zone }}"
-          name: "{{ record_name }}"
-          type: "A"
-          ttl: 3600
-          data: "{{ allocated_ip }}"
-        validate_certs: false   # Change to true if your Technitium has valid HTTPS
+        url: "{{ technitium_api_url | urlencode | urldecode }}"
+        method: GET
+        return_content: true
         status_code:
           - 200
-          - 400  # sometimes Technitium returns 400 if record already exists
+          - 400  # sometimes returned if record exists
       register: add_record_response
 
-    - name: Display API response
+    - name: Show response from Technitium
       ansible.builtin.debug:
-        var: add_record_response.json
-
+        var: add_record_response.content
