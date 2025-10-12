@@ -1,0 +1,35 @@
+- name: Deploying Container
+  hosts: all
+  become: true
+  collections:
+    - community.docker
+
+  vars:
+    fqdn: "{{fqdn}}"
+    container_name: "{{name}}"
+    dedicated_ip: "{{dedicated_ip}}"
+
+#becuase we want to SSL we need to use the letsencrypt volume
+  tasks:
+    
+    - name: Deploy NTP container
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        image: cturra/ntp:latest
+        pull: yes
+        state: started
+        restart_policy: always
+        recreate: true
+        env:
+          NTP_SERVERS: "time.cloudflare.com,time1.google.com"
+          ENABLE_NTS: "true"
+          LOG_LEVEL: "0"
+          TZ: "Australia/Sydney"
+        read_only: true
+        tmpfs:
+          - "/etc/chrony:rw,mode=1750"
+          - "/run/chrony:rw,mode=1750"
+          - "/var/lib/chrony:rw,mode=1750"
+        networks:
+          - name: VLAN25
+            ipv4_address: "{{ dedicated_ip | default(omit) }}"
