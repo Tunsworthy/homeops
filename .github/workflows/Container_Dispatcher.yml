@@ -114,6 +114,7 @@ jobs:
         docker_host: ${{ needs.read-config.outputs.container-host }}
         fqdn: ${{ needs.read-config.outputs.fqdn }}
         allocated_ip: ${{ needs.allocate-ip.outputs.ip_address || '' }}
+      secrets: inherit
 
   deploy-container:
     if: ${{ always() && needs.read-config.result == 'success' }}

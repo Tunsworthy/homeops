@@ -22,7 +22,7 @@ jobs:
     environment: ${{ inputs.environment }}
     env:
       BASE_DIR: 'infrastructure/dns/internal/'
-      DNS_API: ${{ secrets.SUDO}}
+      DNS_API: ${{ secrets.TECHITIUM_DNS_API_KEY}}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
