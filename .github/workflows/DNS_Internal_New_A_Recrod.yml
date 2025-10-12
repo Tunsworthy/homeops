@@ -36,7 +36,7 @@ jobs:
           cd $BASE_DIR
           echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook create_A_record.yml \
             -i inventory.ini \
-            -e "technitium_api_token= $dns_api" \
+            -e "technitium_api_token=$dns_api" \
             -e "allocated_ip=${{ inputs.allocated_ip }}" \
             -e "fqdn=${{ inputs.fqdn }}" \
             -e "dns_server=${{vars.dns_server}}"
