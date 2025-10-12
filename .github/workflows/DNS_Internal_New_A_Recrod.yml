@@ -22,6 +22,7 @@ jobs:
     environment: ${{ inputs.environment }}
     env:
       BASE_DIR: 'infrastructure/dns/internal/'
+      dns_api: ${{ secrets.TECHITIUM_DNS_API_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,7 +36,7 @@ jobs:
           cd $BASE_DIR
           echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook create_A_record.yml \
             -i inventory.ini \
-            -e "technitium_api_token=${{ secrets.TECHNITIUM_DNS }}" \
+            -e "technitium_api_token= $dns_api" \
             -e "allocated_ip=${{ inputs.allocated_ip }}" \
             -e "fqdn=${{ inputs.fqdn }}" \
             -e "dns_server=${{vars.dns_server}}"
