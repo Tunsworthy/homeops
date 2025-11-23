@@ -1,0 +1,23 @@
+---
+- name: Test Container Deployment Playbook
+  hosts: localhost
+  gather_facts: false
+
+
+
+  tasks:
+    - name: Display start message
+      debug:
+        msg: "🚀 Starting test container deployment workflow"
+
+    - name: Simulate container deployment
+      debug:
+        msg: "✅ Pretending to deploy container"
+
+    - name: Simulate success output
+      set_fact:
+        deployment_result: "success"
+
+    - name: Print completion message
+      debug:
+        msg: "🎉 Test deployment complete — result: {{ deployment_result }}"

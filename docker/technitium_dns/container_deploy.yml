@@ -47,7 +47,7 @@
     - name: Deploy Technitium DNS container
       community.docker.docker_container:
         name: technitium-dns
-        image: technitium/dns-server:latest
+        image: technitium/dns-server:14.2.0
         pull: yes
         state: started
         restart_policy: unless-stopped
