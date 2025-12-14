@@ -1,5 +1,5 @@
-name: example
-fqdn: example.tomunsworth.net
+name: postgres-test
+fqdn: postgres-test.tomunsworth.net
 #defines the hosts that the container will be deployed onto
 container_host: pi3
 #defines the network the container will be deployed to

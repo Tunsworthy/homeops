@@ -44,6 +44,26 @@
         name: technitium-dns
         state: absent
     
+    - name: Create PFX from Let's Encrypt certs
+      ansible.builtin.command: >
+        openssl pkcs12 -export
+        -out /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/{{ fqdn }}.pfx
+        -inkey /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/privkey.pem
+        -in /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/cert.pem
+        -certfile /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/chain.pem
+        -passout pass:{{ pfx_password | default('') }}
+      args:
+        creates: /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/{{ fqdn }}.pfx
+      become: true
+
+    - name: Set permissions on generated PFX
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/{{ fqdn }}.pfx
+        owner: root
+        group: root
+        mode: '0600'
+      become: true
+
     - name: Deploy Technitium DNS container
       community.docker.docker_container:
         name: technitium-dns
