@@ -9,6 +9,7 @@
     container_name: "{{name}}"
     dedicated_ip: "{{dedicated_ip}}"
     dns_admin_password: "{{dns_admin_password}}"
+    pfx_password: "{{pfx_password}}"
 
 #becuase we want to SSL we need to use the letsencrypt volume
   tasks:
