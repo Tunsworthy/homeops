@@ -42,4 +42,5 @@ jobs:
             -i inventory.ini \
             -e "container_name=${{ inputs.container_name }}" \
             -e "dedicated_ip=${{ inputs.allocated_ip }}" \
-            -e "fqdn=${{ inputs.fqdn }}"
+            -e "fqdn=${{ inputs.fqdn }}" \
+            -e "pfx_password=${{ secrets.PFX_PASSWORD }}"
