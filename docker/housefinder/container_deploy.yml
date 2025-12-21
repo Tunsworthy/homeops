@@ -32,12 +32,12 @@
 
     - name: Remove existing container
       community.docker.docker_container:
-        name: "{{name}}"
+        name: "{{container_name}}"
         state: absent
 
     - name: Run backend Container
       community.docker.docker_container:
-        name: "{{name}}"
+        name: "{{container_name}}"
         image: ghcr.io/tunsworthy/housefinder_backend:latest
         pull: yes
         state: started
@@ -112,7 +112,7 @@
 
     - name: Deploy Container
       community.docker.docker_container:
-        name: "{{name}}"
+        name: "{{container_name}}"
         image: ghcr.io/tunsworthy/housefinder_frontend:latest
         pull: yes
         state: started
