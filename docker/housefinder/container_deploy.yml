@@ -6,7 +6,7 @@
 
   vars:
     fqdn: "{{fqdn}}"
-    container_name: "{{name}}"
+    container_name: "{{container_name}}"
     dedicated_ip: "{{dedicated_ip}}"
 
   tasks:
