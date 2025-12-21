@@ -52,7 +52,7 @@
         -inkey /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/privkey.pem
         -in /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/cert.pem
         -certfile /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/chain.pem
-        -passout pass:{{ pfx_password | default('') }}
+        -passout pass:{{ pfx_password | default('test') }}
       args:
         creates: /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/{{ fqdn }}.pfx
       become: true
