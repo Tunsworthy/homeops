@@ -21,6 +21,13 @@ on:
       fqdn:
         required: false
         type: string
+    secrets:
+      SUDO:
+        required: false
+      PFX_PASSWORD:
+        required: false
+      CONTAINER_PASSWORD:
+        required: false
 jobs:
   deploy-container:
     runs-on: ${{ inputs.docker_host }}
@@ -38,9 +45,18 @@ jobs:
       - name: Run Ansible playbook
         run: |
           cd $BASE_DIR
+          # create a temporary extra-vars file with restricted permissions
+          cat > extra_vars.yml <<EOF
+          container_name: "${{ inputs.container_name }}"
+          dedicated_ip: "${{ inputs.allocated_ip }}"
+          fqdn: "${{ inputs.fqdn }}"
+          pfx_password: "${{ secrets.PFX_PASSWORD }}"
+          container_password: "${{ secrets.CONTAINER_PASSWORD }}"
+          EOF
+          chmod 600 extra_vars.yml
+          # run playbook using the vars file so sensitive values are not echoed in CLI args
           echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook container_deploy.yml \
             -i inventory.ini \
-            -e "container_name=${{ inputs.container_name }}" \
-            -e "dedicated_ip=${{ inputs.allocated_ip }}" \
-            -e "fqdn=${{ inputs.fqdn }}" \
-            -e "pfx_password=${{ secrets.PFX_PASSWORD }}"
+            -e "@extra_vars.yml"
+          # attempt secure deletion, fall back to rm
+          shred -u extra_vars.yml || rm -f extra_vars.yml

@@ -1,0 +1,124 @@
+- name: Deploying Container
+  hosts: all
+  become: true
+  collections:
+    - community.docker
+
+  vars:
+    fqdn: "{{fqdn}}"
+    container_name: "{{name}}"
+    dedicated_ip: "{{dedicated_ip}}"
+
+  tasks:
+
+    - name: Creates/Ensures data volume exists
+      community.docker.docker_volume:
+       name: hosuefinder_data
+       state: present
+
+    - name: Checks Host folder exists
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/housefinder_data/_data
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Create internal Docker network for housefinder
+      community.docker.docker_network:
+        name: housefinder_net
+        state: present
+        driver: bridge
+
+    - name: Remove existing container
+      community.docker.docker_container:
+        name: "{{name}}"
+        state: absent
+
+    - name: Run backend Container
+      community.docker.docker_container:
+        name: "{{name}}"
+        image: ghcr.io/tunsworthy/housefinder_backend:latest
+        pull: yes
+        state: started
+        restart_policy: unless-stopped
+        recreate: true
+        volumes:
+          - hosuefinder_data:/data
+          
+    - name: Ensure letsencrypt volume exists
+      community.docker.docker_volume:
+       name: letsencrypt
+       state: present
+
+    - name: Ensure nginx config directory exists on data volume
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/housefinder_data/_data/nginx
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Deploy nginx config for housefinder
+      ansible.builtin.copy:
+        dest: /var/lib/docker/volumes/housefinder_data/_data/nginx/housefinder.conf
+        content: |
+          server {
+            listen 80;
+            server_name {{ fqdn }};
+            return 301 https://$host$request_uri;
+          }
+
+          server {
+            listen 443 ssl;
+            server_name {{ fqdn }};
+
+            ssl_certificate /etc/letsencrypt/live/{{ fqdn }}/fullchain.pem;
+            ssl_certificate_key /etc/letsencrypt/live/{{ fqdn }}/privkey.pem;
+            ssl_protocols TLSv1.2 TLSv1.3;
+
+            location / {
+              proxy_pass http://{{ name }}:80;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+            }
+          }
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Remove existing nginx container
+      community.docker.docker_container:
+        name: housefinder-nginx
+        state: absent
+
+    - name: Deploy nginx reverse-proxy (external IP on VLAN25)
+      community.docker.docker_container:
+        name: housefinder-nginx
+        image: nginx:stable
+        pull: yes
+        state: started
+        restart_policy: unless-stopped
+        recreate: true
+        volumes:
+          - hosuefinder_data:/etc/nginx/conf.d:ro
+          - letsencrypt:/etc/letsencrypt:ro
+        networks:
+          - name: VLAN25
+            ipv4_address: "{{ dedicated_ip | default(omit) }}"
+          - name: housefinder_net
+
+    - name: Deploy Container
+      community.docker.docker_container:
+        name: "{{name}}"
+        image: ghcr.io/tunsworthy/housefinder_frontend:latest
+        pull: yes
+        state: started
+        restart_policy: unless-stopped
+        recreate: true
+        volumes:
+          - hosuefinder_data:/data
+        networks:
+          - name: housefinder_net
