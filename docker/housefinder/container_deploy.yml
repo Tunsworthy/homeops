@@ -13,7 +13,7 @@
 
     - name: Creates/Ensures data volume exists
       community.docker.docker_volume:
-       name: hosuefinder_data
+       name: housefinder_data
        state: present
 
     - name: Checks Host folder exists
@@ -37,14 +37,14 @@
 
     - name: Run backend Container
       community.docker.docker_container:
-        name: "{{container_name}}"
+        name: "{{ container_name }}-backend"
         image: ghcr.io/tunsworthy/housefinder_backend:latest
         pull: yes
         state: started
         restart_policy: unless-stopped
         recreate: true
         volumes:
-          - hosuefinder_data:/data
+          - housefinder_data:/data
           
     - name: Ensure letsencrypt volume exists
       community.docker.docker_volume:
@@ -78,7 +78,7 @@
             ssl_protocols TLSv1.2 TLSv1.3;
 
             location / {
-              proxy_pass http://{{ container_name }}:8080;
+              proxy_pass http://{{ container_name }}-frontend:8080;
               proxy_set_header Host $host;
               proxy_set_header X-Real-IP $remote_addr;
               proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -103,7 +103,7 @@
         restart_policy: unless-stopped
         recreate: true
         volumes:
-          - hosuefinder_data:/etc/nginx/conf.d:ro
+          - housefinder_data:/etc/nginx/conf.d:ro
           - letsencrypt:/etc/letsencrypt:ro
         networks:
           - name: VLAN25
@@ -112,13 +112,13 @@
 
     - name: Deploy Container
       community.docker.docker_container:
-        name: "{{container_name}}"
+        name: "{{ container_name }}-frontend"
         image: ghcr.io/tunsworthy/housefinder_frontend:latest
         pull: yes
         state: started
         restart_policy: unless-stopped
         recreate: true
         volumes:
-          - hosuefinder_data:/data
+          - housefinder_data:/data
         networks:
           - name: housefinder_net
