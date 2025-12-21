@@ -103,7 +103,8 @@
         restart_policy: unless-stopped
         recreate: true
         volumes:
-          - housefinder_data:/etc/nginx/conf.d:ro
+          - volumes:
+          - /var/lib/docker/volumes/housefinder_data/_data/nginx:/etc/nginx/conf.d:ro
           - letsencrypt:/etc/letsencrypt:ro
         networks:
           - name: VLAN25
