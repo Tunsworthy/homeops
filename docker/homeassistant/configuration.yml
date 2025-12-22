@@ -1,5 +1,5 @@
-name: postgres
-fqdn: postgres.tomunsworth.net
+name: HA-1
+fqdn: HA-1.tomunsworth.net
 #defines the hosts that the container will be deployed onto
 container_host: pi3
 #defines the network the container will be deployed to
