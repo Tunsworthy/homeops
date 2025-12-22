@@ -29,105 +29,149 @@ jobs:
           FOLDERS=$(echo "${{ steps.get-changes.outputs.all_changed_files }}" \
             | tr ' ' '\n' \
             | awk -F'/' '{print $2}' \
-            | sort -u \
-            | paste -sd "," -)
-          
-          echo "Changed container folders: $FOLDERS"
-          echo "containers=$FOLDERS" >> $GITHUB_OUTPUT
+            | sort -u)
+
+          # build JSON array from newline-separated folders
+          if [ -z "$FOLDERS" ]; then
+            JSON_ARRAY="[]"
+          else
+            JSON_ARRAY=$(echo "$FOLDERS" | python3 -c 'import sys,json; print(json.dumps([l for l in sys.stdin.read().split() if l]))')
+          fi
+
+          echo "Changed container folders: $JSON_ARRAY"
+          echo "containers=$JSON_ARRAY" >> $GITHUB_OUTPUT
+
   read-config:
     needs: detect-changes
     runs-on: ubuntu-latest
-    
     outputs:
-      container-name: ${{ steps.read-config.outputs.name }}
-      fqdn: ${{ steps.read-config.outputs.fqdn }}
-      cert: ${{ steps.read-config.outputs.cert }}
-      external: ${{ steps.read-config.outputs.external }}
-      dedicated-ip: ${{ steps.read-config.outputs.dedicated_ip }}
-      container-environment: ${{ steps.read-config.outputs.container_environment }}
-      container-host: ${{ steps.read-config.outputs.container_host }}
-      container-folder: ${{ steps.get-config.outputs.CONTAINER_FOLDER }}
-      
+      containers: ${{ steps.build.outputs.containers }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Get container configuration file
-        id: get-config
+      - name: Ensure `yq` is available
         run: |
-          CONTAINER="${{ needs.detect-changes.outputs.changed-containers }}"
-          CONFIG_PATH="docker/$CONTAINER/configuration.yml"
-          echo "CONFIG_PATH=$CONFIG_PATH" >> $GITHUB_ENV
-          echo "CONTAINER_FOLDER=$CONTAINER" >> $GITHUB_OUTPUT
+          if ! command -v yq >/dev/null 2>&1; then
+            echo "Installing yq"
+            echo "${{ secrets.SUDO }}" | sudo -S apt-get update
+            echo "${{ secrets.SUDO }}" | sudo -S apt-get install -y yq
+          fi
 
-      - name: Read configuration.yml
-        id: read-config
+      - name: Build container config array
+        id: build
         run: |
-          NAME=$(yq -r '.name' "$CONFIG_PATH")
-          FQDN=$(yq -r '.fqdn' "$CONFIG_PATH")
-          CERT=$(yq -r '.certificate' "$CONFIG_PATH")
-          EXTERNAL=$(yq -r '.external_access' "$CONFIG_PATH")
-          DEDICATED_IP=$(yq -r '.dedicated_ip' "$CONFIG_PATH")
-          CONTAINER_ENVIRONMENT=$(yq -r '.container_environment' "$CONFIG_PATH")
-          CONTAINER_HOST=$(yq -r '.container_host' "$CONFIG_PATH")
-          
+          CONTAINERS_JSON='${{ needs.detect-changes.outputs.containers }}'
 
-          echo "name=$NAME" >> $GITHUB_OUTPUT
-          echo "fqdn=$FQDN" >> $GITHUB_OUTPUT
-          echo "cert=$CERT" >> $GITHUB_OUTPUT
-          echo "external=$EXTERNAL" >> $GITHUB_OUTPUT
-          echo "dedicated_ip=$DEDICATED_IP" >> $GITHUB_OUTPUT
-          echo "container_environment=$CONTAINER_ENVIRONMENT" >> $GITHUB_OUTPUT
-          echo "container_host=$CONTAINER_HOST" >> $GITHUB_OUTPUT
-          
+          # produce newline-separated list
+          CONTAINERS=$(python3 -c "import json,sys; arr=json.loads(sys.argv[1]) if len(sys.argv)>1 else []; print('\n'.join(arr))" "$CONTAINERS_JSON")
 
-  create-cert:
-    needs: 
-      - read-config
-    if: ${{ needs.read-config.outputs.cert == 'true' }}
-    uses: ./.github/workflows/CertBot-New-Certs.yml
-    with:
-      environment: ${{ needs.read-config.outputs.container-environment}}
-      domain_name: ${{ needs.read-config.outputs.fqdn }}
-      runs_on: ${{ needs.read-config.outputs.container-host}}
-    secrets: inherit
+          # for each container read configuration.yml and emit JSON object per-line
+          TMPFILE=$(mktemp)
+          > $TMPFILE
+          while read -r C; do
+            CONFIG_PATH="docker/$C/configuration.yml"
+            if [ -f "$CONFIG_PATH" ]; then
+              NAME=$(yq -r '.name' "$CONFIG_PATH")
+              FQDN=$(yq -r '.fqdn' "$CONFIG_PATH")
+              CERT=$(yq -r '.certificate' "$CONFIG_PATH")
+              EXTERNAL=$(yq -r '.external_access' "$CONFIG_PATH")
+              DEDICATED_IP=$(yq -r '.dedicated_ip' "$CONFIG_PATH")
+              CONTAINER_ENVIRONMENT=$(yq -r '.container_environment' "$CONFIG_PATH")
+              CONTAINER_HOST=$(yq -r '.container_host' "$CONFIG_PATH")
+              printf '%s\n' "{\"container_folder\":\"$C\",\"name\":\"$NAME\",\"fqdn\":\"$FQDN\",\"certificate\":\"$CERT\",\"external_access\":\"$EXTERNAL\",\"dedicated_ip\":\"$DEDICATED_IP\",\"container_environment\":\"$CONTAINER_ENVIRONMENT\",\"container_host\":\"$CONTAINER_HOST\"}" >> $TMPFILE
+            fi
+          done <<< "$CONTAINERS"
 
-  allocate-ip:
-    needs:
-      - read-config
-    if: ${{ needs.read-config.outputs.dedicated-ip == 'true' }}
-    uses: ./.github/workflows/Container_Allocate-IP.yml
-    with:
-      environment: ${{ needs.read-config.outputs.container-environment}}
-      container_name: ${{ needs.read-config.outputs.container-name }}
-      docker_host: ${{ needs.read-config.outputs.container-host }}
-  
-  create-internal-a-record:
-      needs:
-        - allocate-ip
-        - read-config
-      uses: ./.github/workflows/DNS_Internal_New_A_Recrod.yml
-      
-      with:
-        environment: ${{ needs.read-config.outputs.container-environment}}
-        docker_host: ${{ needs.read-config.outputs.container-host }}
-        fqdn: ${{ needs.read-config.outputs.fqdn }}
-        allocated_ip: ${{ needs.allocate-ip.outputs.ip_address || '' }}
-      secrets: inherit
+          # aggregate to JSON array
+          CONTAINERS_JSON=$(python3 -c "import json,sys; objs=[json.loads(l) for l in sys.stdin.read().splitlines() if l.strip()]; print(json.dumps(objs))" < $TMPFILE)
 
-  deploy-container:
-    if: ${{ always() && needs.read-config.result == 'success' }}
-    needs:
-      - read-config
-      - allocate-ip
-    uses: ./.github/workflows/Container_Deployment.yml
-    with:
-      environment: ${{ needs.read-config.outputs.container-environment }}
-      container_name: ${{ needs.read-config.outputs.container-name }}
-      allocated_ip: ${{ needs.allocate-ip.outputs.ip_address || '' }}
-      docker_host: ${{ needs.read-config.outputs.container-host }}
-      container_folder: ${{ needs.read-config.outputs.container-folder }}
-      fqdn: ${{ needs.read-config.outputs.fqdn }}
-    secrets: inherit
+          echo "containers=$CONTAINERS_JSON" >> $GITHUB_OUTPUT
+
+      - name: Process changed containers sequentially
+        run: |
+          set -euo pipefail
+          CONTAINERS_JSON='${{ steps.build.outputs.containers }}'
+
+          # print tab-separated fields per container: name, fqdn, certificate, dedicated_ip, env, host, folder
+          python3 -c "import json,sys; arr=json.loads(sys.argv[1]) if len(sys.argv)>1 else []; print('\n'.join(['\t'.join([o.get('name',''), o.get('fqdn',''), o.get('certificate',''), o.get('dedicated_ip',''), o.get('container_environment',''), o.get('container_host',''), o.get('container_folder','')]) for o in arr]))" "$CONTAINERS_JSON" | while IFS=$'\t' read -r NAME FQDN CERT DEDIP ENV HOST FOLDER; do
+
+            echo "Processing container: $NAME (folder: $FOLDER)"
+
+            # Create cert if requested
+            if [ "$CERT" = "true" ]; then
+              echo "Ensuring Ansible installed for cert step"
+              if ! command -v ansible >/dev/null 2>&1; then
+                echo "Installing ansible"
+                echo "${{ secrets.SUDO }}" | sudo -S apt-get update
+                echo "${{ secrets.SUDO }}" | sudo -S apt-get install -y ansible
+              fi
+              echo "Running cert playbook for $FQDN"
+              cd docker/certbot
+              echo "localhost ansible_connection=local" > inventory.ini
+              echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook newcert.yml -i inventory.ini -e "domain_name=$FQDN email=${{ vars.EMAIL }} cloudflare_api_token=${{ secrets.CF_API_TOKEN }}"
+              cd - >/dev/null
+            fi
+
+            # Allocate IP if needed
+            IP_ADDRESS=""
+            if [ "$DEDIP" = "true" ]; then
+              echo "Allocating IP for $NAME on host $HOST"
+              ENV_HOST="$HOST"
+              if [ "$ENV_HOST" = "pi4" ]; then
+                SUBNET="10.2.6"
+              else
+                SUBNET="10.2.5"
+              fi
+              HOST_PATH="$HOME/ipam"
+              mkdir -p "$HOST_PATH"
+              FILE="$HOST_PATH/ipam-${ENV_HOST}.csv"
+              touch "$FILE"
+              if ! grep -q '^ip,container' "$FILE"; then
+                echo "ip,container" > tmp.csv
+                grep -v '^ip,container' "$FILE" >> tmp.csv || true
+                mv tmp.csv "$FILE"
+              fi
+              EXISTING_IP=$(awk -F',' -v c="$NAME" '$2==c {print $1}' "$FILE" | head -n1)
+              if [ -n "$EXISTING_IP" ]; then
+                IP_ADDRESS="$EXISTING_IP"
+                echo "Found existing IP $IP_ADDRESS for $NAME"
+              else
+                for i in $(seq 2 254); do
+                  IP="$SUBNET.$i"
+                  if ! grep -q "$IP" "$FILE"; then
+                    echo "$IP,$NAME" >> "$FILE"
+                    IP_ADDRESS="$IP"
+                    echo "Allocated $IP_ADDRESS to $NAME"
+                    break
+                  fi
+                done
+              fi
+            fi
+
+            # Create internal A record if needed
+            if [ -n "$IP_ADDRESS" ]; then
+              echo "Creating internal A record for $FQDN -> $IP_ADDRESS"
+              cd infrastructure/dns/internal
+              echo "localhost ansible_connection=local" > inventory.ini
+              echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook create_A_record.yml -i inventory.ini -e "technitium_api_token=${{ secrets.TECHITIUM_DNS_API_KEY }} allocated_ip=$IP_ADDRESS fqdn=$FQDN dns_server=${{ vars.DNS_SERVER }}"
+              cd - >/dev/null
+            fi
+
+            # Deploy container
+            echo "Deploying container $NAME from folder $FOLDER"
+            BASE_DIR="docker/$FOLDER"
+            cd "$BASE_DIR"
+            echo "localhost ansible_connection=local" > inventory.ini
+            printf '%s\n' "container_name: \"$NAME\"" "dedicated_ip: \"$IP_ADDRESS\"" "fqdn: \"$FQDN\"" "pfx_password: \"${{ secrets.PFX_PASSWORD }}\"" "container_password: \"${{ secrets.CONTAINER_PASSWORD }}\"" "googlemaps_api_key: \"${{ secrets.GOOGLEMAPS_API_KEY }}\"" > extra_vars.yml
+            chmod 600 extra_vars.yml
+            echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook container_deploy.yml -i inventory.ini -e "@extra_vars.yml"
+            shred -u extra_vars.yml || rm -f extra_vars.yml
+            cd - >/dev/null
+
+          done
+
+  # downstream actions (cert creation, IP allocation, DNS record creation and deployment)
+  # are handled sequentially inside the `read-config` job for each changed container.
       
