@@ -8,6 +8,7 @@
     fqdn: "{{fqdn}}"
     container_name: "{{container_name}}"
     dedicated_ip: "{{dedicated_ip}}"
+    googlemaps_api_key: "{{ googlemaps_api_key | default('') }}"
 
   tasks:
 
@@ -43,6 +44,8 @@
         state: started
         restart_policy: unless-stopped
         recreate: true
+        env:
+          GOOGLEMAPS_API_KEY: "{{ googlemaps_api_key | default(omit) }}"
         volumes:
           - housefinder_data:/data
           
