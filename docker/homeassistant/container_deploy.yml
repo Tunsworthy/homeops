@@ -6,7 +6,7 @@
 
   vars:
     fqdn: "{{fqdn}}"
-    container_name: "{{name}}"
+    container_name: "{{container_name}}"
     dedicated_ip: "{{dedicated_ip}}"
 
   tasks:
@@ -26,7 +26,7 @@
 
     - name: Remove existing container
       community.docker.docker_container:
-        name: "{{name}}"
+        name: "{{container_name}}"
         state: absent
     
     - name: Ensure letsencrypt volume exists
@@ -61,7 +61,7 @@
 
     - name: Deploy Container
       community.docker.docker_container:
-        name: "{{name}}"
+        name: "{{container_name}}"
         image: homeassistant/home-assistant:2025.6
         pull: yes
         state: started
