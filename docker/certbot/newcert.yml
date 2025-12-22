@@ -67,6 +67,7 @@
           -d {{ domain_name }}
         volumes:
           - letsencrypt:/etc/letsencrypt
+      when: not (cert_stat.stat.exists and cert_check is defined and cert_check.rc == 0)
 
     - name: Remove Cloudflare credentials file
       ansible.builtin.file:
