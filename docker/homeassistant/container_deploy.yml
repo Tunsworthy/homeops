@@ -1,0 +1,77 @@
+- name: Deploying Container
+  hosts: all
+  become: true
+  collections:
+    - community.docker
+
+  vars:
+    fqdn: "{{fqdn}}"
+    container_name: "{{name}}"
+    dedicated_ip: "{{dedicated_ip}}"
+
+  tasks:
+
+    - name: Creates/Ensures homeassistant volume exists
+      community.docker.docker_volume:
+       name: homeassistant_data
+       state: present
+
+    - name: Checks Host folder exists
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/homeassistant_data/_data
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Remove existing container
+      community.docker.docker_container:
+        name: "{{name}}"
+        state: absent
+    
+    - name: Ensure letsencrypt volume exists
+      community.docker.docker_volume:
+       name: letsencrypt
+       state: present
+
+    - name: Ensure Home Assistant config directory exists
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/homeassistant_data/_data
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Deploy Home Assistant configuration to use Let's Encrypt certs
+      ansible.builtin.copy:
+        dest: /var/lib/docker/volumes/homeassistant_data/_data/configuration.yaml
+        content: |
+          homeassistant:
+            external_url: "https://{{ fqdn }}"
+
+          http:
+            ssl_certificate: /etc/letsencrypt/live/{{ fqdn }}/fullchain.pem
+            ssl_key: /etc/letsencrypt/live/{{ fqdn }}/privkey.pem
+            use_x_forwarded_for: true
+            trusted_proxies:
+              - 127.0.0.1
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Deploy Container
+      community.docker.docker_container:
+        name: "{{name}}"
+        image: homeassistant/home-assistant:2025.6
+        pull: yes
+        state: started
+        restart_policy: unless-stopped
+        recreate: true
+        env:
+          TZ : Australia/Sydney
+        volumes:
+          - homeassistant_data:/config
+          - letsencrypt:/etc/letsencrypt:ro
+        networks:
+          - name: VLAN25
+            ipv4_address: "{{ dedicated_ip | default(omit) }}"
