@@ -52,9 +52,8 @@
     - name: Run Certbot container to request certificate
       community.docker.docker_container:
         name: certbot_run
-        image: certbot/dns-cloudflare:latest
+        image: certbot/dns-cloudflare:v5.2.2
         state: started
-        auto_remove: true
         detach: false
         command: >
           certonly
