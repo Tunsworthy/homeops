@@ -36,14 +36,14 @@
         name: "{{container_name}}"
         state: absent
 
-    - name: Run backend Container
+    - name: Run backend job (one-shot)
       community.docker.docker_container:
         name: "{{ container_name }}-backend"
         image: ghcr.io/tunsworthy/housefinder_backend:latest
         pull: yes
         state: started
-        restart_policy: unless-stopped
         recreate: true
+        auto_remove: false   # keep container for logs/debugging
         env:
           GOOGLEMAPS_API_KEY: "{{ googlemaps_api_key | default(omit) }}"
         volumes:

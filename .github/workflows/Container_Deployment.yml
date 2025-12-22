@@ -28,6 +28,8 @@ on:
         required: false
       CONTAINER_PASSWORD:
         required: false
+      GOOGLEMAPS_API_KEY:
+        required: false
 jobs:
   deploy-container:
     runs-on: ${{ inputs.docker_host }}
