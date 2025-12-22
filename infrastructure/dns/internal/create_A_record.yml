@@ -29,10 +29,41 @@
     - name: Parse JSON response
       ansible.builtin.set_fact:
         response_json: "{{ add_record_response.json }}"
-
     - name: Fail if API returned error
-      ansible.builtin.fail:
-        msg: "Technitium API returned an error: {{ response_json.message | default(response_json.status) }}"
+      ansible.builtin.debug:
+        msg: "Technitium API response status: {{ response_json.status }}"
+
+    - name: If API did not return ok, check existing DNS record
+      block:
+        - name: Lookup existing A record via DNS
+          ansible.builtin.command:
+            cmd: "dig +short @{{ dns_server }} {{ fqdn }} A"
+          register: dns_lookup
+          failed_when: false
+          changed_when: false
+
+        - name: Set existing_ip fact
+          ansible.builtin.set_fact:
+            existing_ip: "{{ dns_lookup.stdout_lines[0] | default('') }}"
+
+        - name: Debug existing IP
+          ansible.builtin.debug:
+            msg: "Existing A record for {{ fqdn }} -> '{{ existing_ip }}'"
+
+        - name: Succeed when existing record matches requested IP
+          ansible.builtin.debug:
+            msg: "A record for {{ fqdn }} already exists and points to {{ allocated_ip }}; skipping creation."
+          when: existing_ip == allocated_ip
+
+        - name: Fail when existing record points to a different IP
+          ansible.builtin.fail:
+            msg: "A record for {{ fqdn }} exists and points to {{ existing_ip }} (expected {{ allocated_ip }}). Please remove or update it first."
+          when: existing_ip != '' and existing_ip != allocated_ip
+
+        - name: Fail when API returned error and no existing record found
+          ansible.builtin.fail:
+            msg: "Technitium API returned an error and no existing A record was found for {{ fqdn }}. API message: {{ response_json.message | default(response_json.status) }}"
+          when: existing_ip == ''
       when: response_json.status != 'ok'
 
     - name: Show response from Technitium
