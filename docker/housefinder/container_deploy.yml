@@ -103,7 +103,6 @@
         restart_policy: unless-stopped
         recreate: true
         volumes:
-          - volumes:
           - /var/lib/docker/volumes/housefinder_data/_data/nginx:/etc/nginx/conf.d:ro
           - letsencrypt:/etc/letsencrypt:ro
         networks:
