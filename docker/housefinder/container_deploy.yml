@@ -45,7 +45,7 @@
         recreate: true
         auto_remove: false   # keep container for logs/debugging
         env:
-          GOOGLEMAPS_API_KEY: "{{ googlemaps_api_key | default(omit) }}"
+          GOOGLE_API_KEY: "{{ googlemaps_api_key | default(omit) }}"
         volumes:
           - housefinder_data:/data
           
