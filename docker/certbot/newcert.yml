@@ -9,6 +9,7 @@
     domain_name: "{{domain_name}}"
     email: "{{email_address}}"
     cloudflare_api_token: "{{cloudflare_api}}"   # use Ansible Vault in prod
+    renew_threshold_days: 30
 
   tasks:
     - name: Ensure letsencrypt volume exists
@@ -23,6 +24,20 @@
         owner: root
         group: root
         mode: '0755'
+
+    - name: Check for existing certificate file
+      ansible.builtin.stat:
+        path: /var/lib/docker/volumes/letsencrypt/_data/live/{{ domain_name }}/cert.pem
+      register: cert_stat
+
+    - name: Check certificate expiry (valid for at least renew_threshold_days)
+      ansible.builtin.command: >
+        openssl x509 -in /var/lib/docker/volumes/letsencrypt/_data/live/{{ domain_name }}/cert.pem
+        -checkend {{ (renew_threshold_days | int) * 86400 }}
+      register: cert_check
+      failed_when: false
+      changed_when: false
+      when: cert_stat.stat.exists
 
     - name: Create Cloudflare credentials file
       ansible.builtin.copy:
