@@ -27,7 +27,7 @@
         name: VLAN26
         driver: macvlan
         driver_options:
-          parent: vlan25
+          parent: vlan26
         ipam_config:
           - subnet: 10.2.6.0/24
             gateway: 10.2.6.1
