@@ -55,6 +55,7 @@ jobs:
           pfx_password: "${{ secrets.PFX_PASSWORD }}"
           container_password: "${{ secrets.CONTAINER_PASSWORD }}"
           googlemaps_api_key: "${{ secrets.GOOGLEMAPS_API_KEY }}"
+          CLOUDFLARE_TOKEN: "${{ secrets.CLOUDFLARE_TOKEN }}"
           EOF
           chmod 600 extra_vars.yml
           # run playbook using the vars file so sensitive values are not echoed in CLI args

@@ -1,0 +1,23 @@
+- name: Deploying Container
+  hosts: all
+  become: true
+  collections:
+    - community.docker
+
+  vars:
+    fqdn: "{{fqdn}}"
+    container_name: "{{container_name}}"
+    dedicated_ip: "{{dedicated_ip}}"
+    CLOUDFLARE_TOKEN: "{{ CLOUDFLARE_TOKEN}}"
+
+  tasks:
+    - name: Deploy cloudflare container
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        image: cloudflare/cloudflared
+        pull: yes
+        state: started
+        recreate: true
+        auto_remove: false   # keep container for logs/debugging
+        env:
+          TUNNEL_TOKEN: "{{ CLOUDFLARE_TOKEN }}"
