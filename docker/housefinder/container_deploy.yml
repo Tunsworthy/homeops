@@ -97,7 +97,7 @@
         name: housefinder-nginx
         state: absent
 
-    - name: Deploy nginx reverse-proxy (external IP on VLAN25)
+    - name: Deploy nginx reverse-proxy (external IP on VLAN26)
       community.docker.docker_container:
         name: housefinder-nginx
         image: nginx:stable
@@ -109,7 +109,7 @@
           - /var/lib/docker/volumes/housefinder_data/_data/nginx:/etc/nginx/conf.d:ro
           - letsencrypt:/etc/letsencrypt:ro
         networks:
-          - name: VLAN25
+          - name: VLAN26
             ipv4_address: "{{ dedicated_ip | default(omit) }}"
           - name: housefinder_net
 
