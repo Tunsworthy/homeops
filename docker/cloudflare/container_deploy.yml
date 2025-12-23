@@ -21,3 +21,4 @@
         auto_remove: false   # keep container for logs/debugging
         env:
           TUNNEL_TOKEN: "{{ CLOUDFLARE_TOKEN }}"
+        command: tunnel run
