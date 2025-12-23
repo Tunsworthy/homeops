@@ -29,8 +29,8 @@ jobs:
         run: |
           if ! command -v ansible >/dev/null 2>&1; then
             echo "Ansible not found. Installing..."
-            echo "${{ secrets.SUDO }}" | sudo -S apt update
-            echo "${{ secrets.SUDO }}" | sudo -S apt install -y ansible
+            sudo apt update
+            sudo apt install -y ansible
           else
             echo "Ansible already installed."
           fi
