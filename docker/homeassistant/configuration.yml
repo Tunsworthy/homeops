@@ -1,9 +1,9 @@
-name: HA-1
-fqdn: HA-1.tomunsworth.net
+name: homeassistant
+fqdn: homeassistant.tomunsworth.net
 #defines the hosts that the container will be deployed onto
-container_host: pi3
+container_host: pi4
 #defines the network the container will be deployed to
-container_environment: pi3
+container_environment: pi4
 
 # High-level flags for GitHub Actions orchestration
 certificate: true             # needs Let's Encrypt cert

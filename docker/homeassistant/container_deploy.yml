@@ -73,5 +73,5 @@
           - homeassistant_data:/config
           - letsencrypt:/etc/letsencrypt:ro
         networks:
-          - name: VLAN25
+          - name: VLAN26
             ipv4_address: "{{ dedicated_ip | default(omit) }}"
