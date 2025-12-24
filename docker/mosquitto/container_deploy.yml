@@ -6,7 +6,7 @@
 
   vars:
     fqdn: "{{fqdn}}"
-    name: "{{name}}"
+    container_name: "{{container_name}}"
     dedicated_ip: "{{dedicated_ip}}"
 
   tasks:
@@ -71,12 +71,12 @@
 
     - name: Remove existing mosquitto container
       community.docker.docker_container:
-        name: "{{ name }}"
+        container_name: "{{container_name}}"
         state: absent
 
     - name: Deploy Mosquitto MQTT container
       community.docker.docker_container:
-        name: "{{ name }}"
+        container_name: "{{container_name}}"
         image: eclipse-mosquitto:2.0
         pull: yes
         state: started
@@ -87,5 +87,5 @@
           - mosquitto_data:/mosquitto/data
           - letsencrypt:/etc/letsencrypt:ro
         networks:
-          - name: VLAN25
+          - name: VLAN26
             ipv4_address: "{{ dedicated_ip | default(omit) }}"
