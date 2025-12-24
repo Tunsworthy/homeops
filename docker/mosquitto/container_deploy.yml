@@ -71,7 +71,7 @@
 
     - name: Remove existing mosquitto container
       community.docker.docker_container:
-        container_name: "{{container_name}}"
+        name: "{{container_name}}"
         state: absent
 
     - name: Deploy Mosquitto MQTT container
