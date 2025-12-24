@@ -1,0 +1,91 @@
+- name: Deploying Mosquitto MQTT Container
+  hosts: all
+  become: true
+  collections:
+    - community.docker
+
+  vars:
+    fqdn: "{{fqdn}}"
+    name: "{{name}}"
+    dedicated_ip: "{{dedicated_ip}}"
+
+  tasks:
+    - name: Ensure mosquitto data volume exists
+      community.docker.docker_volume:
+        name: mosquitto_data
+        state: present
+
+    - name: Ensure mosquitto config directory exists on host
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/mosquitto_data/_data/config
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Ensure mosquitto data directory exists on host
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/mosquitto_data/_data/data
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Ensure letsencrypt volume exists
+      community.docker.docker_volume:
+       name: letsencrypt
+       state: present
+
+    - name: Deploy mosquitto.conf into data volume
+      ansible.builtin.copy:
+        dest: /var/lib/docker/volumes/mosquitto_data/_data/config/mosquitto.conf
+        content: |
+          # Mosquitto config - allows anonymous connections, MQTT and WebSockets
+          persistence true
+          persistence_location /mosquitto/data/
+          log_dest stdout
+
+          # Plain MQTT listener
+          listener 1883
+          protocol mqtt
+
+          # MQTT over TLS
+          listener 8883
+          protocol mqtt
+          certfile /etc/letsencrypt/live/{{ fqdn }}/fullchain.pem
+          keyfile /etc/letsencrypt/live/{{ fqdn }}/privkey.pem
+
+          # Websockets listener (secure)
+          listener 8083
+          protocol websockets
+          certfile /etc/letsencrypt/live/{{ fqdn }}/fullchain.pem
+          keyfile /etc/letsencrypt/live/{{ fqdn }}/privkey.pem
+
+          # Allow all connections
+          allow_anonymous true
+
+        owner: root
+        group: root
+        mode: '0644'
+      become: true
+
+    - name: Remove existing mosquitto container
+      community.docker.docker_container:
+        name: "{{ name }}"
+        state: absent
+
+    - name: Deploy Mosquitto MQTT container
+      community.docker.docker_container:
+        name: "{{ name }}"
+        image: eclipse-mosquitto:2.0
+        pull: yes
+        state: started
+        restart_policy: unless-stopped
+        recreate: true
+        volumes:
+          - mosquitto_data:/mosquitto/config
+          - mosquitto_data:/mosquitto/data
+          - letsencrypt:/etc/letsencrypt:ro
+        networks:
+          - name: VLAN25
+            ipv4_address: "{{ dedicated_ip | default(omit) }}"
