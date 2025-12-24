@@ -42,23 +42,14 @@
         group: root
         mode: '0755'
 
-    - name: Deploy Home Assistant configuration to use Let's Encrypt certs
+    - name: Deploy Home Assistant configuration from repository
       ansible.builtin.copy:
+        src: HA_Config.yml
         dest: /var/lib/docker/volumes/homeassistant_data/_data/configuration.yaml
-        content: |
-          homeassistant:
-            external_url: "https://{{ fqdn }}"
-
-          http:
-            ssl_certificate: /etc/letsencrypt/live/{{ fqdn }}/fullchain.pem
-            ssl_key: /etc/letsencrypt/live/{{ fqdn }}/privkey.pem
-            use_x_forwarded_for: true
-            trusted_proxies:
-              - 127.0.0.1
-              - 10.0.0.0/8
         owner: root
         group: root
         mode: '0644'
+      become: true
 
     - name: Deploy Container
       community.docker.docker_container:
@@ -68,6 +59,10 @@
         state: started
         restart_policy: unless-stopped
         recreate: true
+        cap_add:
+          - NET_BIND_SERVICE
+        published_ports:
+          - "443:443"
         env:
           TZ : Australia/Sydney
         volumes:
