@@ -74,6 +74,24 @@
         mode: '755'
       become: true
 
+    - name: Copy Let's Encrypt cert and key into mosquitto config volume
+      ansible.builtin.copy:
+        src: /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/fullchain.pem
+        dest: /var/lib/docker/volumes/mosquitto_config/_data/fullchain.pem
+        owner: root
+        group: root
+        mode: '0644'
+      become: true
+
+    - name: Copy Let's Encrypt private key into mosquitto config volume
+      ansible.builtin.copy:
+        src: /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/privkey.pem
+        dest: /var/lib/docker/volumes/mosquitto_config/_data/privkey.pem
+        owner: root
+        group: root
+        mode: '0644'
+      become: true
+
     - name: Remove existing mosquitto container
       community.docker.docker_container:
         name: "{{container_name}}"
@@ -88,7 +106,7 @@
         restart_policy: unless-stopped
         recreate: true
         volumes:
-          - mosquitto_config:/mosquitto/config:ro
+          - mosquitto_config:/mosquitto/config
           - mosquitto_data:/mosquitto/data
           - letsencrypt:/etc/letsencrypt:ro
         networks:
