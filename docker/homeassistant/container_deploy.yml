@@ -59,7 +59,7 @@
         state: started
         restart_policy: unless-stopped
         recreate: true
-        cap_add:
+        capabilities:
           - NET_BIND_SERVICE
         published_ports:
           - "443:443"
