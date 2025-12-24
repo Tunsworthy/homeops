@@ -71,7 +71,7 @@
 
         owner: root
         group: root
-        mode: '0644'
+        mode: '755'
       become: true
 
     - name: Remove existing mosquitto container
