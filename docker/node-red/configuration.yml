@@ -1,0 +1,8 @@
+name: nodered
+fqdn: nodered.tomunsworth.net
+certificate: true
+external_access: true
+dedicated_ip: true
+container_environment: pi4
+container_host: pi4
+container_folder: node-red

@@ -1,0 +1,84 @@
+- name: Deploying Node-RED Container
+  hosts: all
+  become: true
+  collections:
+    - community.docker
+
+  vars:
+    fqdn: "{{fqdn}}"
+    container_name: "{{container_name}}"
+    dedicated_ip: "{{dedicated_ip}}"
+
+  tasks:
+    - name: Ensure node-red data volume exists
+      community.docker.docker_volume:
+        name: nodered_data
+        state: present
+
+    - name: Ensure node-red data dir exists on host
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/nodered_data/_data
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Ensure letsencrypt volume exists
+      community.docker.docker_volume:
+       name: letsencrypt
+       state: present
+
+    - name: Deploy Node-RED settings into data volume
+      ansible.builtin.copy:
+        src: NodeRed_Settings.js
+        dest: /var/lib/docker/volumes/nodered_data/_data/settings.js
+        owner: root
+        group: root
+        mode: '0644'
+      become: true
+
+    - name: Ensure certs directory exists in data volume
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/nodered_data/_data/certs
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      become: true
+
+    - name: Copy Let's Encrypt fullchain into Node-RED data
+      ansible.builtin.copy:
+        src: /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/fullchain.pem
+        dest: /var/lib/docker/volumes/nodered_data/_data/certs/fullchain.pem
+        owner: root
+        group: root
+        mode: '0644'
+      become: true
+
+    - name: Copy Let's Encrypt private key into Node-RED data
+      ansible.builtin.copy:
+        src: /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/privkey.pem
+        dest: /var/lib/docker/volumes/nodered_data/_data/certs/privkey.pem
+        owner: root
+        group: root
+        mode: '0644'
+      become: true
+
+    - name: Remove existing Node-RED container
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        state: absent
+
+    - name: Deploy Node-RED container
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        image: nodered/node-red:latest
+        pull: yes
+        state: started
+        restart_policy: unless-stopped
+        recreate: true
+        volumes:
+          - nodered_data:/data
+        networks:
+          - name: VLAN26
+            ipv4_address: "{{ dedicated_ip | default(omit) }}"
