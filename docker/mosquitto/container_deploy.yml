@@ -10,22 +10,27 @@
     dedicated_ip: "{{dedicated_ip}}"
 
   tasks:
+    - name: Ensure mosquitto config volume exists
+      community.docker.docker_volume:
+        name: mosquitto_config
+        state: present
+
     - name: Ensure mosquitto data volume exists
       community.docker.docker_volume:
         name: mosquitto_data
         state: present
 
-    - name: Ensure mosquitto config directory exists on host
+    - name: Ensure mosquitto config dir exists on host
       ansible.builtin.file:
-        path: /var/lib/docker/volumes/mosquitto_data/_data/config
+        path: /var/lib/docker/volumes/mosquitto_config/_data
         state: directory
         owner: root
         group: root
         mode: '0755'
 
-    - name: Ensure mosquitto data directory exists on host
+    - name: Ensure mosquitto data dir exists on host
       ansible.builtin.file:
-        path: /var/lib/docker/volumes/mosquitto_data/_data/data
+        path: /var/lib/docker/volumes/mosquitto_data/_data
         state: directory
         owner: root
         group: root
@@ -36,9 +41,9 @@
        name: letsencrypt
        state: present
 
-    - name: Deploy mosquitto.conf into data volume
+    - name: Deploy mosquitto.conf into config volume
       ansible.builtin.copy:
-        dest: /var/lib/docker/volumes/mosquitto_data/_data/config/mosquitto.conf
+        dest: /var/lib/docker/volumes/mosquitto_config/_data/mosquitto.conf
         content: |
           # Mosquitto config - allows anonymous connections, MQTT and WebSockets
           persistence true
@@ -83,7 +88,7 @@
         restart_policy: unless-stopped
         recreate: true
         volumes:
-          - mosquitto_data:/mosquitto/config
+          - mosquitto_config:/mosquitto/config:ro
           - mosquitto_data:/mosquitto/data
           - letsencrypt:/etc/letsencrypt:ro
         networks:
