@@ -57,14 +57,14 @@
           # MQTT over TLS
           listener 8883
           protocol mqtt
-          certfile /etc/letsencrypt/live/{{ fqdn }}/fullchain.pem
-          keyfile /etc/letsencrypt/live/{{ fqdn }}/privkey.pem
+          certfile /mosquitto/config/fullchain.pem
+          keyfile /mosquitto/config/privkey.pem
 
           # Websockets listener (secure)
           listener 8083
           protocol websockets
-          certfile /etc/letsencrypt/live/{{ fqdn }}/fullchain.pem
-          keyfile /etc/letsencrypt/live/{{ fqdn }}/privkey.pem
+          certfile /mosquitto/config/fullchain.pem
+          keyfile /mosquitto/config/privkey.pem
 
           # Allow all connections
           allow_anonymous true
@@ -108,7 +108,6 @@
         volumes:
           - mosquitto_config:/mosquitto/config
           - mosquitto_data:/mosquitto/data
-          - letsencrypt:/etc/letsencrypt:ro
         networks:
           - name: VLAN26
             ipv4_address: "{{ dedicated_ip | default(omit) }}"
