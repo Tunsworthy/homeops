@@ -6,3 +6,4 @@ dedicated_ip: true
 container_environment: pi4
 container_host: pi4
 container_folder: mosquitto
+update: true
