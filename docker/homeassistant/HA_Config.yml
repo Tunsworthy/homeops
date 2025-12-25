@@ -8,7 +8,7 @@ frontend:
     - /local/community/lovelace-card-mod/card-mod.js
 sensor:
   - platform: ha_transportnsw
-    api_key:
+    api_key: !secret transportnsw_api_key
     origin_id: 10101120
     destination_id: 206710
     trip_wait_time: 10
