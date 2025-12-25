@@ -90,7 +90,7 @@
       community.docker.docker_container:
         name: "{{ container_name }}"
         # Use an image compatible with Raspberry Pi; adjust if needed
-        image: mongo:6.0
+        image: mongodb-raspberrypi4-unofficial-r7.0.14
         pull: yes
         state: started
         restart_policy: unless-stopped
