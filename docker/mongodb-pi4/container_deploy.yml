@@ -1,0 +1,108 @@
+- name: Deploying MongoDB (Raspberry Pi)
+  hosts: all
+  become: true
+  collections:
+    - community.docker
+
+  vars:
+    fqdn: "{{fqdn}}"
+    container_name: "{{container_name}}"
+    dedicated_ip: "{{dedicated_ip}}"
+
+  tasks:
+    - name: Ensure mongodb config volume exists
+      community.docker.docker_volume:
+        name: mongodb_config
+        state: present
+
+    - name: Ensure mongodb data volume exists
+      community.docker.docker_volume:
+        name: mongodb_data
+        state: present
+
+    - name: Ensure letsencrypt volume exists
+      community.docker.docker_volume:
+       name: letsencrypt
+       state: present
+
+    - name: Ensure host config directory exists for mongodb
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/mongodb_config/_data
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Ensure host data directory exists for mongodb
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/mongodb_data/_data
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Copy fullchain from letsencrypt into mongodb config
+      ansible.builtin.copy:
+        src: /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/fullchain.pem
+        dest: /var/lib/docker/volumes/mongodb_config/_data/fullchain.pem
+        owner: root
+        group: root
+        mode: '0644'
+      become: true
+
+    - name: Copy privkey from letsencrypt into mongodb config
+      ansible.builtin.copy:
+        src: /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/privkey.pem
+        dest: /var/lib/docker/volumes/mongodb_config/_data/privkey.pem
+        owner: root
+        group: root
+        mode: '0600'
+      become: true
+
+    - name: Copy chain.pem (CA) into mongodb config
+      ansible.builtin.copy:
+        src: /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/chain.pem
+        dest: /var/lib/docker/volumes/mongodb_config/_data/chain.pem
+        owner: root
+        group: root
+        mode: '0644'
+      become: true
+
+    - name: Create combined PEM for MongoDB
+      ansible.builtin.command:
+        cmd: >
+          bash -c "cat /var/lib/docker/volumes/mongodb_config/_data/privkey.pem /var/lib/docker/volumes/mongodb_config/_data/fullchain.pem > /var/lib/docker/volumes/mongodb_config/_data/mongo.pem && chmod 0600 /var/lib/docker/volumes/mongodb_config/_data/mongo.pem"
+      args:
+        creates: /var/lib/docker/volumes/mongodb_config/_data/mongo.pem
+      become: true
+
+    - name: Ensure mongodb data volume owned by mongodb user
+      ansible.builtin.command:
+        cmd: chown -R 999:999 /var/lib/docker/volumes/mongodb_data/_data
+      become: true
+
+    - name: Remove existing mongodb container
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        state: absent
+
+    - name: Deploy MongoDB container with TLS enabled
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        # Use an image compatible with Raspberry Pi; adjust if needed
+        image: mongo:6.0
+        pull: yes
+        state: started
+        restart_policy: unless-stopped
+        recreate: true
+        env:
+          MONGO_INITDB_ROOT_USERNAME: "{{ mongo_root_user | default('root') }}"
+          MONGO_INITDB_ROOT_PASSWORD: "{{ container_password | default(omit) }}"
+        command: >
+          --bind_ip_all --tlsMode requireTLS --tlsCertificateKeyFile /etc/mongo/ssl/mongo.pem --tlsCAFile /etc/mongo/ssl/chain.pem
+        volumes:
+          - mongodb_data:/data/db
+          - mongodb_config:/etc/mongo/ssl
+        networks:
+          - name: VLAN25
+            ipv4_address: "{{ dedicated_ip | default(omit) }}"

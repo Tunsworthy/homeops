@@ -1,0 +1,8 @@
+name: mongodb
+fqdn: mongodb.tomunsworth.net
+certificate: true
+external_access: false
+dedicated_ip: true
+container_environment: production
+container_host: pi3
+container_folder: mongodb-pi3
