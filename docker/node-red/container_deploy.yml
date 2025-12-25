@@ -64,6 +64,11 @@
         mode: '0644'
       become: true
 
+    - name: Ensure Node-RED data volume owned by node-red user
+      ansible.builtin.command:
+        cmd: chown -R 1000:1000 /var/lib/docker/volumes/nodered_data/_data
+      become: true
+
     - name: Remove existing Node-RED container
       community.docker.docker_container:
         name: "{{ container_name }}"
