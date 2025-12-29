@@ -39,7 +39,7 @@
 
     - name: Deploy Node-RED  flows into data volume
       ansible.builtin.copy:
-        src: NodeRed_flows.js
+        src: NodeRed_flows.json
         dest: /var/lib/docker/volumes/nodered_data/_data/flows.json
         owner: root
         group: root
