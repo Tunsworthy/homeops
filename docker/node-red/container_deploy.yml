@@ -37,6 +37,15 @@
         mode: '0644'
       become: true
 
+    - name: Deploy Node-RED  flows into data volume
+      ansible.builtin.copy:
+        src: NodeRed_flows.js
+        dest: /var/lib/docker/volumes/nodered_data/_data/flows.js
+        owner: root
+        group: root
+        mode: '0644'
+      become: true
+
     - name: Ensure certs directory exists in data volume
       ansible.builtin.file:
         path: /var/lib/docker/volumes/nodered_data/_data/certs

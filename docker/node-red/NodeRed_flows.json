@@ -1,0 +1,5712 @@
+[
+    {
+        "id": "c434a1ea7736dae5",
+        "type": "tab",
+        "label": "Fans",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "0a94a94bd0d36907",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "ec81459a2d597e0a",
+        "type": "tab",
+        "label": "Firefly",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "2e3c9338771da285",
+        "type": "tab",
+        "label": "Flow 2",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "0483588fb8e081ba",
+        "type": "tab",
+        "label": "AC Controls",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "a7d08d9d2b8ca878",
+        "type": "mqtt-broker",
+        "name": "MQTT",
+        "broker": "10.2.3.15",
+        "port": "1883",
+        "clientid": "node-red",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
+        "id": "3545430e42bde9f3",
+        "type": "influxdb",
+        "hostname": "10.2.3.16",
+        "port": "8086",
+        "protocol": "http",
+        "database": "AQS",
+        "name": "Influx",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "1.x",
+        "url": "http://localhost:8086",
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "fd01dc07bca96399",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "database": "database",
+        "name": "",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "1.8-flux",
+        "url": "http://influxdb:8086",
+        "rejectUnauthorized": false
+    },
+    {
+        "id": "5d75fc3b0e9c12c3",
+        "type": "influxdb",
+        "hostname": "influxdb",
+        "port": "8086",
+        "protocol": "http",
+        "database": "db0",
+        "name": "Internal Connection Influx",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "1.x",
+        "url": "http://localhost:8086",
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "63c43ee43f330cb7",
+        "type": "spotify-auth",
+        "name": "Spotify OAuth2",
+        "scope": "user-modify-playback-state\nuser-read-playback-state\nuser-read-currently-playing\napp-remote-control\nstreaming"
+    },
+    {
+        "id": "6245a2c54d8228ee",
+        "type": "global-config",
+        "name": "global-config",
+        "env": [
+            {
+                "name": "AC_Mode",
+                "value": "",
+                "type": "str"
+            }
+        ]
+    },
+    {
+        "id": "b906afbd9a3bf0af",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light On/Off",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xA5E0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 160,
+        "wires": [
+            [
+                "06dcec317d610e84"
+            ]
+        ]
+    },
+    {
+        "id": "88966ec216d0a1cb",
+        "type": "mqtt out",
+        "z": "c434a1ea7736dae5",
+        "name": "",
+        "topic": "cmnd/EECA81/Rfsend",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7d08d9d2b8ca878",
+        "x": 2700,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "6bdd3f41bea60bed",
+        "type": "template",
+        "z": "c434a1ea7736dae5",
+        "name": "Template Message - Fan Controller",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "json",
+        "syntax": "mustache",
+        "template": "{\"Data\":\"{{action}}{{location}}\",\"Bits\":32,\"Protocol\":6,\"Pulse\":400}",
+        "output": "json",
+        "x": 2240,
+        "y": 600,
+        "wires": [
+            [
+                "fa7dc5ea327e7263"
+            ]
+        ]
+    },
+    {
+        "id": "fa7dc5ea327e7263",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "",
+        "rules": [
+            {
+                "t": "delete",
+                "p": "action",
+                "pt": "msg"
+            },
+            {
+                "t": "delete",
+                "p": "location",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2500,
+        "y": 600,
+        "wires": [
+            [
+                "88966ec216d0a1cb"
+            ]
+        ]
+    },
+    {
+        "id": "4a70e46f3318858e",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 1",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xFBE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 440,
+        "wires": [
+            [
+                "06dcec317d610e84"
+            ]
+        ]
+    },
+    {
+        "id": "a3104cc8d07dacf2",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Off",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xECE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 190,
+        "y": 400,
+        "wires": [
+            [
+                "06dcec317d610e84"
+            ]
+        ]
+    },
+    {
+        "id": "06dcec317d610e84",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "location",
+                "pt": "msg",
+                "to": "CE8F",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 580,
+        "y": 420,
+        "wires": [
+            [
+                "6bdd3f41bea60bed"
+            ]
+        ]
+    },
+    {
+        "id": "d7f8a2635529b27d",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 2",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xFEE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 480,
+        "wires": [
+            [
+                "06dcec317d610e84"
+            ]
+        ]
+    },
+    {
+        "id": "96886e193b6d3d56",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 3",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x5AE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 520,
+        "wires": [
+            [
+                "06dcec317d610e84"
+            ]
+        ]
+    },
+    {
+        "id": "619ac1e9a48c0b75",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 4",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xEFE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 560,
+        "wires": [
+            [
+                "06dcec317d610e84"
+            ]
+        ]
+    },
+    {
+        "id": "3d6f62a7cb5481b9",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 5",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xBFE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 600,
+        "wires": [
+            [
+                "06dcec317d610e84"
+            ]
+        ]
+    },
+    {
+        "id": "72dcb2af0aa9ea66",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan F/R",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xFDE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 200,
+        "y": 640,
+        "wires": [
+            [
+                "06dcec317d610e84"
+            ]
+        ]
+    },
+    {
+        "id": "472d4a4890efc9d5",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Natural Wind",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x7FE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 680,
+        "wires": [
+            [
+                "06dcec317d610e84"
+            ]
+        ]
+    },
+    {
+        "id": "ba45511734bcb87b",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Brightness +",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x5FE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 200,
+        "wires": [
+            [
+                "06dcec317d610e84"
+            ]
+        ]
+    },
+    {
+        "id": "92e9e6ab39948979",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Brightness -",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xF5E0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 220,
+        "y": 240,
+        "wires": [
+            [
+                "06dcec317d610e84"
+            ]
+        ]
+    },
+    {
+        "id": "d8f70981a029009e",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Colour 1",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x60E0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 280,
+        "wires": [
+            [
+                "06dcec317d610e84"
+            ]
+        ]
+    },
+    {
+        "id": "bb633e91f4d646ec",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Colour 2",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x6E0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 320,
+        "wires": [
+            [
+                "06dcec317d610e84"
+            ]
+        ]
+    },
+    {
+        "id": "6ac2144336535cc5",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Colour 3",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xDE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 360,
+        "wires": [
+            [
+                "06dcec317d610e84"
+            ]
+        ]
+    },
+    {
+        "id": "2e6e933f8e48c684",
+        "type": "comment",
+        "z": "c434a1ea7736dae5",
+        "name": "Living Room",
+        "info": "",
+        "x": 150,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "b28d328ebf871084",
+        "type": "comment",
+        "z": "c434a1ea7736dae5",
+        "name": "Study",
+        "info": "",
+        "x": 110,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "ab6dbef5685a3320",
+        "type": "comment",
+        "z": "c434a1ea7736dae5",
+        "name": "Living Room",
+        "info": "",
+        "x": 590,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "15380fadc971664d",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light On/Off",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xA5E0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 800,
+        "wires": [
+            [
+                "0afa335e86071f2e"
+            ]
+        ]
+    },
+    {
+        "id": "66ebda3a25125d3a",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 1",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xFBE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1080,
+        "wires": [
+            [
+                "0afa335e86071f2e"
+            ]
+        ]
+    },
+    {
+        "id": "71fa5570e0aaa565",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Off",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xECE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 190,
+        "y": 1040,
+        "wires": [
+            [
+                "0afa335e86071f2e"
+            ]
+        ]
+    },
+    {
+        "id": "0afa335e86071f2e",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "location",
+                "pt": "msg",
+                "to": "1FCF",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 580,
+        "y": 1060,
+        "wires": [
+            [
+                "6bdd3f41bea60bed"
+            ]
+        ]
+    },
+    {
+        "id": "514eb2e0a40ea6b9",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 2",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xFEE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1120,
+        "wires": [
+            [
+                "0afa335e86071f2e"
+            ]
+        ]
+    },
+    {
+        "id": "a8d333f083133a72",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 3",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x5AE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1160,
+        "wires": [
+            [
+                "0afa335e86071f2e"
+            ]
+        ]
+    },
+    {
+        "id": "5ab767a6dbe82efd",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 4",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xEFE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1200,
+        "wires": [
+            [
+                "0afa335e86071f2e"
+            ]
+        ]
+    },
+    {
+        "id": "b55acee004c08f6c",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 5",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xBFE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1240,
+        "wires": [
+            [
+                "0afa335e86071f2e"
+            ]
+        ]
+    },
+    {
+        "id": "ccf88c73f2c74b2b",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan F/R",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xFDE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 200,
+        "y": 1280,
+        "wires": [
+            [
+                "0afa335e86071f2e"
+            ]
+        ]
+    },
+    {
+        "id": "fda8accdaf0e9d2f",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Natural Wind",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x7FE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1320,
+        "wires": [
+            [
+                "0afa335e86071f2e"
+            ]
+        ]
+    },
+    {
+        "id": "a121536579e02aa0",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Brightness +",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x5FE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 840,
+        "wires": [
+            [
+                "0afa335e86071f2e"
+            ]
+        ]
+    },
+    {
+        "id": "6d1d17064b2f6d72",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Brightness -",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xF5E0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 220,
+        "y": 880,
+        "wires": [
+            [
+                "0afa335e86071f2e"
+            ]
+        ]
+    },
+    {
+        "id": "71e49cbcf58c9b33",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Colour 1",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x60E0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 920,
+        "wires": [
+            [
+                "0afa335e86071f2e"
+            ]
+        ]
+    },
+    {
+        "id": "094399115e9aafe5",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Colour 2",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x6E0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 960,
+        "wires": [
+            [
+                "0afa335e86071f2e"
+            ]
+        ]
+    },
+    {
+        "id": "aef7255ae2634394",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Colour 3",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xDE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1000,
+        "wires": [
+            [
+                "0afa335e86071f2e"
+            ]
+        ]
+    },
+    {
+        "id": "1e7027cc506f3e51",
+        "type": "comment",
+        "z": "c434a1ea7736dae5",
+        "name": "Study",
+        "info": "",
+        "x": 550,
+        "y": 1020,
+        "wires": []
+    },
+    {
+        "id": "564b85d2f5b31a6d",
+        "type": "comment",
+        "z": "c434a1ea7736dae5",
+        "name": "Master Bedroom",
+        "info": "",
+        "x": 140,
+        "y": 1380,
+        "wires": []
+    },
+    {
+        "id": "6458204ac4f2dc47",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light On/Off",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xA5E0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1420,
+        "wires": [
+            [
+                "cb735e94ce2ab5fe"
+            ]
+        ]
+    },
+    {
+        "id": "35ba3cdde15bc0f8",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 1",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xFBE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1700,
+        "wires": [
+            [
+                "cb735e94ce2ab5fe"
+            ]
+        ]
+    },
+    {
+        "id": "80aaa51791a4f237",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Off",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xECE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 190,
+        "y": 1660,
+        "wires": [
+            [
+                "cb735e94ce2ab5fe"
+            ]
+        ]
+    },
+    {
+        "id": "cb735e94ce2ab5fe",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "location",
+                "pt": "msg",
+                "to": "4FE7",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 580,
+        "y": 1680,
+        "wires": [
+            [
+                "6bdd3f41bea60bed"
+            ]
+        ]
+    },
+    {
+        "id": "fc9e2f1522f72b9e",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 2",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xFEE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1740,
+        "wires": [
+            [
+                "cb735e94ce2ab5fe"
+            ]
+        ]
+    },
+    {
+        "id": "479bb4dc604da5e0",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 3",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x5AE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1780,
+        "wires": [
+            [
+                "cb735e94ce2ab5fe"
+            ]
+        ]
+    },
+    {
+        "id": "e668810d8a783944",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 4",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xEFE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1820,
+        "wires": [
+            [
+                "cb735e94ce2ab5fe"
+            ]
+        ]
+    },
+    {
+        "id": "6adef09a91d14a76",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 5",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xBFE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1860,
+        "wires": [
+            [
+                "cb735e94ce2ab5fe"
+            ]
+        ]
+    },
+    {
+        "id": "92ba95f678683c83",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan F/R",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xFDE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 200,
+        "y": 1900,
+        "wires": [
+            [
+                "cb735e94ce2ab5fe"
+            ]
+        ]
+    },
+    {
+        "id": "cfb9106a9e127ecd",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Natural Wind",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x7FE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1940,
+        "wires": [
+            [
+                "cb735e94ce2ab5fe"
+            ]
+        ]
+    },
+    {
+        "id": "b07145defd5c567d",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Brightness +",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x5FE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 1460,
+        "wires": [
+            [
+                "cb735e94ce2ab5fe"
+            ]
+        ]
+    },
+    {
+        "id": "3b0e01df8d8facd7",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Brightness -",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xF5E0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 220,
+        "y": 1500,
+        "wires": [
+            [
+                "cb735e94ce2ab5fe"
+            ]
+        ]
+    },
+    {
+        "id": "1e15582dbf7f09bb",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Colour 1",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x60E0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1540,
+        "wires": [
+            [
+                "cb735e94ce2ab5fe"
+            ]
+        ]
+    },
+    {
+        "id": "8ce2b3d045abfad0",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Colour 2",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x6E0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1580,
+        "wires": [
+            [
+                "cb735e94ce2ab5fe"
+            ]
+        ]
+    },
+    {
+        "id": "bcd4359999da2e64",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Colour 3",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xDE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1620,
+        "wires": [
+            [
+                "cb735e94ce2ab5fe"
+            ]
+        ]
+    },
+    {
+        "id": "cd4514f5ec598d3f",
+        "type": "comment",
+        "z": "c434a1ea7736dae5",
+        "name": "Masterbedroom",
+        "info": "",
+        "x": 580,
+        "y": 1640,
+        "wires": []
+    },
+    {
+        "id": "708669d39feb36a1",
+        "type": "comment",
+        "z": "c434a1ea7736dae5",
+        "name": "Spare Bedroom",
+        "info": "",
+        "x": 160,
+        "y": 2000,
+        "wires": []
+    },
+    {
+        "id": "2e82d5bc164b86ef",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light On/Off",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xA5E0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 2040,
+        "wires": [
+            [
+                "d27e8976f8359675"
+            ]
+        ]
+    },
+    {
+        "id": "53b9649ecbdc88a9",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 1",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xFBE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 2320,
+        "wires": [
+            [
+                "d27e8976f8359675"
+            ]
+        ]
+    },
+    {
+        "id": "4b74d1cd3e43923f",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Off",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xECE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 2280,
+        "wires": [
+            [
+                "d27e8976f8359675",
+                "675af11b75c78357"
+            ]
+        ]
+    },
+    {
+        "id": "d27e8976f8359675",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "location",
+                "pt": "msg",
+                "to": "8D6F",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 600,
+        "y": 2300,
+        "wires": [
+            [
+                "6bdd3f41bea60bed"
+            ]
+        ]
+    },
+    {
+        "id": "c983c2ee87b17cb8",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 2",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xFEE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 2360,
+        "wires": [
+            [
+                "d27e8976f8359675"
+            ]
+        ]
+    },
+    {
+        "id": "0fa7d562e9bdb544",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 3",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x5AE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 2400,
+        "wires": [
+            [
+                "d27e8976f8359675"
+            ]
+        ]
+    },
+    {
+        "id": "4faea0aaaa840297",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 4",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xEFE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 2440,
+        "wires": [
+            [
+                "d27e8976f8359675"
+            ]
+        ]
+    },
+    {
+        "id": "9cdd9044bf24596b",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Speed 5",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xBFE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 2480,
+        "wires": [
+            [
+                "d27e8976f8359675"
+            ]
+        ]
+    },
+    {
+        "id": "53bb0be63356ef62",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan F/R",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xFDE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 220,
+        "y": 2520,
+        "wires": [
+            [
+                "d27e8976f8359675"
+            ]
+        ]
+    },
+    {
+        "id": "3f45d55976c3006f",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Natural Wind",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x7FE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 2560,
+        "wires": [
+            [
+                "d27e8976f8359675"
+            ]
+        ]
+    },
+    {
+        "id": "71a0a46ec5dcdabc",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Brightness +",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x5FE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 250,
+        "y": 2080,
+        "wires": [
+            [
+                "d27e8976f8359675"
+            ]
+        ]
+    },
+    {
+        "id": "f3dfb059e72a234d",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Brightness -",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xF5E0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 240,
+        "y": 2120,
+        "wires": [
+            [
+                "d27e8976f8359675"
+            ]
+        ]
+    },
+    {
+        "id": "b65422a0150455b2",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Colour 1",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x60E0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 2160,
+        "wires": [
+            [
+                "d27e8976f8359675"
+            ]
+        ]
+    },
+    {
+        "id": "fd116c984c099483",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Colour 2",
+        "props": [
+            {
+                "p": "action",
+                "v": "0x6E0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 2200,
+        "wires": [
+            [
+                "d27e8976f8359675"
+            ]
+        ]
+    },
+    {
+        "id": "6cdd5097ef76d8b3",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Light Colour 3",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xDE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 2240,
+        "wires": [
+            [
+                "d27e8976f8359675"
+            ]
+        ]
+    },
+    {
+        "id": "f17bc43e5d4a94f5",
+        "type": "comment",
+        "z": "c434a1ea7736dae5",
+        "name": "Masterbedroom",
+        "info": "",
+        "x": 600,
+        "y": 2260,
+        "wires": []
+    },
+    {
+        "id": "675af11b75c78357",
+        "type": "delay",
+        "z": "c434a1ea7736dae5",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "4",
+        "timeoutUnits": "hours",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 440,
+        "y": 2520,
+        "wires": [
+            [
+                "d27e8976f8359675"
+            ]
+        ]
+    },
+    {
+        "id": "21e5730a8850968a",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Off",
+        "props": [
+            {
+                "p": "action",
+                "v": "0xECE0",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 312.505126953125,
+        "y": 2609.804443359375,
+        "wires": [
+            [
+                "675af11b75c78357"
+            ]
+        ]
+    },
+    {
+        "id": "6d4147cf93e45343",
+        "type": "mqtt in",
+        "z": "c434a1ea7736dae5",
+        "name": "lounge on/off",
+        "topic": "fans/lounge/on/set",
+        "qos": "2",
+        "datatype": "utf8",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 1090,
+        "y": 580,
+        "wires": [
+            [
+                "84bd1616815c509d"
+            ]
+        ]
+    },
+    {
+        "id": "109796df515bd72d",
+        "type": "mqtt in",
+        "z": "c434a1ea7736dae5",
+        "name": "lounge speed",
+        "topic": "fans/lounge/speed/percentage",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 1090,
+        "y": 640,
+        "wires": [
+            [
+                "84bd1616815c509d"
+            ]
+        ]
+    },
+    {
+        "id": "373aa2c6f93d8662",
+        "type": "switch",
+        "z": "c434a1ea7736dae5",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "on",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "off",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "2",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "3",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "4",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "5",
+                "vt": "str"
+            }
+        ],
+        "checkall": "false",
+        "repair": false,
+        "outputs": 7,
+        "x": 1510,
+        "y": 620,
+        "wires": [
+            [
+                "ea1e2be624743a18"
+            ],
+            [
+                "c92472804a2a2e99"
+            ],
+            [
+                "f85cae84c077d7df"
+            ],
+            [
+                "98174d131456ea9c"
+            ],
+            [
+                "be9eddff2db3a6e8"
+            ],
+            [
+                "6795a30fc5363e82"
+            ],
+            [
+                "f1776684b57e3d6d"
+            ]
+        ]
+    },
+    {
+        "id": "c92472804a2a2e99",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Off",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "0xECE0",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1680,
+        "y": 540,
+        "wires": [
+            [
+                "8489bacd1bf15190",
+                "cf6c6b54e84bcb20"
+            ]
+        ]
+    },
+    {
+        "id": "ea1e2be624743a18",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan On",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "0xFBE0",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "setpercent",
+                "pt": "msg",
+                "to": "1",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1680,
+        "y": 500,
+        "wires": [
+            [
+                "8489bacd1bf15190",
+                "03fd1398cb4cd959",
+                "cf6c6b54e84bcb20"
+            ]
+        ]
+    },
+    {
+        "id": "89ebb511f4b546c0",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "",
+        "rules": [
+            {
+                "t": "delete",
+                "p": "action",
+                "pt": "msg"
+            },
+            {
+                "t": "move",
+                "p": "setpercent",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1920,
+        "y": 720,
+        "wires": [
+            [
+                "a30d02b89465cc7b"
+            ]
+        ]
+    },
+    {
+        "id": "f85cae84c077d7df",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Speed 1",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "0xFBE0",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "setpercent",
+                "pt": "msg",
+                "to": "1",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1680,
+        "y": 580,
+        "wires": [
+            [
+                "89ebb511f4b546c0",
+                "cf6c6b54e84bcb20"
+            ]
+        ]
+    },
+    {
+        "id": "98174d131456ea9c",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Speed 2",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "0xFEE0",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "setpercent",
+                "pt": "msg",
+                "to": "2",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1680,
+        "y": 620,
+        "wires": [
+            [
+                "89ebb511f4b546c0",
+                "cf6c6b54e84bcb20"
+            ]
+        ]
+    },
+    {
+        "id": "be9eddff2db3a6e8",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Speed 3",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "0x5AE0",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "setpercent",
+                "pt": "msg",
+                "to": "3",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1680,
+        "y": 660,
+        "wires": [
+            [
+                "89ebb511f4b546c0",
+                "cf6c6b54e84bcb20"
+            ]
+        ]
+    },
+    {
+        "id": "6795a30fc5363e82",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Speed 4",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "0xEFE0",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "setpercent",
+                "pt": "msg",
+                "to": "4",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1680,
+        "y": 700,
+        "wires": [
+            [
+                "89ebb511f4b546c0",
+                "cf6c6b54e84bcb20"
+            ]
+        ]
+    },
+    {
+        "id": "f1776684b57e3d6d",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Speed 5",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "0xBFE0",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "setpercent",
+                "pt": "msg",
+                "to": "5",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1680,
+        "y": 740,
+        "wires": [
+            [
+                "89ebb511f4b546c0",
+                "cf6c6b54e84bcb20"
+            ]
+        ]
+    },
+    {
+        "id": "6c81691fe216b838",
+        "type": "mqtt out",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan State",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7d08d9d2b8ca878",
+        "x": 2440,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "84bd1616815c509d",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Location: Lounge",
+        "rules": [
+            {
+                "t": "set",
+                "p": "location",
+                "pt": "msg",
+                "to": "CE8F",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1310,
+        "y": 600,
+        "wires": [
+            [
+                "373aa2c6f93d8662"
+            ]
+        ]
+    },
+    {
+        "id": "a30d02b89465cc7b",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Change Topics to States",
+        "rules": [
+            {
+                "t": "change",
+                "p": "topic",
+                "pt": "msg",
+                "from": "set",
+                "fromt": "str",
+                "to": "state",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "topic",
+                "pt": "msg",
+                "from": "percentage",
+                "fromt": "str",
+                "to": "percentage_state",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2230,
+        "y": 540,
+        "wires": [
+            [
+                "6c81691fe216b838"
+            ]
+        ]
+    },
+    {
+        "id": "8489bacd1bf15190",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "",
+        "rules": [
+            {
+                "t": "delete",
+                "p": "action",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1950,
+        "y": 540,
+        "wires": [
+            [
+                "a30d02b89465cc7b"
+            ]
+        ]
+    },
+    {
+        "id": "03fd1398cb4cd959",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Change percentage topic",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "fans/lounge/speed/percentage_state",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "topic",
+                "pt": "msg",
+                "from": "lounge",
+                "fromt": "str",
+                "to": "location",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "setpercent",
+                "tot": "msg"
+            },
+            {
+                "t": "delete",
+                "p": "action",
+                "pt": "msg"
+            },
+            {
+                "t": "delete",
+                "p": "location",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1970,
+        "y": 500,
+        "wires": [
+            [
+                "7935160e5c175f9e",
+                "6c81691fe216b838"
+            ]
+        ]
+    },
+    {
+        "id": "e8f1294937247643",
+        "type": "comment",
+        "z": "c434a1ea7736dae5",
+        "name": "From Home Assistant",
+        "info": "",
+        "x": 1080,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "e631c97a3f171a54",
+        "type": "comment",
+        "z": "c434a1ea7736dae5",
+        "name": "Setting Fan State",
+        "info": "",
+        "x": 2080,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "1c0adb81e398d4a9",
+        "type": "mqtt in",
+        "z": "c434a1ea7736dae5",
+        "name": "RFResults",
+        "topic": "tele/EECA81/RESULT",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 1200,
+        "y": 200,
+        "wires": [
+            [
+                "69b0b30c1bf2d2aa"
+            ]
+        ]
+    },
+    {
+        "id": "69b0b30c1bf2d2aa",
+        "type": "function",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Spliter",
+        "func": "\n//node.warn(msg)\n\n\nvar device = msg.topic.split('/')[1]\nvar data = msg.payload.RfReceived.Data\n//node.warn(data)\n\nconst regex = \"/\\A.{6}/\";\n\nlet splitdata = data.match(/.{1,6}/g);\n\nmsg.location = splitdata[1]\nmsg.action = splitdata[0]\nmsg.process = \"no\"\n\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1210,
+        "y": 260,
+        "wires": [
+            [
+                "56e6470975229b9f"
+            ]
+        ]
+    },
+    {
+        "id": "3229e980f5ea8e47",
+        "type": "switch",
+        "z": "c434a1ea7736dae5",
+        "name": "Action",
+        "property": "action",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "0xECE0",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "0xFBE0",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "0xFEE0",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "0x5AE0",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "0xEFE0",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "0xBFE0",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 6,
+        "x": 1630,
+        "y": 220,
+        "wires": [
+            [
+                "3270fa33addd199d"
+            ],
+            [
+                "d97436ca87ddd1bb"
+            ],
+            [
+                "96a5e54d9a069b6a"
+            ],
+            [
+                "f7c8f3930ae50342"
+            ],
+            [
+                "37cd5ac7da4436af"
+            ],
+            [
+                "32c30095ac193def"
+            ]
+        ]
+    },
+    {
+        "id": "cf6c6b54e84bcb20",
+        "type": "switch",
+        "z": "c434a1ea7736dae5",
+        "name": "",
+        "property": "process",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "neq",
+                "v": "no",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 1910,
+        "y": 600,
+        "wires": [
+            [
+                "6bdd3f41bea60bed"
+            ]
+        ]
+    },
+    {
+        "id": "81f614b56b11a2e6",
+        "type": "mqtt out",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan State",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7d08d9d2b8ca878",
+        "x": 2660,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "3270fa33addd199d",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Off",
+        "rules": [
+            {
+                "t": "set",
+                "p": "state",
+                "pt": "msg",
+                "to": "off",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "fans/lounge/on/state",
+                "tot": "str"
+            },
+            {
+                "t": "delete",
+                "p": "action",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1820,
+        "y": 140,
+        "wires": [
+            [
+                "3f5805549a92d881"
+            ]
+        ]
+    },
+    {
+        "id": "d97436ca87ddd1bb",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Speed 1",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "on",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "setpercent",
+                "pt": "msg",
+                "to": "1",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "topic_percentage",
+                "pt": "msg",
+                "to": "fans/lounge/speed/percentage_state",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "topic_state",
+                "pt": "msg",
+                "to": "fans/lounge/on/state",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1820,
+        "y": 180,
+        "wires": [
+            [
+                "3f5805549a92d881"
+            ]
+        ]
+    },
+    {
+        "id": "96a5e54d9a069b6a",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Speed 2",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "on",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "setpercent",
+                "pt": "msg",
+                "to": "2",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "fans/lounge/speed/percentage_state",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1820,
+        "y": 220,
+        "wires": [
+            [
+                "3f5805549a92d881"
+            ]
+        ]
+    },
+    {
+        "id": "f7c8f3930ae50342",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Speed 3",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "on",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "setpercent",
+                "pt": "msg",
+                "to": "3",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "fans/lounge/speed/percentage_state",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1820,
+        "y": 260,
+        "wires": [
+            [
+                "3f5805549a92d881"
+            ]
+        ]
+    },
+    {
+        "id": "37cd5ac7da4436af",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Speed 4",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "on",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "setpercent",
+                "pt": "msg",
+                "to": "4",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "fans/lounge/speed/percentage_state",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1820,
+        "y": 300,
+        "wires": [
+            [
+                "3f5805549a92d881"
+            ]
+        ]
+    },
+    {
+        "id": "32c30095ac193def",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Speed 5",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "on",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "setpercent",
+                "pt": "msg",
+                "to": "5",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "fans/lounge/speed/percentage_state",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1820,
+        "y": 340,
+        "wires": [
+            [
+                "3f5805549a92d881"
+            ]
+        ]
+    },
+    {
+        "id": "855ba2ac2b6f8809",
+        "type": "comment",
+        "z": "c434a1ea7736dae5",
+        "name": "Splits to Action and Loaction",
+        "info": "",
+        "x": 1420,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "3f5805549a92d881",
+        "type": "switch",
+        "z": "c434a1ea7736dae5",
+        "name": "Location",
+        "property": "location",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "CE8F",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "1FCF",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "4FE7",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "8D6F",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "3A27",
+                "vt": "str"
+            }
+        ],
+        "checkall": "false",
+        "repair": false,
+        "outputs": 5,
+        "x": 2020,
+        "y": 220,
+        "wires": [
+            [
+                "12709e9df4d90da0"
+            ],
+            [
+                "d80459677b3c2879"
+            ],
+            [
+                "de36cc1b7e90e406"
+            ],
+            [
+                "f61467884f91b122"
+            ],
+            [
+                "469dca103d7c8dee"
+            ]
+        ]
+    },
+    {
+        "id": "469dca103d7c8dee",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Test",
+        "rules": [
+            {
+                "t": "change",
+                "p": "topic_percentage",
+                "pt": "msg",
+                "from": "lounge",
+                "fromt": "str",
+                "to": "test",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "topic_state",
+                "pt": "msg",
+                "from": "lounge",
+                "fromt": "str",
+                "to": "test",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2210,
+        "y": 300,
+        "wires": [
+            [
+                "48749a0c8271f7a6",
+                "f7b70c7253d4adb7"
+            ]
+        ]
+    },
+    {
+        "id": "48749a0c8271f7a6",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Set Topic state",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "topic_state",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "state",
+                "tot": "msg"
+            },
+            {
+                "t": "delete",
+                "p": "action",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2460,
+        "y": 200,
+        "wires": [
+            [
+                "81f614b56b11a2e6",
+                "1cb852d3894ca462"
+            ]
+        ]
+    },
+    {
+        "id": "f7b70c7253d4adb7",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "topic_percentage",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "setpercent",
+                "tot": "msg"
+            },
+            {
+                "t": "delete",
+                "p": "action",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2460,
+        "y": 240,
+        "wires": [
+            [
+                "81f614b56b11a2e6",
+                "1cb852d3894ca462"
+            ]
+        ]
+    },
+    {
+        "id": "56e6470975229b9f",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Set custom messages",
+        "rules": [
+            {
+                "t": "set",
+                "p": "state",
+                "pt": "msg",
+                "to": "on",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "topic_percentage",
+                "pt": "msg",
+                "to": "fans/lounge/speed/percentage_state",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "topic_state",
+                "pt": "msg",
+                "to": "fans/lounge/on/state",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1440,
+        "y": 220,
+        "wires": [
+            [
+                "3229e980f5ea8e47"
+            ]
+        ]
+    },
+    {
+        "id": "f61467884f91b122",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Spare Room",
+        "rules": [
+            {
+                "t": "change",
+                "p": "topic_percentage",
+                "pt": "msg",
+                "from": "lounge",
+                "fromt": "str",
+                "to": "spare_room",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "topic_state",
+                "pt": "msg",
+                "from": "lounge",
+                "fromt": "str",
+                "to": "spare_room",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2230,
+        "y": 260,
+        "wires": [
+            [
+                "48749a0c8271f7a6",
+                "f7b70c7253d4adb7"
+            ]
+        ]
+    },
+    {
+        "id": "de36cc1b7e90e406",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Master Bed",
+        "rules": [
+            {
+                "t": "change",
+                "p": "topic_percentage",
+                "pt": "msg",
+                "from": "lounge",
+                "fromt": "str",
+                "to": "master_bed",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "topic_state",
+                "pt": "msg",
+                "from": "lounge",
+                "fromt": "str",
+                "to": "master_bed",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2230,
+        "y": 220,
+        "wires": [
+            [
+                "f7b70c7253d4adb7",
+                "48749a0c8271f7a6"
+            ]
+        ]
+    },
+    {
+        "id": "12709e9df4d90da0",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Test",
+        "rules": [
+            {
+                "t": "change",
+                "p": "topic_percentage",
+                "pt": "msg",
+                "from": "lounge",
+                "fromt": "str",
+                "to": "lounge",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "topic_state",
+                "pt": "msg",
+                "from": "lounge",
+                "fromt": "str",
+                "to": "lounge",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2210,
+        "y": 140,
+        "wires": [
+            [
+                "48749a0c8271f7a6",
+                "f7b70c7253d4adb7"
+            ]
+        ]
+    },
+    {
+        "id": "d80459677b3c2879",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "sadie_room",
+        "rules": [
+            {
+                "t": "change",
+                "p": "topic_percentage",
+                "pt": "msg",
+                "from": "lounge",
+                "fromt": "str",
+                "to": "sadie_room",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "topic_state",
+                "pt": "msg",
+                "from": "lounge",
+                "fromt": "str",
+                "to": "sadie_room",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 2230,
+        "y": 180,
+        "wires": [
+            [
+                "48749a0c8271f7a6",
+                "f7b70c7253d4adb7"
+            ]
+        ]
+    },
+    {
+        "id": "1cb852d3894ca462",
+        "type": "debug",
+        "z": "c434a1ea7736dae5",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 2650,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "90b3a6f6718d1054",
+        "type": "debug",
+        "z": "c434a1ea7736dae5",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1310,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "2695f42fd41c59f7",
+        "type": "mqtt in",
+        "z": "c434a1ea7736dae5",
+        "name": "Master Bedroom on/off",
+        "topic": "fans/master_bed/on/set",
+        "qos": "2",
+        "datatype": "utf8",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 1000,
+        "y": 740,
+        "wires": [
+            [
+                "0c2d8fb841e087bf"
+            ]
+        ]
+    },
+    {
+        "id": "46fc0ed85f18b338",
+        "type": "mqtt in",
+        "z": "c434a1ea7736dae5",
+        "name": "Master Bedroom speed",
+        "topic": "fans/master_bed/speed/percentage",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 1000,
+        "y": 800,
+        "wires": [
+            [
+                "0c2d8fb841e087bf"
+            ]
+        ]
+    },
+    {
+        "id": "0c2d8fb841e087bf",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Location: Master Bedroom",
+        "rules": [
+            {
+                "t": "set",
+                "p": "location",
+                "pt": "msg",
+                "to": "4FE7",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1280,
+        "y": 760,
+        "wires": [
+            [
+                "373aa2c6f93d8662"
+            ]
+        ]
+    },
+    {
+        "id": "f82eb1cd68f07a6f",
+        "type": "mqtt in",
+        "z": "c434a1ea7736dae5",
+        "name": "Master Bedroom Light",
+        "topic": "fans/master_bed/light",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 1040,
+        "y": 1220,
+        "wires": [
+            [
+                "4631483e02e78cef"
+            ]
+        ]
+    },
+    {
+        "id": "4631483e02e78cef",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Master Bedroom - Light",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "0xA5E0",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "location",
+                "pt": "msg",
+                "to": "4FE7",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1270,
+        "y": 1220,
+        "wires": [
+            [
+                "6bdd3f41bea60bed"
+            ]
+        ]
+    },
+    {
+        "id": "ae366e6467332d67",
+        "type": "comment",
+        "z": "c434a1ea7736dae5",
+        "name": "From Home Assistant - Fan Lights",
+        "info": "",
+        "x": 1020,
+        "y": 1180,
+        "wires": []
+    },
+    {
+        "id": "dff0559d6acb0873",
+        "type": "mqtt in",
+        "z": "c434a1ea7736dae5",
+        "name": "loungeLight",
+        "topic": "fans/lounge/light",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 1010,
+        "y": 1280,
+        "wires": [
+            [
+                "4ba9bf79ca15ade0"
+            ]
+        ]
+    },
+    {
+        "id": "4ba9bf79ca15ade0",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Master Bedroom - Light",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "0xA5E0",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "location",
+                "pt": "msg",
+                "to": "CE8F",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1270,
+        "y": 1280,
+        "wires": [
+            [
+                "6bdd3f41bea60bed"
+            ]
+        ]
+    },
+    {
+        "id": "c9b831859dad88e4",
+        "type": "mqtt in",
+        "z": "c434a1ea7736dae5",
+        "name": "Spare Room Light",
+        "topic": "fans/spare_room/light",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 1030,
+        "y": 1320,
+        "wires": [
+            [
+                "4f45b68886736e68"
+            ]
+        ]
+    },
+    {
+        "id": "4f45b68886736e68",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Spare Room - Light",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "0xA5E0",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "location",
+                "pt": "msg",
+                "to": "8D6F",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1250,
+        "y": 1320,
+        "wires": [
+            [
+                "6bdd3f41bea60bed"
+            ]
+        ]
+    },
+    {
+        "id": "c5cf301f47944557",
+        "type": "mqtt in",
+        "z": "c434a1ea7736dae5",
+        "name": "Sadie Room Light",
+        "topic": "fans/sadie_room/light",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 1030,
+        "y": 1380,
+        "wires": [
+            [
+                "1ff3c990969795f8"
+            ]
+        ]
+    },
+    {
+        "id": "1ff3c990969795f8",
+        "type": "change",
+        "z": "c434a1ea7736dae5",
+        "name": "Sadie Room - Light",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "0xA5E0",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "location",
+                "pt": "msg",
+                "to": "1FCF",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1250,
+        "y": 1380,
+        "wires": [
+            [
+                "6bdd3f41bea60bed"
+            ]
+        ]
+    },
+    {
+        "id": "7935160e5c175f9e",
+        "type": "debug",
+        "z": "c434a1ea7736dae5",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 2590,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "155d1b3d2d0edd5f",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "Fan Off",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 550,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "531658a1c4859170",
+        "type": "inject",
+        "z": "c434a1ea7736dae5",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 500,
+        "y": 600,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "6a8ba86effac7b8a",
+        "type": "debug",
+        "z": "0a94a94bd0d36907",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1610,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "d551811d069bfd83",
+        "type": "function",
+        "z": "0a94a94bd0d36907",
+        "name": "AQS",
+        "func": "//node.warn(msg)\n\n\nvar device = msg.topic.split('/')[1]\nvar data = msg.payload.PMS5003\n//node.warn(data)\n\ndevicename = {\"device\": device}\n\nmsg.payload = []\nmsg.payload.push(data)\nmsg.payload.push(devicename)\n\n\n\n/*\nmsg.payload = [{\n    temp: 12,\n    humidity: 56,\n    battery: 2.97\n},\n{\n    device:\"sensor1\"\n}];\n*/\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 590,
+        "y": 280,
+        "wires": [
+            [
+                "fe5694d914aec9de"
+            ]
+        ]
+    },
+    {
+        "id": "fe5694d914aec9de",
+        "type": "influxdb out",
+        "z": "0a94a94bd0d36907",
+        "influxdb": "fd01dc07bca96399",
+        "name": "",
+        "measurement": "payload",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "AirQuilitySensors",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 970,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "80962c71eb700464",
+        "type": "wled2",
+        "z": "0a94a94bd0d36907",
+        "address": "10.2.3.50",
+        "brightness": 128,
+        "delay": 0,
+        "color1": "#def6ca",
+        "color2": "#f8bdc4",
+        "color3": "#f497da",
+        "effect": "38",
+        "effectIntensity": 128,
+        "effectSpeed": 128,
+        "name": "Stairs On - Only",
+        "palette": "5",
+        "preset": "4",
+        "state": "off",
+        "x": 1320,
+        "y": 820,
+        "wires": [
+            [
+                "91c22d26fd7f7277"
+            ]
+        ]
+    },
+    {
+        "id": "7b86afadc4ea6812",
+        "type": "wled2",
+        "z": "0a94a94bd0d36907",
+        "address": "10.2.3.50",
+        "brightness": "1",
+        "delay": 0,
+        "color1": "#ffffff",
+        "color2": "#ffffff",
+        "color3": "#ffffff",
+        "effect": "0",
+        "effectIntensity": "0",
+        "effectSpeed": "0",
+        "name": "Off Entrance Way",
+        "palette": "0",
+        "preset": "2",
+        "state": "off",
+        "x": 1050,
+        "y": 700,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "12b16b29e458c37c",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "On",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "on",
+        "payloadType": "str",
+        "x": 150,
+        "y": 560,
+        "wires": [
+            [
+                "2b2b822137c5b2fd"
+            ]
+        ]
+    },
+    {
+        "id": "a327a731162e164e",
+        "type": "mqtt in",
+        "z": "0a94a94bd0d36907",
+        "name": "CFB400",
+        "topic": "tele/CFB400/SENSOR",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 100,
+        "wires": [
+            [
+                "d551811d069bfd83",
+                "e6528bfb0e1ba7c7"
+            ]
+        ]
+    },
+    {
+        "id": "612e5f8db10be19a",
+        "type": "mqtt in",
+        "z": "0a94a94bd0d36907",
+        "name": "CF90D3",
+        "topic": "tele/CF90D3/SENSOR",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 460,
+        "wires": [
+            [
+                "d551811d069bfd83",
+                "e6528bfb0e1ba7c7"
+            ]
+        ]
+    },
+    {
+        "id": "e6528bfb0e1ba7c7",
+        "type": "function",
+        "z": "0a94a94bd0d36907",
+        "name": "Temp-Humi",
+        "func": "\n//node.warn(msg)\n\n\nvar device = msg.topic.split('/')[1]\nvar data = msg.payload.AM2301\n//node.warn(data)\n\ndevicename = {\"device\": device}\n\nmsg.payload = []\nmsg.payload.push(data)\nmsg.payload.push(devicename)\n\n\n\n/*\nmsg.payload = [{\n    Temperature: 12,\n    humidity: 56,\n},\n{\n    device:\"sensor1\"\n}];\n*/\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 140,
+        "wires": [
+            [
+                "de71726ff8ca735e"
+            ]
+        ]
+    },
+    {
+        "id": "de71726ff8ca735e",
+        "type": "influxdb out",
+        "z": "0a94a94bd0d36907",
+        "influxdb": "fd01dc07bca96399",
+        "name": "",
+        "measurement": "payload",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "Temp-Humitity",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 970,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "40a17a7093f49c19",
+        "type": "mqtt out",
+        "z": "0a94a94bd0d36907",
+        "name": "",
+        "topic": "cmnd/tasmota_059B17/POWER",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7d08d9d2b8ca878",
+        "x": 550,
+        "y": 780,
+        "wires": []
+    },
+    {
+        "id": "318b28c09c7a99ba",
+        "type": "mqtt in",
+        "z": "0a94a94bd0d36907",
+        "name": "2F184C",
+        "topic": "tele/2F184C/SENSOR",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 400,
+        "wires": [
+            [
+                "e6528bfb0e1ba7c7",
+                "d551811d069bfd83"
+            ]
+        ]
+    },
+    {
+        "id": "8b87f8bcd4f74a6e",
+        "type": "mqtt in",
+        "z": "0a94a94bd0d36907",
+        "name": "302482",
+        "topic": "tele/302482/SENSOR",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 160,
+        "wires": [
+            [
+                "e6528bfb0e1ba7c7",
+                "d551811d069bfd83"
+            ]
+        ]
+    },
+    {
+        "id": "5a642c5984f36467",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "Off",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "off",
+        "payloadType": "str",
+        "x": 150,
+        "y": 600,
+        "wires": [
+            [
+                "7b86afadc4ea6812"
+            ]
+        ]
+    },
+    {
+        "id": "72d18f716117797d",
+        "type": "mqtt in",
+        "z": "0a94a94bd0d36907",
+        "name": "666696",
+        "topic": "tele/666696/SENSOR",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 40,
+        "wires": [
+            [
+                "e6528bfb0e1ba7c7",
+                "d551811d069bfd83"
+            ]
+        ]
+    },
+    {
+        "id": "1835bee29ba0186d",
+        "type": "mqtt in",
+        "z": "0a94a94bd0d36907",
+        "name": "A11813",
+        "topic": "tele/A11813/SENSOR",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 220,
+        "wires": [
+            [
+                "e6528bfb0e1ba7c7",
+                "d551811d069bfd83"
+            ]
+        ]
+    },
+    {
+        "id": "338a38b29f271376",
+        "type": "mqtt in",
+        "z": "0a94a94bd0d36907",
+        "name": "D00094",
+        "topic": "tele/D00094/SENSOR",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 280,
+        "wires": [
+            [
+                "e6528bfb0e1ba7c7",
+                "d551811d069bfd83"
+            ]
+        ]
+    },
+    {
+        "id": "a1ef7d583900704b",
+        "type": "mqtt in",
+        "z": "0a94a94bd0d36907",
+        "name": "00A56F",
+        "topic": "tele/00A56F/SENSOR",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 340,
+        "wires": [
+            [
+                "e6528bfb0e1ba7c7",
+                "d551811d069bfd83"
+            ]
+        ]
+    },
+    {
+        "id": "71d066fd6bd09360",
+        "type": "mqtt out",
+        "z": "0a94a94bd0d36907",
+        "name": "",
+        "topic": "cmnd/tasmota_EECA81/POWER",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7d08d9d2b8ca878",
+        "x": 840,
+        "y": 1540,
+        "wires": []
+    },
+    {
+        "id": "5c951a25e0e5891f",
+        "type": "switch",
+        "z": "0a94a94bd0d36907",
+        "name": "",
+        "property": "payload.config.topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "On",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "Off",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 350,
+        "y": 1480,
+        "wires": [
+            [
+                "6c39938b1f59f71e",
+                "b80cc83c4e792d16"
+            ],
+            [
+                "f8cb6f563f7e1775",
+                "b80cc83c4e792d16"
+            ]
+        ]
+    },
+    {
+        "id": "78af3c0e5a9ccb3f",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "On",
+        "props": [
+            {
+                "p": "payload.config.topic",
+                "v": "",
+                "vt": "date"
+            },
+            {
+                "p": "payload.config.topic",
+                "v": "On",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 170,
+        "y": 1520,
+        "wires": [
+            [
+                "5c951a25e0e5891f"
+            ]
+        ]
+    },
+    {
+        "id": "e8551916241e148d",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "Off",
+        "props": [
+            {
+                "p": "payload.config.topic",
+                "v": "",
+                "vt": "date"
+            },
+            {
+                "p": "payload.config.topic",
+                "v": "Off",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 170,
+        "y": 1560,
+        "wires": [
+            [
+                "39615be8280b94ef"
+            ]
+        ]
+    },
+    {
+        "id": "6c39938b1f59f71e",
+        "type": "wled2",
+        "z": "0a94a94bd0d36907",
+        "address": "10.2.3.33",
+        "brightness": 128,
+        "delay": 0,
+        "color1": "#def6ca",
+        "color2": "#f8bdc4",
+        "color3": "#f497da",
+        "effect": "38",
+        "effectIntensity": 128,
+        "effectSpeed": "31",
+        "name": "On BedRoom",
+        "palette": "5",
+        "preset": "1",
+        "state": "on",
+        "x": 680,
+        "y": 1400,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f8cb6f563f7e1775",
+        "type": "wled2",
+        "z": "0a94a94bd0d36907",
+        "address": "10.2.3.33",
+        "brightness": 128,
+        "delay": 0,
+        "color1": "#ffffff",
+        "color2": "#ffffff",
+        "color3": "#ffffff",
+        "effect": "9",
+        "effectIntensity": 128,
+        "effectSpeed": 128,
+        "name": "Off Bed Room",
+        "palette": "50",
+        "preset": 0,
+        "state": "off",
+        "x": 680,
+        "y": 1460,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b80cc83c4e792d16",
+        "type": "change",
+        "z": "0a94a94bd0d36907",
+        "name": "",
+        "rules": [
+            {
+                "t": "move",
+                "p": "payload.config.topic",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 550,
+        "y": 1540,
+        "wires": [
+            [
+                "71d066fd6bd09360"
+            ]
+        ]
+    },
+    {
+        "id": "39615be8280b94ef",
+        "type": "delay",
+        "z": "0a94a94bd0d36907",
+        "name": "2 min delay",
+        "pauseType": "delay",
+        "timeout": "2",
+        "timeoutUnits": "minutes",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 310,
+        "y": 1620,
+        "wires": [
+            [
+                "5c951a25e0e5891f"
+            ]
+        ]
+    },
+    {
+        "id": "b935557785429dc8",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "On",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "ON",
+        "payloadType": "str",
+        "x": 150,
+        "y": 940,
+        "wires": [
+            [
+                "0f6b0bd03af23db0"
+            ]
+        ]
+    },
+    {
+        "id": "6688df07f07e3bf6",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "Off",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "OFF",
+        "payloadType": "str",
+        "x": 150,
+        "y": 980,
+        "wires": [
+            [
+                "0f6b0bd03af23db0"
+            ]
+        ]
+    },
+    {
+        "id": "73b840e8322c1011",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "Combination",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "Combination",
+        "payloadType": "str",
+        "x": 170,
+        "y": 1020,
+        "wires": [
+            [
+                "af40aa3f3b3df631"
+            ]
+        ]
+    },
+    {
+        "id": "4dcb7ea20070b0ae",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "In Waves",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "In Waves",
+        "payloadType": "str",
+        "x": 160,
+        "y": 1060,
+        "wires": [
+            [
+                "af40aa3f3b3df631"
+            ]
+        ]
+    },
+    {
+        "id": "8b8e473a5f89e15c",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "Sequential",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "Sequential",
+        "payloadType": "str",
+        "x": 160,
+        "y": 1100,
+        "wires": [
+            [
+                "af40aa3f3b3df631"
+            ]
+        ]
+    },
+    {
+        "id": "02fadc3f5cb8c564",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "Slo Glo",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "Slo Glo",
+        "payloadType": "str",
+        "x": 150,
+        "y": 1140,
+        "wires": [
+            [
+                "af40aa3f3b3df631"
+            ]
+        ]
+    },
+    {
+        "id": "5caede9c7ef06030",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "Chasing /Flash",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "Chasing /Flash",
+        "payloadType": "str",
+        "x": 180,
+        "y": 1180,
+        "wires": [
+            [
+                "af40aa3f3b3df631"
+            ]
+        ]
+    },
+    {
+        "id": "d6c575dda06b46ee",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "Twinkle",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "Twinkle",
+        "payloadType": "str",
+        "x": 150,
+        "y": 1220,
+        "wires": [
+            [
+                "af40aa3f3b3df631"
+            ]
+        ]
+    },
+    {
+        "id": "2d2b6ce7acd2cc25",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "SteadyOn",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "SteadyOn",
+        "payloadType": "str",
+        "x": 160,
+        "y": 1260,
+        "wires": [
+            [
+                "af40aa3f3b3df631"
+            ]
+        ]
+    },
+    {
+        "id": "2a860da27187419f",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "Slow Fade Alternate",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "Slow Fade Alternate",
+        "payloadType": "str",
+        "x": 190,
+        "y": 1300,
+        "wires": [
+            [
+                "af40aa3f3b3df631"
+            ]
+        ]
+    },
+    {
+        "id": "af40aa3f3b3df631",
+        "type": "mqtt out",
+        "z": "0a94a94bd0d36907",
+        "name": "",
+        "topic": "cmnd/680769/effect",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7d08d9d2b8ca878",
+        "x": 490,
+        "y": 1140,
+        "wires": []
+    },
+    {
+        "id": "0f6b0bd03af23db0",
+        "type": "mqtt out",
+        "z": "0a94a94bd0d36907",
+        "name": "",
+        "topic": "cmnd/680769/power",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7d08d9d2b8ca878",
+        "x": 560,
+        "y": 920,
+        "wires": []
+    },
+    {
+        "id": "e4cd7274f21cb82f",
+        "type": "change",
+        "z": "0a94a94bd0d36907",
+        "name": "",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "Off",
+                "fromt": "str",
+                "to": "OFF",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "On",
+                "fromt": "str",
+                "to": "ON",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 340,
+        "y": 900,
+        "wires": [
+            [
+                "0f6b0bd03af23db0"
+            ]
+        ]
+    },
+    {
+        "id": "fc2b5fcc17105366",
+        "type": "comment",
+        "z": "0a94a94bd0d36907",
+        "name": "Bed Room",
+        "info": "",
+        "x": 160,
+        "y": 1400,
+        "wires": []
+    },
+    {
+        "id": "5c07b7dc43f49f7c",
+        "type": "comment",
+        "z": "0a94a94bd0d36907",
+        "name": "Outside Lights",
+        "info": "",
+        "x": 150,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "5e0f5c055dc0e81a",
+        "type": "comment",
+        "z": "0a94a94bd0d36907",
+        "name": "Entrance",
+        "info": "",
+        "x": 140,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "8abac981f9664917",
+        "type": "mqtt in",
+        "z": "0a94a94bd0d36907",
+        "d": true,
+        "name": "Entrance Way Motion",
+        "topic": "wled/EntranceLED/motion/1",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 640,
+        "wires": [
+            [
+                "2b2b822137c5b2fd"
+            ]
+        ]
+    },
+    {
+        "id": "2b2b822137c5b2fd",
+        "type": "switch",
+        "z": "0a94a94bd0d36907",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "on",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "off",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 330,
+        "y": 560,
+        "wires": [
+            [
+                "80962c71eb700464"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "d274911acec1d7ad",
+        "type": "wled2",
+        "z": "0a94a94bd0d36907",
+        "address": "10.2.3.50",
+        "brightness": "70",
+        "delay": 0,
+        "color1": "#ffffff",
+        "color2": "#f8bdc4",
+        "color3": "#f497da",
+        "effect": "0",
+        "effectIntensity": 128,
+        "effectSpeed": 128,
+        "name": "On Entrance Way",
+        "palette": "2",
+        "preset": "3",
+        "state": "on",
+        "x": 1630,
+        "y": 720,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c48136acef963a6a",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "Off",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "Off",
+        "payloadType": "str",
+        "x": 150,
+        "y": 800,
+        "wires": [
+            [
+                "40a17a7093f49c19",
+                "f0cad74f847e0746"
+            ]
+        ]
+    },
+    {
+        "id": "53ef38e9f5a1b994",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "On",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "On",
+        "payloadType": "str",
+        "x": 150,
+        "y": 760,
+        "wires": [
+            [
+                "40a17a7093f49c19",
+                "f0cad74f847e0746"
+            ]
+        ]
+    },
+    {
+        "id": "3c33ca83aff09e53",
+        "type": "comment",
+        "z": "0a94a94bd0d36907",
+        "name": "Book Shelf",
+        "info": "",
+        "x": 60,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "f0cad74f847e0746",
+        "type": "switch",
+        "z": "0a94a94bd0d36907",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "On",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "Off",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 530,
+        "y": 680,
+        "wires": [
+            [
+                "80962c71eb700464"
+            ],
+            [
+                "7b86afadc4ea6812",
+                "79560cc53dcb5291"
+            ]
+        ]
+    },
+    {
+        "id": "6881264f97fb3e2c",
+        "type": "mqtt in",
+        "z": "0a94a94bd0d36907",
+        "name": "AC",
+        "topic": "AC_Main/AC_Living/state",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 510,
+        "y": 360,
+        "wires": [
+            [
+                "19098823a6010474"
+            ]
+        ]
+    },
+    {
+        "id": "19098823a6010474",
+        "type": "function",
+        "z": "0a94a94bd0d36907",
+        "name": "ACTemp",
+        "func": "//node.warn(msg)\n\n\nvar device = \"AC\"\nvar data = {Temperature: msg.payload.roomTemperature }\n//node.warn(data)\n\ndevicename = {\"device\": device}\n\nmsg.payload = []\nmsg.payload.push(data)\nmsg.payload.push(devicename)\n\n\n\n/*\nmsg.payload = [{\n    temp: 12,\n    humidity: 56,\n    battery: 2.97\n},\n{\n    device:\"sensor1\"\n}];\n*/\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 360,
+        "wires": [
+            [
+                "de71726ff8ca735e"
+            ]
+        ]
+    },
+    {
+        "id": "58750bf846d87a6b",
+        "type": "mqtt in",
+        "z": "0a94a94bd0d36907",
+        "name": "EECA81",
+        "topic": "tele/EECA81/SENSOR",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 320,
+        "y": 40,
+        "wires": [
+            [
+                "e6528bfb0e1ba7c7",
+                "d551811d069bfd83"
+            ]
+        ]
+    },
+    {
+        "id": "0542165ce2e10e8b",
+        "type": "mqtt out",
+        "z": "0a94a94bd0d36907",
+        "name": "",
+        "topic": "cmnd/00C558/power",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7d08d9d2b8ca878",
+        "x": 672.1287841796875,
+        "y": 1014.3510131835938,
+        "wires": []
+    },
+    {
+        "id": "d92f831fb9b73a9e",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "On",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "ON",
+        "payloadType": "str",
+        "x": 450,
+        "y": 1020,
+        "wires": [
+            [
+                "0542165ce2e10e8b"
+            ]
+        ]
+    },
+    {
+        "id": "7eace8db381df85e",
+        "type": "inject",
+        "z": "0a94a94bd0d36907",
+        "name": "Off",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "OFF",
+        "payloadType": "str",
+        "x": 430,
+        "y": 1060,
+        "wires": [
+            [
+                "0542165ce2e10e8b"
+            ]
+        ]
+    },
+    {
+        "id": "5861c2a8bc912835",
+        "type": "mqtt in",
+        "z": "0a94a94bd0d36907",
+        "name": "Shelly1_Entranceway",
+        "topic": "tele/Shelly_EntranceWay/LWT",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 900,
+        "y": 480,
+        "wires": [
+            [
+                "6f586b9b2e0a4ab1"
+            ]
+        ]
+    },
+    {
+        "id": "6f586b9b2e0a4ab1",
+        "type": "switch",
+        "z": "0a94a94bd0d36907",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "Offline",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "Online",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 1090,
+        "y": 480,
+        "wires": [
+            [
+                "c6cece4f04742cb8"
+            ],
+            [
+                "d274911acec1d7ad",
+                "91c22d26fd7f7277"
+            ]
+        ]
+    },
+    {
+        "id": "a59cf9812c56d1a0",
+        "type": "wled2",
+        "z": "0a94a94bd0d36907",
+        "address": "10.2.3.50",
+        "brightness": "1",
+        "delay": 0,
+        "color1": "#ffffff",
+        "color2": "#ffffff",
+        "color3": "#ffffff",
+        "effect": "0",
+        "effectIntensity": "0",
+        "effectSpeed": "0",
+        "name": "Off Entrance Way",
+        "palette": "0",
+        "preset": "2",
+        "state": "off",
+        "x": 1870,
+        "y": 560,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a567faacb681774b",
+        "type": "cronplus",
+        "z": "0a94a94bd0d36907",
+        "name": "",
+        "outputField": "payload",
+        "timeZone": "",
+        "storeName": "",
+        "commandResponseMsgOutput": "output1",
+        "defaultLocation": "",
+        "defaultLocationType": "default",
+        "outputs": 1,
+        "options": [
+            {
+                "name": "SunSet",
+                "topic": "On",
+                "payloadType": "str",
+                "payload": "On",
+                "expressionType": "solar",
+                "expression": "0 * * * * * *",
+                "location": "-33.7689167,151.1574499",
+                "offset": "0",
+                "solarType": "selected",
+                "solarEvents": "civilDusk"
+            },
+            {
+                "name": "Off",
+                "topic": "Off",
+                "payloadType": "str",
+                "payload": "Off",
+                "expressionType": "cron",
+                "expression": "30 21 * * *",
+                "location": "",
+                "offset": "0",
+                "solarType": "all",
+                "solarEvents": "sunrise,sunset"
+            }
+        ],
+        "x": 140,
+        "y": 680,
+        "wires": [
+            [
+                "e4cd7274f21cb82f",
+                "f0cad74f847e0746",
+                "40a17a7093f49c19"
+            ]
+        ]
+    },
+    {
+        "id": "8c737b01fd7a8bdf",
+        "type": "cronplus",
+        "z": "0a94a94bd0d36907",
+        "d": true,
+        "name": "",
+        "outputField": "payload",
+        "timeZone": "",
+        "storeName": "",
+        "commandResponseMsgOutput": "output1",
+        "defaultLocation": "",
+        "defaultLocationType": "default",
+        "outputs": 1,
+        "options": [
+            {
+                "name": "On",
+                "topic": "On",
+                "payloadType": "default",
+                "payload": "",
+                "expressionType": "cron",
+                "expression": "30 21 * * *",
+                "location": "33.8688 151.2093",
+                "offset": "0",
+                "solarType": "selected",
+                "solarEvents": "sunset"
+            },
+            {
+                "name": "Off",
+                "topic": "Off",
+                "payloadType": "default",
+                "payload": "",
+                "expressionType": "cron",
+                "expression": "00 23 * * *",
+                "location": "",
+                "offset": "0",
+                "solarType": "all",
+                "solarEvents": "sunrise,sunset"
+            }
+        ],
+        "x": 160,
+        "y": 1460,
+        "wires": [
+            [
+                "5c951a25e0e5891f"
+            ]
+        ]
+    },
+    {
+        "id": "c6cece4f04742cb8",
+        "type": "time-range-switch",
+        "z": "0a94a94bd0d36907",
+        "name": "Stairs Only - On",
+        "lat": "",
+        "lon": "",
+        "startTime": "17:00",
+        "endTime": "21:00",
+        "startOffset": 0,
+        "endOffset": 0,
+        "x": 1360,
+        "y": 440,
+        "wires": [
+            [
+                "80962c71eb700464"
+            ],
+            [
+                "a59cf9812c56d1a0",
+                "79560cc53dcb5291"
+            ]
+        ]
+    },
+    {
+        "id": "91c22d26fd7f7277",
+        "type": "wled2",
+        "z": "0a94a94bd0d36907",
+        "address": "10.2.3.32",
+        "brightness": "70",
+        "delay": 0,
+        "color1": "#ffffff",
+        "color2": "#f8bdc4",
+        "color3": "#f497da",
+        "effect": "0",
+        "effectIntensity": 128,
+        "effectSpeed": 128,
+        "name": "On Entrance Way - Cupboard",
+        "palette": "2",
+        "preset": "3",
+        "state": "on",
+        "x": 1670,
+        "y": 780,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "79560cc53dcb5291",
+        "type": "wled2",
+        "z": "0a94a94bd0d36907",
+        "address": "10.2.3.32",
+        "brightness": "1",
+        "delay": 0,
+        "color1": "#ffffff",
+        "color2": "#ffffff",
+        "color3": "#ffffff",
+        "effect": "0",
+        "effectIntensity": "0",
+        "effectSpeed": "0",
+        "name": "Off Entrance Way - Cupboard",
+        "palette": "0",
+        "preset": "",
+        "state": "off",
+        "x": 1890,
+        "y": 660,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2561e70ee0f1b0d7",
+        "type": "http request",
+        "z": "ec81459a2d597e0a",
+        "name": "",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "http://10.2.3.19/api/v1/cron/30d1b5578fadc66d481c32bcfb530ffd",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 470,
+        "y": 120,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "34938c0fb6756f46",
+        "type": "cronplus",
+        "z": "ec81459a2d597e0a",
+        "name": "",
+        "outputField": "payload",
+        "timeZone": "",
+        "persistDynamic": false,
+        "commandResponseMsgOutput": "output1",
+        "outputs": 1,
+        "options": [
+            {
+                "name": "schedule1",
+                "topic": "topic1",
+                "payloadType": "default",
+                "payload": "",
+                "expressionType": "cron",
+                "expression": "0 12 * * MONL",
+                "location": "",
+                "offset": "0",
+                "solarType": "all",
+                "solarEvents": "sunrise,sunset"
+            }
+        ],
+        "x": 300,
+        "y": 120,
+        "wires": [
+            [
+                "2561e70ee0f1b0d7"
+            ]
+        ]
+    },
+    {
+        "id": "ef85d4ae8cc7c17b",
+        "type": "spotify",
+        "z": "2e3c9338771da285",
+        "name": "Pause",
+        "auth": "63c43ee43f330cb7",
+        "api": "pause",
+        "x": 510,
+        "y": 180,
+        "wires": [
+            [
+                "3bc131dec2cdd934"
+            ]
+        ]
+    },
+    {
+        "id": "1a089bc4fc339176",
+        "type": "inject",
+        "z": "2e3c9338771da285",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 260,
+        "y": 240,
+        "wires": [
+            [
+                "ef85d4ae8cc7c17b"
+            ]
+        ]
+    },
+    {
+        "id": "88ed38fad0c7a3d3",
+        "type": "spotify",
+        "z": "2e3c9338771da285",
+        "name": "",
+        "auth": "",
+        "api": "transferMyPlayback",
+        "x": 1150,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3bc131dec2cdd934",
+        "type": "debug",
+        "z": "2e3c9338771da285",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 770,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "482c1f4199e1cec4",
+        "type": "inject",
+        "z": "2e3c9338771da285",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 260,
+        "y": 300,
+        "wires": [
+            [
+                "ef85d4ae8cc7c17b"
+            ]
+        ]
+    },
+    {
+        "id": "724a733cf7a07ab5",
+        "type": "mqtt out",
+        "z": "0483588fb8e081ba",
+        "name": "Power",
+        "topic": "AC_Main/AC_Living/mode/set",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7d08d9d2b8ca878",
+        "x": 710,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "630ec471149da40f",
+        "type": "inject",
+        "z": "0483588fb8e081ba",
+        "name": "AC On",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "ON",
+        "payloadType": "str",
+        "x": 390,
+        "y": 100,
+        "wires": [
+            [
+                "724a733cf7a07ab5"
+            ]
+        ]
+    },
+    {
+        "id": "d624beec99eac3b6",
+        "type": "mqtt out",
+        "z": "0483588fb8e081ba",
+        "name": "Temperature",
+        "topic": "AC_Main/AC_Living/temp/set",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7d08d9d2b8ca878",
+        "x": 730,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "b778f10e58953cb4",
+        "type": "inject",
+        "z": "0483588fb8e081ba",
+        "name": "Temp Set 16",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "16",
+        "payloadType": "str",
+        "x": 410,
+        "y": 160,
+        "wires": [
+            [
+                "d624beec99eac3b6"
+            ]
+        ]
+    },
+    {
+        "id": "9e665dfa8eda84d9",
+        "type": "mqtt in",
+        "z": "0483588fb8e081ba",
+        "name": "CFB400",
+        "topic": "tele/CFB400/SENSOR",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 320,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "befb15ba43519121",
+        "type": "function",
+        "z": "0483588fb8e081ba",
+        "name": "Current Humidity",
+        "func": "//node.warn(msg)\n\n\nvar device = msg.topic.split('/')[1]\nvar data = msg.payload.AM2301.Humidity\nlet humidity;\nlet action\n//node.warn(data)\nlet ACMode = global.get('AC_Mode','persistent');\n\n/*\nif(data > 70 ){\n    humidity = true;\n}\nelse {\n    humidity = false;\n}\n*/\n\n// Determine humidity status\nif (data >= 66) {\n    humidity = true; // High humidity\n} else if (data <= 61.8) {\n    humidity = false; // Low humidity\n} else {\n    humidity = null; // Neutral zone (61% to 69%)\n}\n\n// Determine action based on humidity and AC state\n\nif (humidity === true && ACMode === \"off\") {\n    action = 'DRY'; // Turn drying mode on\n} else if (humidity === false && ACMode === 'dry') {\n    action = 'Off'; // Turn AC off\n} else if (humidity === false && ACMode === \"off\") {\n    action = 'N/A'; // No action needed\n} else {\n    action = 'Hold'; // Neutral or no clear action\n}\n\n\n//devicename = {\"device\": device}\n\n//msg.payload = null\nmsg.payload = action\n//msg.payload.push(devicename)\n\n\n\n/*\nmsg.payload = [{\n    temp: 12,\n    humidity: 56,\n    battery: 2.97\n},\n{\n    device:\"sensor1\"\n}];\n*/\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 440,
+        "wires": [
+            [
+                "2215853d7052cede",
+                "fce38f5345bf4f41",
+                "a146542dcc80a799"
+            ]
+        ]
+    },
+    {
+        "id": "c9780b39cf077c81",
+        "type": "inject",
+        "z": "0483588fb8e081ba",
+        "name": "AC OFF",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "OFF",
+        "payloadType": "str",
+        "x": 400,
+        "y": 60,
+        "wires": [
+            [
+                "724a733cf7a07ab5"
+            ]
+        ]
+    },
+    {
+        "id": "64ae9790f902dd61",
+        "type": "mqtt in",
+        "z": "0483588fb8e081ba",
+        "name": "EECA81",
+        "topic": "tele/EECA81/SENSOR",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 200,
+        "y": 440,
+        "wires": [
+            [
+                "befb15ba43519121",
+                "2215853d7052cede"
+            ]
+        ]
+    },
+    {
+        "id": "2215853d7052cede",
+        "type": "debug",
+        "z": "0483588fb8e081ba",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 590,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "c4a3baf4b33354d7",
+        "type": "mqtt in",
+        "z": "0483588fb8e081ba",
+        "name": "ACState",
+        "topic": "AC_Main/AC_Living/state",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "a7d08d9d2b8ca878",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 540,
+        "wires": [
+            [
+                "f459c2a4eef23b4f"
+            ]
+        ]
+    },
+    {
+        "id": "a146542dcc80a799",
+        "type": "mqtt out",
+        "z": "0483588fb8e081ba",
+        "name": "AC Set Mode",
+        "topic": "AC_Main/AC_Living/mode/set",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7d08d9d2b8ca878",
+        "x": 1030,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "fce38f5345bf4f41",
+        "type": "change",
+        "z": "0483588fb8e081ba",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "23",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 840,
+        "y": 380,
+        "wires": [
+            [
+                "93c18af2af56b4e8"
+            ]
+        ]
+    },
+    {
+        "id": "93c18af2af56b4e8",
+        "type": "mqtt out",
+        "z": "0483588fb8e081ba",
+        "name": "AC Set Temperature",
+        "topic": "AC_Main/AC_Living/temp/set",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7d08d9d2b8ca878",
+        "x": 1040,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "e575af90fbdbb115",
+        "type": "change",
+        "z": "0483588fb8e081ba",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 600,
+        "y": 640,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "65ca3e079fb6b425",
+        "type": "function",
+        "z": "0483588fb8e081ba",
+        "name": "",
+        "func": "\n/* \n\nWhen I receive a new state message\n-Check the current stat vs the previous state\n\n-if the state has changed\n    -if state has gone from on to off\n        -set lastoff to <datenow>\n        -update current state\n        \n    -if state has gone from off to on\n        -set laston to <datenow>\n        -update current state\n\nThen\n\n-if the state as been On for 1 hour\n    -Send off command to AC\n\n-if the state has been off for 1 hour\n    -set \"allowed on\"\n\n\n*/\n\nlet mode = msg.payload.mode; \n// Retrieve the last \"Off\" timestamp from context\nlet lastOffTime = global.get('lastOffTime') || 0;\nlet lastOnTime = global.get('lastOnTime') || 0;\n\n// Define the modes that indicate the AC is ON\nconst ON_MODES = [\"AUTO\", \"HEAT\", \"COOL\", \"DRY\", \"FAN_ONLY\", \"ON\"];\n\n// Check if the AC is ON\nlet isACOn = ON_MODES.includes(mode.toUpperCase())\n\n\n// Calculate elapsed time since the AC was last OFF\nlet oofelapsedTime = Date.now() - lastOffTime;\nlet onelapsedTime = Date.now() - lastOnTime;\n\n\n\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 640,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f459c2a4eef23b4f",
+        "type": "function",
+        "z": "0483588fb8e081ba",
+        "name": "",
+        "func": "\n/* \n\nWhen I receive a new state message\n\n*/\n\nlet mode = msg.payload.mode; \nglobal.set('AC_Mode', msg.payload.mode,'persistent');\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 540,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f394a61b0a1b24aa",
+        "type": "cronplus",
+        "z": "0483588fb8e081ba",
+        "name": "",
+        "outputField": "payload",
+        "timeZone": "",
+        "storeName": "",
+        "commandResponseMsgOutput": "output1",
+        "defaultLocation": "",
+        "defaultLocationType": "default",
+        "outputs": 1,
+        "options": [
+            {
+                "name": "schedule1",
+                "topic": "on",
+                "payloadType": "json",
+                "payload": "{\"Temp\":20,\"Mode\":\"HEAT\",\"Power\":\"ON\"}",
+                "expressionType": "cron",
+                "expression": "41 6 * * *",
+                "location": "",
+                "offset": "0",
+                "solarType": "all",
+                "solarEvents": "sunrise,sunset"
+            }
+        ],
+        "x": 180,
+        "y": 780,
+        "wires": [
+            [
+                "05eef44f363787e9"
+            ]
+        ]
+    },
+    {
+        "id": "cf8f4d0d921735b2",
+        "type": "mqtt out",
+        "z": "0483588fb8e081ba",
+        "name": "AC Set Temperature",
+        "topic": "AC_Main/AC_Living/temp/set",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7d08d9d2b8ca878",
+        "x": 640,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "641164960f80f864",
+        "type": "mqtt out",
+        "z": "0483588fb8e081ba",
+        "name": "AC Set Mode",
+        "topic": "AC_Main/AC_Living/mode/set",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7d08d9d2b8ca878",
+        "x": 610,
+        "y": 800,
+        "wires": []
+    },
+    {
+        "id": "05eef44f363787e9",
+        "type": "switch",
+        "z": "0483588fb8e081ba",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "Temp",
+                "vt": "jsonata"
+            },
+            {
+                "t": "eq",
+                "v": "Mode",
+                "vt": "jsonata"
+            },
+            {
+                "t": "eq",
+                "v": "Power",
+                "vt": "jsonata"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 3,
+        "x": 350,
+        "y": 780,
+        "wires": [
+            [
+                "cf8f4d0d921735b2"
+            ],
+            [
+                "641164960f80f864"
+            ],
+            [
+                "4910c3c5e9b3f210"
+            ]
+        ]
+    },
+    {
+        "id": "4910c3c5e9b3f210",
+        "type": "mqtt out",
+        "z": "0483588fb8e081ba",
+        "name": "Power",
+        "topic": "AC_Main/AC_Living/mode/set",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a7d08d9d2b8ca878",
+        "x": 590,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "fb033b6406033cf0",
+        "type": "inject",
+        "z": "0483588fb8e081ba",
+        "name": "AC OFF",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"Temp\":20,\"Mode\":\"HEAT\",\"Power\":\"ON\"}",
+        "payloadType": "json",
+        "x": 180,
+        "y": 840,
+        "wires": [
+            [
+                "05eef44f363787e9"
+            ]
+        ]
+    }
+]
