@@ -31,7 +31,6 @@ homeassistant:
     - type: trusted_networks
       trusted_networks:
         - 10.2.3.0/24
-        - 10.2.0.13
         - 10.2.0.0/24
       trusted_users:
         10.2.3.53: 1d8a9227d3884b7f97f4ce935922713e
