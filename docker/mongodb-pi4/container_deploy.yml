@@ -106,3 +106,5 @@
         networks:
           - name: VLAN25
             ipv4_address: "{{ dedicated_ip | default(omit) }}"
+          - name: VLAN23
+            ipv4_address: "10.2.3.15"
