@@ -12,6 +12,16 @@
           - subnet: 10.2.2.0/24
             gateway: 10.2.2.1
         state: present
+    - name: Create VLAN 23
+      community.docker.docker_network:
+        name: VLAN23
+        driver: macvlan
+        driver_options:
+          parent: vlan23
+        ipam_config:
+          - subnet: 10.2.3.0/24
+            gateway: 10.2.3.1
+        state: present
     - name: Create VLAN 25
       community.docker.docker_network:
         name: VLAN25
