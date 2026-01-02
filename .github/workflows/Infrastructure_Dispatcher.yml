@@ -15,6 +15,7 @@ on:
           - host network
           - docker install
           - docker network
+          - host OS Update
           - all
 jobs:
   dispatch:
@@ -68,6 +69,15 @@ jobs:
   call_docker_network:
     if: ${{ github.event.inputs.setup_type == 'docker network' || github.event.inputs.setup_type == 'all' }}
     uses: ./.github/workflows/Docker_Network_Setup.yml
+    with:
+      host: ${{ github.event.inputs.host }}
+      environment: ${{ needs.dispatch.outputs.env }}
+      runs_on: ${{ needs.dispatch.outputs.runner }}
+    needs: dispatch
+
+  call_OS_update:
+    if: ${{ github.event.inputs.setup_type == 'host OS Update' || github.event.inputs.setup_type == 'all' }}
+    uses: ./.github/workflows/OS_Update.yml
     with:
       host: ${{ github.event.inputs.host }}
       environment: ${{ needs.dispatch.outputs.env }}

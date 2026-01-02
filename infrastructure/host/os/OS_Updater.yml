@@ -1,36 +1,82 @@
-name: OS Updater
-on:
-  schedule:
-    - cron: '0 0 * * *'  # Every day at midnight UTC
-  workflow_dispatch:
+---
+# OS Updater - Ansible playbook to update Ubuntu hosts
+# This playbook:
+# 1) Checks for available updates
+# 2) Installs updates if available
+# 3) Checks if a reboot is required
+# 4) Reboots if needed with a timer to allow the playbook to complete
+# 5) Sets a fact that can be used to trigger follow-up actions
 
-jobs:
-  dispatch:
-    runs-on: ubuntu-latest
-    outputs:
-      env: ${{ steps.set-vars.outputs.env }}
-      runner: ${{ steps.set-vars.outputs.runner }}
-    env:
-      BASE_DIR: 'infrastructure/host'
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+- name: Update Ubuntu OS
+  hosts: all
+  become: true
+  gather_facts: true
 
-      - name: Install yq
-        run: sudo apt-get install -y yq
+  vars:
+    # Time to wait before rebooting (seconds)
+    reboot_delay: 30
+    # Fact name to set when reboot is required
+    reboot_required_fact: "reboot_required"
 
-      - name: Read config
-        id: set-vars
-        run: |
-          cd $BASE_DIR
-          HOST="${{ github.event.inputs.host }}"
-          ENV=$(yq -r ".hosts.${HOST}.environment" hosts-config.yml)
-          RUNNER=$(yq -r ".hosts.${HOST}.runner" hosts-config.yml)
+  tasks:
+    - name: Check if updates are available
+      ansible.builtin.command: apt-get -s upgrade | grep -c "^Inst"
+      register: updates_available
+      changed_when: false
+      ignore_errors: true
 
-          if [[ "$ENV" == "null" || "$RUNNER" == "null" ]]; then
-            echo "Unknown host: $HOST"
-            exit 1
-          fi
+    - name: Set fact - updates available
+      ansible.builtin.set_fact:
+        updates_available: "{{ updates_available.stdout | int > 0 }}"
 
-          echo "env=$ENV" >> $GITHUB_OUTPUT
-          echo "runner=$RUNNER" >> $GITHUB_OUTPUT
+    - name: Exit if no updates available
+      ansible.builtin.meta: end_host
+      when: not updates_available
+
+    - name: Update apt package index
+      ansible.builtin.apt:
+        update_cache: true
+      when: updates_available
+
+    - name: Install available updates
+      ansible.builtin.apt:
+        upgrade: dist
+        autoremove: true
+      register: update_result
+      when: updates_available
+
+    - name: Check if reboot is required
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required_file
+
+    - name: Set fact - reboot required
+      ansible.builtin.set_fact:
+        reboot_required: "{{ reboot_required_file.stat.exists }}"
+
+    - name: Set output for GitHub Actions
+      ansible.builtin.set_fact:
+        github_output: "{{ reboot_required | ternary('reboot_required=true', 'reboot_required=false') }}"
+      when: reboot_required
+
+    - name: Reboot if required
+      ansible.builtin.reboot:
+        msg: "Reboot initiated by Ansible"
+        connect_timeout: 5
+        reboot_timeout: 600
+        pre_reboot_delay: "{{ reboot_delay }}"
+        post_reboot_delay: 30
+      when: reboot_required
+      register: reboot_result
+
+    - name: Display reboot status
+      ansible.builtin.debug:
+        msg: "Reboot {{ reboot_result.changed | ternary('initiated', 'not needed') }}"
+
+    - name: Write GitHub output file
+      ansible.builtin.copy:
+        content: "{{ github_output }}"
+        dest: /tmp/github_output.txt
+      when: reboot_required
+      delegate_to: localhost
+      run_once: true
