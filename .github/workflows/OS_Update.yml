@@ -17,7 +17,7 @@ jobs:
     environment: ${{ inputs.environment }}
 
     env:
-      BASE_DIR: 'infrastructure/os/'
+      BASE_DIR: 'host/os/'
 
     steps:
       - name: Run OS Update
