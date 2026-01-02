@@ -92,7 +92,7 @@
         restart_policy: unless-stopped
         recreate: true
         env:
-          - TZ=Australia/Sydney
+          TZ: Australia/Sydney
         volumes:
           - nodered_data:/data
         networks:
