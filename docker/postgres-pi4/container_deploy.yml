@@ -1,0 +1,62 @@
+- name: Deploying Postgres (Pi4)
+  hosts: all
+  become: true
+  collections:
+    - community.docker
+
+  vars:
+    fqdn: "{{ fqdn | default('postgres.local') }}"
+    container_name: "{{ name | default('postgres') }}"
+    dedicated_ip: "{{ dedicated_ip | default(omit) }}"
+
+  tasks:
+
+    - name: Ensure Postgres data volume exists
+      community.docker.docker_volume:
+        name: postgres_data
+        state: present
+
+    - name: Ensure internal databases network exists
+      community.docker.docker_network:
+        name: databases
+        state: present
+        driver: bridge
+
+    - name: Ensure local volume data folder exists (for copying init scripts)
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/postgres_data/_data/docker-entrypoint-initdb.d
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Template init SQL into postgres data volume (renders password variable)
+      ansible.builtin.template:
+        src: init_db.sql
+        dest: /var/lib/docker/volumes/postgres_data/_data/docker-entrypoint-initdb.d/init_db.sql
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Remove existing Postgres container if present
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        state: absent
+
+    - name: Deploy Postgres container
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        image: postgres:14
+        pull: yes
+        state: started
+        restart_policy: unless-stopped
+        recreate: true
+        env:
+          POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+          POSTGRES_USER: "${POSTGRES_USER}"
+          POSTGRES_DB: "${POSTGRES_DB}"
+        volumes:
+          - postgres_data:/var/lib/postgresql/data
+        networks:
+          - name: databases
+            ipv4_address: "{{ dedicated_ip | default(omit) }}"

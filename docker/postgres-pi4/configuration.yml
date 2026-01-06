@@ -1,0 +1,8 @@
+name: postgres
+fqdn: postgres.tomunsworth.net
+certificate: false
+external_access: false
+dedicated_ip: true
+container_environment: pi4
+container_host: pi4
+container_folder: postgres-pi4
