@@ -30,6 +30,11 @@
         group: root
         mode: '0755'
 
+    - name: Ensure letsencrypt volume exists
+      community.docker.docker_volume:
+       name: letsencrypt
+       state: present
+
     - name: Template init SQL into postgres data volume (renders password variable)
       ansible.builtin.template:
         src: init_db.sql
@@ -38,25 +43,31 @@
         group: root
         mode: '0644'
 
-    - name: When SSL enabled and using letsencrypt, check for cert files
-      ansible.builtin.stat:
-        path: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn | default(fqdn) }}/fullchain.pem"
-      register: lets_encrypt_cert
-      when: ssl | default(false) and use_letsencrypt | default(false)
+    - name: Ensure certs directory exists in data volume
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/postgres_data/_data/certs
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      become: true
 
     - name: Copy fullchain.pem to server.crt (PGDATA)
       ansible.builtin.copy:
-        src: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn | default(fqdn) }}/fullchain.pem"
+        src: /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn}}/fullchain.pem
         dest: /var/lib/docker/volumes/postgres_data/_data/server.crt
         mode: '0644'
-      when: lets_encrypt_cert is defined and lets_encrypt_cert.stat.exists
+        owner: root
+        group: root
+      become: true
 
     - name: Copy privkey.pem to server.key (PGDATA)
       ansible.builtin.copy:
-        src: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn | default(fqdn) }}/privkey.pem"
+        src: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/privkey.pem"
         dest: /var/lib/docker/volumes/postgres_data/_data/server.key
-        mode: '0600'
-      when: lets_encrypt_cert is defined and lets_encrypt_cert.stat.exists
+        mode: '0644'
+        owner: root
+        group: root
 
     - name: Chown cert files to postgres uid 999
       ansible.builtin.command: chown 999:999 /var/lib/docker/volumes/postgres_data/_data/server.crt /var/lib/docker/volumes/postgres_data/_data/server.key
