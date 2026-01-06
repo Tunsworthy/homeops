@@ -52,26 +52,42 @@
         mode: '0755'
       become: true
 
-    - name: Copy fullchain.pem to server.crt (PGDATA)
+    - name: Stat letsencrypt fullchain.pem
+      ansible.builtin.stat:
+        path: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/fullchain.pem"
+      register: lets_encrypt_cert
+      when: ssl | default(false) and use_letsencrypt | default(false)
+
+    - name: Check whether Postgres data directory is already initialized
+      ansible.builtin.find:
+        paths: /var/lib/docker/volumes/postgres_data/_data
+        file_type: any
+        recurse: no
+      register: pgdata_files
+
+    - name: Copy fullchain.pem to server.crt (PGDATA) -- only if PGDATA already initialized
       ansible.builtin.copy:
-        src: /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn}}/fullchain.pem
+        src: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn}}/fullchain.pem"
         dest: /var/lib/docker/volumes/postgres_data/_data/server.crt
         mode: '0644'
         owner: root
         group: root
       become: true
+      when: lets_encrypt_cert is defined and lets_encrypt_cert.stat.exists and (pgdata_files.matched | int) > 0
 
-    - name: Copy privkey.pem to server.key (PGDATA)
+    - name: Copy privkey.pem to server.key (PGDATA) -- only if PGDATA already initialized
       ansible.builtin.copy:
         src: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/privkey.pem"
         dest: /var/lib/docker/volumes/postgres_data/_data/server.key
-        mode: '0644'
+        mode: '0600'
         owner: root
         group: root
+      become: true
+      when: lets_encrypt_cert is defined and lets_encrypt_cert.stat.exists and (pgdata_files.matched | int) > 0
 
-    - name: Chown cert files to postgres uid 999
+    - name: Chown cert files to postgres uid 999 -- only if copied
       ansible.builtin.command: chown 999:999 /var/lib/docker/volumes/postgres_data/_data/server.crt /var/lib/docker/volumes/postgres_data/_data/server.key
-      when: lets_encrypt_cert is defined and lets_encrypt_cert.stat.exists
+      when: lets_encrypt_cert is defined and lets_encrypt_cert.stat.exists and (pgdata_files.matched | int) > 0
 
     - name: Template postgres SSL SQL into initdb dir
       ansible.builtin.template:
@@ -102,3 +118,28 @@
         networks:
           - name: databases
             # internal network only; no dedicated IP assigned
+
+    - name: If PGDATA was empty and letsencrypt certs exist, copy certs now and restart container
+      block:
+        - name: Copy fullchain.pem into PGDATA after init
+          ansible.builtin.copy:
+            src: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/fullchain.pem"
+            dest: /var/lib/docker/volumes/postgres_data/_data/server.crt
+            mode: '0644'
+            owner: root
+            group: root
+
+        - name: Copy privkey.pem into PGDATA after init
+          ansible.builtin.copy:
+            src: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/privkey.pem"
+            dest: /var/lib/docker/volumes/postgres_data/_data/server.key
+            mode: '0600'
+            owner: root
+            group: root
+
+        - name: Chown cert files to postgres uid 999
+          ansible.builtin.command: chown 999:999 /var/lib/docker/volumes/postgres_data/_data/server.crt /var/lib/docker/volumes/postgres_data/_data/server.key
+
+        - name: Restart Postgres container to pick up SSL certs
+          ansible.builtin.command: docker restart {{ container_name }}
+      when: lets_encrypt_cert is defined and lets_encrypt_cert.stat.exists and (pgdata_files.matched | int) == 0
