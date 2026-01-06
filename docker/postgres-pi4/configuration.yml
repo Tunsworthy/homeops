@@ -1,11 +1,9 @@
 name: postgres
 fqdn: postgres.tomunsworth.net
-certificate: false
+certificate: true
 external_access: false
 dedicated_ip: true
 container_environment: pi4
 container_host: pi4
 container_folder: postgres-pi4
-ssl: true
-use_letsencrypt: true
-cert_fqdn: "{{ fqdn }}"
+
