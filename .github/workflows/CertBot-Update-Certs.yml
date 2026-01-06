@@ -1,8 +1,6 @@
 name: Check & Renew Let's Encrypt Certificates
 
 on:
-  schedule:
-    - cron: '0 0 * * *'  # Every day at midnight UTC
   workflow_dispatch:
 
 jobs:
