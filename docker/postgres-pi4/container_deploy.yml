@@ -40,20 +40,20 @@
 
     - name: When SSL enabled and using letsencrypt, check for cert files
       ansible.builtin.stat:
-        path: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ cert_fqdn | default(fqdn) }}/fullchain.pem"
+        path: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn | default(fqdn) }}/fullchain.pem"
       register: lets_encrypt_cert
       when: ssl | default(false) and use_letsencrypt | default(false)
 
     - name: Copy fullchain.pem to server.crt (PGDATA)
       ansible.builtin.copy:
-        src: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ cert_fqdn | default(fqdn) }}/fullchain.pem"
+        src: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn | default(fqdn) }}/fullchain.pem"
         dest: /var/lib/docker/volumes/postgres_data/_data/server.crt
         mode: '0644'
       when: lets_encrypt_cert is defined and lets_encrypt_cert.stat.exists
 
     - name: Copy privkey.pem to server.key (PGDATA)
       ansible.builtin.copy:
-        src: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ cert_fqdn | default(fqdn) }}/privkey.pem"
+        src: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn | default(fqdn) }}/privkey.pem"
         dest: /var/lib/docker/volumes/postgres_data/_data/server.key
         mode: '0600'
       when: lets_encrypt_cert is defined and lets_encrypt_cert.stat.exists
