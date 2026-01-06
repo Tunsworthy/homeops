@@ -22,14 +22,6 @@
         state: present
         driver: bridge
 
-    - name: Ensure local PGDATA subdirectory exists for init scripts
-      ansible.builtin.file:
-        path: /var/lib/docker/volumes/postgres_data/_data/database/docker-entrypoint-initdb.d
-        state: directory
-        owner: root
-        group: root
-        mode: '0755'
-
     - name: Ensure letsencrypt volume exists
       community.docker.docker_volume:
        name: letsencrypt
@@ -38,7 +30,7 @@
     - name: Template init SQL into postgres PGDATA subdirectory (renders password variable)
       ansible.builtin.template:
         src: init_db.sql
-        dest: /var/lib/docker/volumes/postgres_data/_data/database/docker-entrypoint-initdb.d/init_db.sql
+        dest: /var/lib/docker/volumes/postgres_data/_data/init_db.sql
         owner: root
         group: root
         mode: '0644'
@@ -82,7 +74,7 @@
     - name: Template postgres SSL SQL into PGDATA initdb dir
       ansible.builtin.template:
         src: postgres_ssl.sql
-        dest: /var/lib/docker/volumes/postgres_data/_data/database/docker-entrypoint-initdb.d/postgres_ssl.sql
+        dest: /var/lib/docker/volumes/postgres_data/_data/postgres_ssl.sql
         mode: '0644'
       when: ssl | default(false)
 
@@ -92,6 +84,8 @@
         file_type: any
         recurse: no
       register: pgdata_files
+
+      
     - name: Remove existing Postgres container if present
       community.docker.docker_container:
         name: "{{ container_name }}"
