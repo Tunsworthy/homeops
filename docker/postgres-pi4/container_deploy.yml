@@ -56,7 +56,7 @@
       ansible.builtin.stat:
         path: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/fullchain.pem"
       register: lets_encrypt_cert
-      when: ssl | default(false) and use_letsencrypt | default(false)
+      
 
     - name: Check whether Postgres data directory is already initialized
       ansible.builtin.find:
@@ -73,7 +73,7 @@
         owner: root
         group: root
       become: true
-      when: lets_encrypt_cert is defined and lets_encrypt_cert.stat.exists and (pgdata_files.matched | int) > 0
+     
 
     - name: Copy privkey.pem to server.key (PGDATA) -- only if PGDATA already initialized
       ansible.builtin.copy:
@@ -83,18 +83,17 @@
         owner: root
         group: root
       become: true
-      when: lets_encrypt_cert is defined and lets_encrypt_cert.stat.exists and (pgdata_files.matched | int) > 0
+      
 
     - name: Chown cert files to postgres uid 999 -- only if copied
       ansible.builtin.command: chown 999:999 /var/lib/docker/volumes/postgres_data/_data/server.crt /var/lib/docker/volumes/postgres_data/_data/server.key
-      when: lets_encrypt_cert is defined and lets_encrypt_cert.stat.exists and (pgdata_files.matched | int) > 0
+      
 
     - name: Template postgres SSL SQL into initdb dir
       ansible.builtin.template:
         src: postgres_ssl.sql
         dest: /var/lib/docker/volumes/postgres_data/_data/docker-entrypoint-initdb.d/postgres_ssl.sql
         mode: '0644'
-      when: ssl | default(false)
 
     - name: Remove existing Postgres container if present
       community.docker.docker_container:
@@ -142,4 +141,3 @@
 
         - name: Restart Postgres container to pick up SSL certs
           ansible.builtin.command: docker restart {{ container_name }}
-      when: lets_encrypt_cert is defined and lets_encrypt_cert.stat.exists and (pgdata_files.matched | int) == 0
