@@ -121,6 +121,8 @@
         state: started
         restart_policy: unless-stopped
         recreate: true
+        env:
+          MAPS_API_KEY: "{{ googlemaps_api_key | default(omit) }}"
         volumes:
           - housefinder_data:/data
         networks:
