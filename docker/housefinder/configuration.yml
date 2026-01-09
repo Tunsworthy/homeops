@@ -9,4 +9,4 @@ container_environment: pi4
 certificate: true             # needs Let's Encrypt cert
 external_access: false         # should be exposed via Cloudflare Tunnel
 dedicated_ip: true            # should get an IP from IP allocation CSV
-update: flase                  # should the container be updated on deployment
+update: true                  # should the container be updated on deployment
