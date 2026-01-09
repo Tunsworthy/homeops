@@ -14,12 +14,12 @@
 
     - name: Creates/Ensures data volume exists
       community.docker.docker_volume:
-       name: housefinder_data
+       name: "{{container_name}}_data"
        state: present
 
     - name: Checks Host folder exists
       ansible.builtin.file:
-        path: /var/lib/docker/volumes/housefinder_data/_data
+        path: /var/lib/docker/volumes/{{container_name}}_data/_data
         state: directory
         owner: root
         group: root
@@ -31,9 +31,14 @@
         state: present
         driver: bridge
 
-    - name: Remove existing container
+    - name: Remove existing frontend container (if present)
       community.docker.docker_container:
-        name: "{{container_name}}"
+        name: "{{ container_name }}-frontend"
+        state: absent
+
+    - name: Remove existing backend container (if present)
+      community.docker.docker_container:
+        name: "{{ container_name }}-backend"
         state: absent
 
     - name: Run backend job (one-shot)
@@ -47,7 +52,7 @@
         env:
           GOOGLE_API_KEY: "{{ googlemaps_api_key | default(omit) }}"
         volumes:
-          - housefinder_data:/data
+          - "{{ container_name }}_data:/data"
           
     - name: Ensure letsencrypt volume exists
       community.docker.docker_volume:
@@ -56,7 +61,7 @@
 
     - name: Ensure nginx config directory exists on data volume
       ansible.builtin.file:
-        path: /var/lib/docker/volumes/housefinder_data/_data/nginx
+        path: /var/lib/docker/volumes/{{container_name}}_data/_data/nginx
         state: directory
         owner: root
         group: root
@@ -64,7 +69,7 @@
 
     - name: Deploy nginx config for housefinder
       ansible.builtin.copy:
-        dest: /var/lib/docker/volumes/housefinder_data/_data/nginx/housefinder.conf
+        dest: /var/lib/docker/volumes/{{container_name}}_data/_data/nginx/housefinder.conf
         content: |
           server {
             listen 80;
@@ -94,19 +99,19 @@
 
     - name: Remove existing nginx container
       community.docker.docker_container:
-        name: housefinder-nginx
+        name: "{{ container_name }}-nginx"
         state: absent
 
     - name: Deploy nginx reverse-proxy (external IP on VLAN26)
       community.docker.docker_container:
-        name: housefinder-nginx
+        name: "{{ container_name }}-nginx"
         image: nginx:stable
         pull: yes
         state: started
         restart_policy: unless-stopped
         recreate: true
         volumes:
-          - /var/lib/docker/volumes/housefinder_data/_data/nginx:/etc/nginx/conf.d:ro
+          - "/var/lib/docker/volumes/{{ container_name }}_data/_data/nginx:/etc/nginx/conf.d:ro"
           - letsencrypt:/etc/letsencrypt:ro
         networks:
           - name: VLAN26
@@ -124,6 +129,6 @@
         env:
           MAPS_API_KEY: "{{ googlemaps_api_key | default(omit) }}"
         volumes:
-          - housefinder_data:/data
+          - "{{ container_name }}_data:/data"
         networks:
           - name: housefinder_net
