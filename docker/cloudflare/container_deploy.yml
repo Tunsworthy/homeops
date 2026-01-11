@@ -17,6 +17,7 @@
         image: cloudflare/cloudflared
         pull: yes
         state: started
+        restart_policy: unless-stopped
         recreate: true
         auto_remove: false   # keep container for logs/debugging
         env:
