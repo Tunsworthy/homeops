@@ -1,0 +1,103 @@
+name: Trigger Container Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Git branch to deploy from'
+        required: true
+        default: 'main'
+      folder:
+        description: 'Container folder (e.g., postgres-pi4, housefinder)'
+        required: true
+  repository_dispatch:
+    types: [deploy-container]
+
+jobs:
+  read-config:
+    runs-on: ubuntu-latest
+    outputs:
+      container_name: ${{ steps.config.outputs.container_name }}
+      environment: ${{ steps.config.outputs.environment }}
+      allocated_ip: ${{ steps.config.outputs.allocated_ip }}
+      docker_host: ${{ steps.config.outputs.docker_host }}
+      container_folder: ${{ steps.config.outputs.container_folder }}
+      fqdn: ${{ steps.config.outputs.fqdn }}
+    steps:
+      - name: Determine branch and folder
+        id: inputs
+        run: |
+          # Support both workflow_dispatch and repository_dispatch inputs
+          BRANCH="${{ github.event.inputs.branch || github.event.client_payload.branch || 'main' }}"
+          FOLDER="${{ github.event.inputs.folder || github.event.client_payload.folder }}"
+          
+          if [ -z "$FOLDER" ]; then
+            echo "Error: folder input is required"
+            exit 1
+          fi
+          
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "folder=$FOLDER" >> $GITHUB_OUTPUT
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.inputs.outputs.branch }}
+
+      - name: Read configuration file
+        id: config
+        run: |
+          CONFIG_FILE="docker/${{ steps.inputs.outputs.folder }}/configuration.yml"
+          
+          if [ ! -f "$CONFIG_FILE" ]; then
+            echo "Error: Configuration file not found at $CONFIG_FILE"
+            exit 1
+          fi
+          
+          # Parse YAML using a simple approach (grep and cut)
+          # For robustness, install yq if available
+          if command -v yq &> /dev/null; then
+            CONTAINER_NAME=$(yq eval '.name' "$CONFIG_FILE")
+            ENVIRONMENT=$(yq eval '.container_environment' "$CONFIG_FILE")
+            ALLOCATED_IP=$(yq eval '.allocated_ip' "$CONFIG_FILE")
+            DOCKER_HOST=$(yq eval '.container_host' "$CONFIG_FILE")
+            CONTAINER_FOLDER=$(yq eval '.container_folder' "$CONFIG_FILE")
+            FQDN=$(yq eval '.fqdn' "$CONFIG_FILE")
+          else
+            # Fallback: basic parsing with grep
+            CONTAINER_NAME=$(grep "^name:" "$CONFIG_FILE" | cut -d' ' -f2)
+            ENVIRONMENT=$(grep "^container_environment:" "$CONFIG_FILE" | cut -d' ' -f2)
+            ALLOCATED_IP=$(grep "^allocated_ip:" "$CONFIG_FILE" | cut -d' ' -f2)
+            DOCKER_HOST=$(grep "^container_host:" "$CONFIG_FILE" | cut -d' ' -f2)
+            CONTAINER_FOLDER=$(grep "^container_folder:" "$CONFIG_FILE" | cut -d' ' -f2)
+            FQDN=$(grep "^fqdn:" "$CONFIG_FILE" | cut -d' ' -f2)
+          fi
+          
+          # Output the extracted values
+          echo "container_name=$CONTAINER_NAME" >> $GITHUB_OUTPUT
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "allocated_ip=$ALLOCATED_IP" >> $GITHUB_OUTPUT
+          echo "docker_host=$DOCKER_HOST" >> $GITHUB_OUTPUT
+          echo "container_folder=$CONTAINER_FOLDER" >> $GITHUB_OUTPUT
+          echo "fqdn=$FQDN" >> $GITHUB_OUTPUT
+          
+          # Log the extracted values for debugging
+          echo "Extracted configuration:"
+          echo "  container_name: $CONTAINER_NAME"
+          echo "  environment: $ENVIRONMENT"
+          echo "  allocated_ip: $ALLOCATED_IP"
+          echo "  docker_host: $DOCKER_HOST"
+          echo "  container_folder: $CONTAINER_FOLDER"
+          echo "  fqdn: $FQDN"
+
+  dispatch-deployment:
+    needs: read-config
+    uses: ./.github/workflows/Container_Deployment.yml
+    with:
+      container_name: ${{ needs.read-config.outputs.container_name }}
+      environment: ${{ needs.read-config.outputs.environment }}
+      allocated_ip: ${{ needs.read-config.outputs.allocated_ip }}
+      docker_host: ${{ needs.read-config.outputs.docker_host }}
+      container_folder: ${{ needs.read-config.outputs.container_folder }}
+      fqdn: ${{ needs.read-config.outputs.fqdn }}
+    secrets: inherit
