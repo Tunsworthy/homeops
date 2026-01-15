@@ -73,6 +73,11 @@ jobs:
             FQDN=$(grep "^fqdn:" "$CONFIG_FILE" | cut -d' ' -f2)
           fi
           
+          # Use folder input as fallback if container_folder is not in config or is "null"
+          if [ -z "$CONTAINER_FOLDER" ] || [ "$CONTAINER_FOLDER" = "null" ]; then
+            CONTAINER_FOLDER="${{ steps.inputs.outputs.folder }}"
+          fi
+          
           # Output the extracted values
           echo "container_name=$CONTAINER_NAME" >> $GITHUB_OUTPUT
           echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
