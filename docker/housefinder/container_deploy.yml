@@ -54,7 +54,7 @@
         env:
           GOOGLE_API_KEY: "{{ googlemaps_api_key | default(omit) }}"
           MQTT_HOST: "{{ mqtt_host | default(omit) }}"
-          MQTT_CA_CERT_PATH: "{{ mqtt_ca_cert_path | default('/etc/ssl/certs/ca-certificates.crt') }}"
+          MQTT_CA_CERT_PATH: "{{ mqtt_ca_cert_path | default(omit) }}"
         volumes:
           - "{{ container_name }}_data:/data"
           - letsencrypt:/etc/letsencrypt:ro
