@@ -72,8 +72,8 @@
         recreate: true
         auto_remove: false   # keep container for logs/debugging
         env:
-          TELEGRAM_BOT_TOKEN: 
-          TELEGRAM_CHAT_ID: 
+          TELEGRAM_BOT_TOKEN: "{{ TELEGRAM_BOT_TOKEN | default(omit) }}"
+          TELEGRAM_CHAT_ID: "{{ TELEGRAM_CHAT_ID | default(omit) }}"
           FRONTEND_URL: "https://{{ fqdn }}"
           MQTT_HOST: "{{ mqtt_host | default(omit) }}"
           MQTT_CA_CERT_PATH: "{{ mqtt_ca_cert_path | default(omit) }}"
