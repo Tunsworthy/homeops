@@ -1,5 +1,5 @@
-name: housefinder-test
-fqdn: housefinder-test.tomunsworth.net
+name: housefinder
+fqdn: housefinder.tomunsworth.net
 #defines the hosts that the container will be deployed onto
 container_host: pi4
 #defines the network the container will be deployed to
