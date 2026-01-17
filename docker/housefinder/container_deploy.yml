@@ -54,7 +54,6 @@
         env:
           GOOGLE_API_KEY: "{{ googlemaps_api_key | default(omit) }}"
           MQTT_HOST: "{{ mqtt_host | default(omit) }}"
-          MQTT_PORT: ${MQTT_PORT:-8883}
           MQTT_CA_CERT_PATH: ${MQTT_CA_CERT_PATH:-/etc/ssl/certs/ca-certificates.crt}
         volumes:
           - "{{ container_name }}_data:/data"
