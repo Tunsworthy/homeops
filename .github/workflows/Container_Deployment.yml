@@ -62,6 +62,8 @@ jobs:
           mqtt_host: "${{ vars.MQTT_HOST }}"
           mqtt_ca_cert_path: "${{ vars.MQTT_CA_CERT_PATH }}"
           CLOUDFLARE_TOKEN: "${{ secrets.CLOUDFLARE_TOKEN }}"
+          TELEGRAM_CHAT_ID: "${{ secrets.TELEGRAM_CHAT_ID }}"
+          TELEGRAM_BOT_TOKEN: "${{ secrets.TELEGRAM_BOT_TOKEN }}"
           EOF
           chmod 600 extra_vars.yml
           # run playbook using the vars file so sensitive values are not echoed in CLI args

@@ -11,6 +11,8 @@
     googlemaps_api_key: "{{ googlemaps_api_key | default('') }}"
     mqtt_host: "{{ mqtt_host | default(omit) }}"
     mqtt_ca_cert_path : "{{ mqtt_ca_cert_path | default(omit) }}"
+    TELEGRAM_BOT_TOKEN: "{{ TELEGRAM_BOT_TOKEN | default(omit) }}"
+    TELEGRAM_CHAT_ID: "{{ TELEGRAM_CHAT_ID | default(omit) }}"
 
   tasks:
 
@@ -55,10 +57,31 @@
           GOOGLE_API_KEY: "{{ googlemaps_api_key | default(omit) }}"
           MQTT_HOST: "{{ mqtt_host | default(omit) }}"
           MQTT_CA_CERT_PATH: "{{ mqtt_ca_cert_path | default(omit) }}"
+          MQTT_TOPIC_PREFIX : "{{container_name}}"
         volumes:
           - "{{ container_name }}_data:/data"
           - letsencrypt:/etc/letsencrypt:ro
           
+    - name: Run Message Bot
+      community.docker.docker_container:
+        name: "{{ container_name }}-messagebot"
+        image: ghcr.io/tunsworthy/housefinder_messagebot:latest
+        pull: yes
+        state: started
+        restart_policy: always
+        recreate: true
+        auto_remove: false   # keep container for logs/debugging
+        env:
+          TELEGRAM_BOT_TOKEN: 
+          TELEGRAM_CHAT_ID: 
+          FRONTEND_URL: "https://{{ fqdn }}"
+          MQTT_HOST: "{{ mqtt_host | default(omit) }}"
+          MQTT_CA_CERT_PATH: "{{ mqtt_ca_cert_path | default(omit) }}"
+          MQTT_TOPIC_PREFIX : "{{container_name}}"
+          MQTT_CLIENT_ID : "{{container_name}}-messagebot"
+          MQTT_PORT: "{{ mqtt_port | default('8883') }}"
+
+
     - name: Ensure letsencrypt volume exists
       community.docker.docker_volume:
        name: letsencrypt
