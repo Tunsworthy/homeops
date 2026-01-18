@@ -219,10 +219,10 @@
 
     - name: Create votes.json backup script
       ansible.builtin.copy:
-        dest: /usr/local/bin/backup-housefinder-votes.sh
+        dest: /usr/local/bin/backup-{{ container_name }}-votes.sh
         content: |
           #!/bin/bash
-          BACKUP_DIR="/var/backups/housefinder"
+          BACKUP_DIR="/var/backups/{{ container_name }}"
           SOURCE_FILE="/var/lib/docker/volumes/{{ container_name }}_data/_data/votes.json"
           TIMESTAMP=$(date +%Y%m%d_%H%M%S)
           
@@ -245,7 +245,7 @@
         name: "housefinder-votes-backup"
         minute: "*/15"
         hour: "*"
-        job: "/usr/local/bin/backup-housefinder-votes.sh"
+        job: "/usr/local/bin/backup-{{ container_name }}-votes.sh"
         state: present
         user: root
 
