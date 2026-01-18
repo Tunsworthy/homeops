@@ -44,7 +44,17 @@
       community.docker.docker_container:
         name: "{{ container_name }}-backend"
         state: absent
+    
+    - name: Remove existing message bot container
+      community.docker.docker_container:
+        name: "{{ container_name }}-messagebot"
+        state: absent      
 
+    - name: Remove existing rejection scanner container
+      community.docker.docker_container:
+        name: "{{ container_name }}-rejection-scanner"
+        state: absent     
+    
     - name: Run backend job (one-shot)
       community.docker.docker_container:
         name: "{{ container_name }}-backend"
@@ -61,7 +71,7 @@
         volumes:
           - "{{ container_name }}_data:/data"
           - letsencrypt:/etc/letsencrypt:ro
-          
+    
     - name: Run Message Bot
       community.docker.docker_container:
         name: "{{ container_name }}-messagebot"
@@ -79,8 +89,26 @@
           MQTT_CA_CERT_PATH: "{{ mqtt_ca_cert_path | default(omit) }}"
           MQTT_TOPIC_PREFIX : "{{container_name}}"
           MQTT_CLIENT_ID : "{{container_name}}-messagebot"
-          MQTT_PORT: "{{ mqtt_port | default('8883') }}"
+          MQTT_PORT: "{{ mqtt_port | default('8883') }}" 
 
+    - name: Run Rejection Scanner (One-shot)
+      community.docker.docker_container:
+        name: "{{ container_name }}-rejection-scanner"
+        image: ghcr.io/tunsworthy/housefinder_rejection_scanner:latest
+        pull: yes
+        state: started
+        restart_policy: "no"  # One-shot container, exits after completion
+        recreate: true
+        auto_remove: false
+        detach: false  # Wait for container to complete
+        env:
+          DATA_DIR: "/data"
+          MQTT_HOST: "{{ mqtt_host | default(omit) }}"
+          MQTT_PORT: "{{ mqtt_port | default('8883') }}"
+          MQTT_CA_CERT_PATH: "{{ mqtt_ca_cert_path | default(omit) }}"
+          MQTT_TOPIC_PREFIX: "{{ container_name }}"
+        volumes:
+          - "{{ container_name }}_data:/data"
 
     - name: Ensure letsencrypt volume exists
       community.docker.docker_volume:
@@ -162,3 +190,21 @@
           - "{{ container_name }}_data:/data"
         networks:
           - name: housefinder_net
+
+    - name: Schedule backend job to run every 2 hours
+      ansible.builtin.cron:
+        name: "{{ container_name }}-backend"
+        minute: "0"
+        hour: "*/2"
+        job: "docker start {{ container_name }}-backend"
+        state: present
+        user: root
+
+    - name: Schedule rejection scanner to run every 2 hours (5 min after backend)
+      ansible.builtin.cron:
+        name: "{{ container_name }}-rejection-scanner"
+        minute: "5"
+        hour: "*/2"
+        job: "docker start {{ container_name }}-rejection-scanner"
+        state: present
+        user: root
