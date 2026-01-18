@@ -208,3 +208,44 @@
         job: "docker start {{ container_name }}-rejection-scanner"
         state: present
         user: root
+
+    - name: Ensure backup directory exists
+      ansible.builtin.file:
+        path: /var/backups/housefinder
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Create votes.json backup script
+      ansible.builtin.copy:
+        dest: /usr/local/bin/backup-housefinder-votes.sh
+        content: |
+          #!/bin/bash
+          BACKUP_DIR="/var/backups/housefinder"
+          SOURCE_FILE="/var/lib/docker/volumes/{{ container_name }}_data/_data/votes.json"
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          
+          # Backup with timestamp
+          if [ -f "$SOURCE_FILE" ]; then
+            cp "$SOURCE_FILE" "$BACKUP_DIR/votes_$TIMESTAMP.json"
+            echo "$(date): Backup created: votes_$TIMESTAMP.json" >> "$BACKUP_DIR/backup.log"
+          else
+            echo "$(date): Source file not found: $SOURCE_FILE" >> "$BACKUP_DIR/backup.log"
+          fi
+          
+          # Retain only last 48 backups (~2 days at 15min intervals)
+          find "$BACKUP_DIR" -name "votes_*.json" -type f | sort -r | tail -n +49 | xargs -r rm
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Schedule votes.json backup every 15 minutes
+      ansible.builtin.cron:
+        name: "housefinder-votes-backup"
+        minute: "*/15"
+        hour: "*"
+        job: "/usr/local/bin/backup-housefinder-votes.sh"
+        state: present
+        user: root
+
