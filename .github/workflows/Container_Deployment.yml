@@ -59,6 +59,7 @@ jobs:
           pfx_password: "${{ secrets.PFX_PASSWORD }}"
           container_password: "${{ secrets.CONTAINER_PASSWORD }}"
           googlemaps_api_key: "${{ secrets.GOOGLEMAPS_API_KEY }}"
+          googlemaps_map_id: "${{ secrets.GOOGLEMAPS_MAP_ID }}"
           mqtt_host: "${{ vars.MQTT_HOST }}"
           mqtt_ca_cert_path: "${{ vars.MQTT_CA_CERT_PATH }}"
           CLOUDFLARE_TOKEN: "${{ secrets.CLOUDFLARE_TOKEN }}"

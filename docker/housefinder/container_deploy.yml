@@ -9,6 +9,7 @@
     container_name: "{{container_name}}"
     dedicated_ip: "{{dedicated_ip}}"
     googlemaps_api_key: "{{ googlemaps_api_key | default('') }}"
+    googlemaps_map_id: "{{ googlemaps_map_id | default(omit) }}"
     mqtt_host: "{{ mqtt_host | default(omit) }}"
     mqtt_ca_cert_path : "{{ mqtt_ca_cert_path | default(omit) }}"
     TELEGRAM_BOT_TOKEN: "{{ TELEGRAM_BOT_TOKEN | default(omit) }}"
@@ -184,6 +185,7 @@
         recreate: true
         env:
           MAPS_API_KEY: "{{ googlemaps_api_key | default(omit) }}"
+          MAPS_MAP_ID : "{{ googlemaps_map_id| default(omit) }}"
           MQTT_HOST: "{{ mqtt_host | default(omit) }}"
           MQTT_CA_CERT_PATH: "{{ mqtt_ca_cert_path | default(omit) }}"
         volumes:
