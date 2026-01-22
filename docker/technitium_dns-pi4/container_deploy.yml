@@ -31,15 +31,6 @@
         group: root
         mode: '0755'
 
-    - name: Copy settings file to volume
-      ansible.builtin.copy:
-        dest: /var/lib/docker/volumes/technitium-data/_data/settings.json
-        src: data/settings.json
-        owner: root
-        group: root
-        mode: '0600'
-      become: true
-
     - name: Remove existing container
       community.docker.docker_container:
         name: technitium-dns
