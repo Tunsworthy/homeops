@@ -89,6 +89,9 @@
           DNS_SERVER_FORWARDERS: "1.1.1.1,8.8.8.8"
           DNS_SERVER_FORWARDER_PROTOCOL: "Https"
           DNS_SERVER_LOG_USING_LOCAL_TIME: "true"
+          DNS_SERVER_WEB_SERVICE_TLS_CERTIFICATE_PATH: "/etc/letsencrypt/live/{{ fqdn }}/{{ fqdn }}.pfx"
+          DNS_SERVER_WEB_SERVICE_TLS_CERTIFICATE_PASSWORD: "{{ pfx_password | default('test')
+          DNS_SERVER_WEB_SERVICE_HTTP_TO_TLS_REDIRECT: "true"
         volumes:
           - technitium-data:/etc/dns
           - letsencrypt:/etc/letsencrypt:ro
