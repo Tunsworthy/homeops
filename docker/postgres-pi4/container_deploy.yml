@@ -171,7 +171,7 @@
           - "{{ POSTGRES_DB | default('postgres') }}"
           - -f
           - /var/lib/postgresql/config/postgres_ssl.sql
-      when: ssl_sql_exists.stat.exists
+      when: ssl_sql_exists.stat.exists and pg_isready.rc == 0
 
     - name: Execute init_db.sql inside container (if present)
       ansible.builtin.command:
@@ -187,4 +187,4 @@
           - "{{ POSTGRES_DB | default('postgres') }}"
           - -f
           - /var/lib/postgresql/config/init_db.sql
-      when: init_sql_exists.stat.exists
+      when: init_sql_exists.stat.exists and pg_isready.rc == 0
