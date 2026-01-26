@@ -46,6 +46,15 @@
         name: postgres_certs
         state: present
 
+    - name: Ensure `postgres_config` certs directory exists
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/postgres_config/_data/certs
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      become: true
+
     - name: Stat letsencrypt fullchain.pem
       ansible.builtin.stat:
         path: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/fullchain.pem"
