@@ -62,7 +62,7 @@
       ansible.builtin.stat:
         path: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/fullchain.pem"
       register: lets_encrypt_cert
-      when: ssl | default(false) and use_letsencrypt | default(false)
+      when: ssl | default(true) and use_letsencrypt | default(true)
 
     - name: Copy fullchain.pem into `postgres_config` volume
       ansible.builtin.copy:
@@ -94,7 +94,7 @@
         src: postgres_ssl.sql
         dest: /var/lib/docker/volumes/postgres_config/_data/postgres_ssl.sql
         mode: '0644'
-      when: ssl | default(false)
+      when: ssl | default(true)
 
     - name: Check whether Postgres PGDATA subdirectory is already initialized
       ansible.builtin.find:
