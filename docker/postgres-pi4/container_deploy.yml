@@ -154,7 +154,7 @@
           - "{{ POSTGRES_DB | default('postgres') }}"
       register: pg_isready
       retries: 12
-      delay: 5
+      delay: 20
       until: pg_isready.rc == 0
 
     - name: Execute postgres_ssl.sql inside container (if present)
