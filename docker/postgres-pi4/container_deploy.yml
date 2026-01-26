@@ -16,11 +16,17 @@
         name: postgres_data
         state: present
 
+    - name: Ensure Postgres config volume exists
+      community.docker.docker_volume:
+        name: postgres_config
+        state: present
+
     - name: Ensure internal databases network exists
       community.docker.docker_network:
         name: databases
         state: present
         driver: bridge
+        internal: true
 
     - name: Ensure letsencrypt volume exists
       community.docker.docker_volume:
@@ -30,7 +36,7 @@
     - name: Template init SQL into postgres PGDATA subdirectory (renders password variable)
       ansible.builtin.template:
         src: init_db.sql
-        dest: /var/lib/docker/volumes/postgres_data/_data/init_db.sql
+        dest: /var/lib/docker/volumes/postgres_config/_data/init_db.sql
         owner: root
         group: root
         mode: '0644'
@@ -46,35 +52,35 @@
       register: lets_encrypt_cert
       when: ssl | default(false) and use_letsencrypt | default(false)
 
-    - name: Copy fullchain.pem into `postgres_certs` volume
+    - name: Copy fullchain.pem into `postgres_config` volume
       ansible.builtin.copy:
         src: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn}}/fullchain.pem"
-        dest: /var/lib/docker/volumes/postgres_certs/_data/server.crt
+        dest: /var/lib/docker/volumes/postgres_config/_data/certs/server.crt
         mode: '0644'
         owner: root
         group: root
       become: true
       
 
-    - name: Copy privkey.pem into `postgres_certs` volume
+    - name: Copy privkey.pem into `postgres_config` volume
       ansible.builtin.copy:
         src: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/privkey.pem"
-        dest: /var/lib/docker/volumes/postgres_certs/_data/server.key
+        dest: /var/lib/docker/volumes/postgres_config/_data/certs/server.key
         mode: '0600'
         owner: root
         group: root
       become: true
       
 
-    - name: Chown cert files in `postgres_certs` to postgres uid 999
-      ansible.builtin.command: chown 999:999 /var/lib/docker/volumes/postgres_certs/_data/server.crt /var/lib/docker/volumes/postgres_certs/_data/server.key
+    - name: Chown cert files in `postgres_config` to postgres uid 999
+      ansible.builtin.command: chown 999:999 /var/lib/docker/volumes/postgres_config/_data/certs/server.crt /var/lib/docker/volumes/postgres_config/_data/certs/server.key
       become: true
       
 
     - name: Template postgres SSL SQL into PGDATA initdb dir
       ansible.builtin.template:
         src: postgres_ssl.sql
-        dest: /var/lib/docker/volumes/postgres_data/_data/postgres_ssl.sql
+        dest: /var/lib/docker/volumes/postgres_config/_data/config/postgres_ssl.sql
         mode: '0644'
       when: ssl | default(false)
 
@@ -106,43 +112,21 @@
           PGDATA: /var/lib/postgresql/data/database
         volumes:
           - postgres_data:/var/lib/postgresql/data
+          - postgres_config:/var/lib/postgresql/config
           - postgres_certs:/var/lib/postgresql/certs:ro
         networks:
           - name: databases
             # internal network only; no dedicated IP assigned
 
-    - name: If PGDATA subdir was empty and letsencrypt certs exist, copy certs now and restart container
-      block:
-        - name: Copy fullchain.pem into PGDATA after init
-          ansible.builtin.copy:
-            src: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/fullchain.pem"
-            dest: /var/lib/docker/volumes/postgres_certs/_data/server.crt
-            mode: '0644'
-            owner: root
-            group: root
-
-        - name: Copy privkey.pem into PGDATA after init
-          ansible.builtin.copy:
-            src: "/var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/privkey.pem"
-            dest: /var/lib/docker/volumes/postgres_certs/_data/server.key
-            mode: '0600'
-            owner: root
-            group: root
-
-        - name: Chown cert files in postgres_certs to postgres uid 999
-          ansible.builtin.command: chown 999:999 /var/lib/docker/volumes/postgres_certs/_data/server.crt /var/lib/docker/volumes/postgres_certs/_data/server.key
-
-        - name: Restart Postgres container to pick up SSL certs
-          ansible.builtin.command: docker restart {{ container_name }}
 
     - name: Stat init SQL inside data volume
       ansible.builtin.stat:
-        path: /var/lib/docker/volumes/postgres_data/_data/init_db.sql
+        path: /var/lib/docker/volumes/postgres_config/_data/config/init_db.sql
       register: init_sql_exists
 
     - name: Stat postgres_ssl SQL inside data volume
       ansible.builtin.stat:
-        path: /var/lib/docker/volumes/postgres_data/_data/postgres_ssl.sql
+        path: /var/lib/docker/volumes/postgres_config/_data/config/postgres_ssl.sql
       register: ssl_sql_exists
 
     - name: Wait for Postgres to accept connections
@@ -153,9 +137,9 @@
       until: pg_isready.rc == 0
 
     - name: Execute postgres_ssl.sql inside container (if present)
-      ansible.builtin.command: docker exec -i {{ container_name }} psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -f /var/lib/postgresql/data/postgres_ssl.sql
+      ansible.builtin.command: docker exec -i {{ container_name }} psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -f /var/lib/postgresql/config/data/postgres_ssl.sql
       when: ssl_sql_exists.stat.exists
 
     - name: Execute init_db.sql inside container (if present)
-      ansible.builtin.command: docker exec -i {{ container_name }} psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -f /var/lib/postgresql/data/init_db.sql
+      ansible.builtin.command: docker exec -i {{ container_name }} psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -f /var/lib/postgresql/config/data/init_db.sql
       when: init_sql_exists.stat.exists
