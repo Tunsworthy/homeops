@@ -92,7 +92,7 @@
     - name: Template postgres SSL SQL into PGDATA initdb dir
       ansible.builtin.template:
         src: postgres_ssl.sql
-        dest: /var/lib/docker/volumes/postgres_config/_data/config/postgres_ssl.sql
+        dest: /var/lib/docker/volumes/postgres_config/_data/postgres_ssl.sql
         mode: '0644'
       when: ssl | default(false)
 
@@ -133,25 +133,58 @@
 
     - name: Stat init SQL inside data volume
       ansible.builtin.stat:
-        path: /var/lib/docker/volumes/postgres_config/_data/config/init_db.sql
+        path: /var/lib/docker/volumes/postgres_config/_data/init_db.sql
       register: init_sql_exists
 
     - name: Stat postgres_ssl SQL inside data volume
       ansible.builtin.stat:
-        path: /var/lib/docker/volumes/postgres_config/_data/config/postgres_ssl.sql
+        path: /var/lib/docker/volumes/postgres_config/_data/postgres_ssl.sql
       register: ssl_sql_exists
 
     - name: Wait for Postgres to accept connections
-      ansible.builtin.shell: docker exec {{ container_name }} pg_isready -U ${POSTGRES_USER}
+      ansible.builtin.command:
+        argv:
+          - docker
+          - exec
+          - "{{ container_name }}"
+          - pg_isready
+          - -U
+          - "{{ POSTGRES_USER | default('postgres') }}"
+          - -d
+          - "{{ POSTGRES_DB | default('postgres') }}"
       register: pg_isready
       retries: 12
       delay: 5
       until: pg_isready.rc == 0
 
     - name: Execute postgres_ssl.sql inside container (if present)
-      ansible.builtin.command: docker exec -i {{ container_name }} psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -f /var/lib/postgresql/config/data/postgres_ssl.sql
+      ansible.builtin.command:
+        argv:
+          - docker
+          - exec
+          - -i
+          - "{{ container_name }}"
+          - psql
+          - -U
+          - "{{ POSTGRES_USER | default('postgres') }}"
+          - -d
+          - "{{ POSTGRES_DB | default('postgres') }}"
+          - -f
+          - /var/lib/postgresql/config/postgres_ssl.sql
       when: ssl_sql_exists.stat.exists
 
     - name: Execute init_db.sql inside container (if present)
-      ansible.builtin.command: docker exec -i {{ container_name }} psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -f /var/lib/postgresql/config/data/init_db.sql
+      ansible.builtin.command:
+        argv:
+          - docker
+          - exec
+          - -i
+          - "{{ container_name }}"
+          - psql
+          - -U
+          - "{{ POSTGRES_USER | default('postgres') }}"
+          - -d
+          - "{{ POSTGRES_DB | default('postgres') }}"
+          - -f
+          - /var/lib/postgresql/config/init_db.sql
       when: init_sql_exists.stat.exists
