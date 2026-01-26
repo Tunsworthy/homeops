@@ -67,7 +67,7 @@
         name: "{{ container_name }}-messagebot"
         image: ghcr.io/tunsworthy/housefinder_messagebot:latest
         pull: yes
-        state: started
+        state: stopped 
         restart_policy: always
         recreate: true
         auto_remove: false   # keep container for logs/debugging
