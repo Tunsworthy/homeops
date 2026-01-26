@@ -8,6 +8,9 @@
     fqdn: "{{ fqdn | default('postgres.local') }}"
     container_name: "{{ name | default('postgres') }}"
     dedicated_ip: "{{ dedicated_ip | default(omit) }}"
+    POSTGRES_USER: "{{ POSTGRES_USER | default(omit) }}"
+    POSTGRES_PASSWORD: "{{ POSTGRES_PASSWORD | default(omit) }}"
+    POSTGRES_DB: "{{ POSTGRES_DB | default(omit) }}"
 
   tasks:
 
@@ -115,9 +118,9 @@
         restart_policy: unless-stopped
         recreate: true
         env:
-          POSTGRES_PASSWORD: "{{ lookup('env', 'POSTGRES_PASSWORD') | default(omit) }}"
-          POSTGRES_USER: "{{ lookup('env', 'POSTGRES_USER') | default(omit) }}"
-          POSTGRES_DB: "{{ lookup('env', 'POSTGRES_DB') | default(omit) }}"
+          POSTGRES_PASSWORD: "{{ POSTGRES_PASSWORD | default(omit) }}"
+          POSTGRES_USER: "{{ POSTGRES_USER | default(omit) }}"
+          POSTGRES_DB: "{{ POSTGRES_DB | default(omit) }}"
           PGDATA: /var/lib/postgresql/data/database
         volumes:
           - postgres_data:/var/lib/postgresql/data
