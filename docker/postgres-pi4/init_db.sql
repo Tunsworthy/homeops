@@ -14,22 +14,14 @@
 
 -- Idempotent creation of `housefinder` role and database.
 -- IMPORTANT: change the password below to a secure value or provision via secrets.
-DO
-$$
-BEGIN
-	IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'housefinder') THEN
-		CREATE ROLE housefinder WITH LOGIN ENCRYPTED PASSWORD '{{ housefinder_db_password | default(lookup("env","HOUSEFINDER_DB_PASSWORD") | default("change_me_replace")) }}';
-	END IF;
-END
-$$;
+SELECT
+    'CREATE ROLE housefinder WITH LOGIN ENCRYPTED PASSWORD ''{{ housefinder_db_password | default(lookup("env","HOUSEFINDER_DB_PASSWORD") | default("change_me_replace")) }}'''::text
+WHERE NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'housefinder')
+\gexec
 
-DO
-$$
-BEGIN
-	IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'housefinder') THEN
-		CREATE DATABASE housefinder OWNER housefinder;
-	END IF;
-END
-$$;
+SELECT
+    'CREATE DATABASE housefinder OWNER housefinder'::text
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'housefinder')
+\gexec
 
 GRANT ALL PRIVILEGES ON DATABASE housefinder TO housefinder;
