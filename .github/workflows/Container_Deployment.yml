@@ -73,6 +73,10 @@ jobs:
           SESSION_SECRET: "${{ secrets.SESSION_SECRET }}"
           POSTGRES_PASSWORD_BABYTRACKER: "${{ secrets.POSTGRES_PASSWORD_BABYTRACKER }}"
           POSTGRES_USER_BABYTRACKER: "${{ vars.POSTGRES_USER_BABYTRACKER }}"
+          POSTGRES_USER: "${{ secrets.POSTGRES_USER }}"
+          POSTGRES_DB: "${{ secrets.POSTGRES_DB }}"
+          POSTGRES_PASSWORD: "${{ secrets.POSTGRES_PASSWORD }}"
+
           EOF
           chmod 600 extra_vars.yml
           # run playbook using the vars file so sensitive values are not echoed in CLI args
