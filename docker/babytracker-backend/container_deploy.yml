@@ -67,7 +67,7 @@
         networks:
           - name: VLAN26
             ipv4_address: "{{ dedicated_ip | default(omit) }}"
-          - name: database
+          - name: databases
 
 
 
