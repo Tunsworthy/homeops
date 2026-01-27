@@ -148,7 +148,7 @@
     - name: Wait for Postgres to be ready
       ansible.builtin.command: >
         docker exec {{ container_name }}
-        pg_isready -U {{ postgres_user }} -d {{ postgres_db }}
+        pg_isready -U {{ POSTGRES_USER }} -d {{ POSTGRES_DB }}
       register: pg_ready
       retries: 24
       delay: 5
