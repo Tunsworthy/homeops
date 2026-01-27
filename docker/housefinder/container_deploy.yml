@@ -97,7 +97,7 @@
         name: "{{ container_name }}-rejection-scanner"
         image: ghcr.io/tunsworthy/housefinder_rejection_scanner:latest
         pull: yes
-        state: started
+        state: absent
         restart_policy: "no"  # One-shot container, exits after completion
         recreate: true
         auto_remove: false
