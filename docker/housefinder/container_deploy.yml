@@ -208,7 +208,7 @@
         minute: "5"
         hour: "*/2"
         job: "docker start {{ container_name }}-rejection-scanner"
-        state: present
+        state: absent
         user: root
 
     - name: Ensure backup directory exists
