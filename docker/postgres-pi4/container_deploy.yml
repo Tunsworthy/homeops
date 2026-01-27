@@ -8,6 +8,9 @@
     fqdn: "{{ fqdn | default('postgres.local') }}"
     container_name: "{{ name | default('postgres') }}"
     dedicated_ip: "{{ dedicated_ip | default(omit) }}"
+    postgres_user: "{{ POSTGRES_USER | default(omit) }}"
+    postgres_password: "{{ POSTGRES_PASSWORD | default(omit) }}"
+    postgres_db: "{{ POSTGRES_DB | default(omit) }}"
 
   tasks:
 
@@ -148,16 +151,16 @@
     - name: Wait for Postgres to be ready
       ansible.builtin.command: >
         docker exec {{ container_name }}
-        pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+        pg_isready -U {{ postgres_user }} -d {{ postgres_db }}
       register: pg_ready
       retries: 24
       delay: 5
       until: pg_ready.rc == 0
 
     - name: Execute postgres_ssl.sql inside container (if present)
-      ansible.builtin.command: docker exec -i {{ container_name }} psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -f /var/lib/postgresql/data/postgres_ssl.sql
+      ansible.builtin.command: docker exec -i {{ container_name }} psql -U {{ postgres_user }} -d {{ postgres_db }} -f /var/lib/postgresql/data/postgres_ssl.sql
       when: ssl_sql_exists.stat.exists
 
     - name: Execute init_db.sql inside container (if present)
-      ansible.builtin.command: docker exec -i {{ container_name }} psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -f /var/lib/postgresql/data/init_db.sql
+      ansible.builtin.command: docker exec -i {{ container_name }} psql -U {{ postgres_user }} -d {{ postgres_db }} -f /var/lib/postgresql/data/init_db.sql
       when: init_sql_exists.stat.exists
