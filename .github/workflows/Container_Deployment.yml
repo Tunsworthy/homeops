@@ -71,6 +71,8 @@ jobs:
           SSL_CERT_PATH: "${{ vars.SSL_CERT_PATH }}"
           BASE_URL: "${{ vars.BASE_URL }}"
           SESSION_SECRET: "${{ secrets.SESSION_SECRET }}"
+          POSTGRES_PASSWORD_BABYTRACKER: "${{ secrets.POSTGRES_PASSWORD_BABYTRACKER }}"
+          POSTGRES_USER_BABYTRACKER: "${{ vars.POSTGRES_USER_BABYTRACKER }}"
           EOF
           chmod 600 extra_vars.yml
           # run playbook using the vars file so sensitive values are not echoed in CLI args

@@ -33,3 +33,25 @@ END
 $$;
 
 GRANT ALL PRIVILEGES ON DATABASE housefinder TO housefinder;
+
+-- Idempotent creation of `babytracker` role and database.
+-- IMPORTANT: change the password below to a secure value or provision via secrets.
+DO
+$$
+BEGIN
+	IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '{{ babytracker_db_user | default(lookup("env","POSTGRES_USER_BABYTRACKER") | default("babytracker")) }}') THEN
+		CREATE ROLE {{ babytracker_db_user | default(lookup("env","POSTGRES_USER_BABYTRACKER") | default("babytracker")) }} WITH LOGIN ENCRYPTED PASSWORD '{{ babytracker_db_password | default(lookup("env","POSTGRES_PASSWORD_BABYTRACKER") | default("change_me_replace")) }}';
+	END IF;
+END
+$$;
+
+DO
+$$
+BEGIN
+	IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'babytracker') THEN
+		CREATE DATABASE babytracker OWNER {{ babytracker_db_user | default(lookup("env","POSTGRES_USER_BABYTRACKER") | default("babytracker")) }};
+	END IF;
+END
+$$;
+
+GRANT ALL PRIVILEGES ON DATABASE babytracker TO {{ babytracker_db_user | default(lookup("env","POSTGRES_USER_BABYTRACKER") | default("babytracker")) }};
