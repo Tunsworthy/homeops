@@ -37,6 +37,10 @@
         owner: root
         group: root
         mode: '0644'
+      vars:
+        babytracker_db_user: "{{ POSTGRES_USER_BABYTRACKER | default(omit) }}"
+        babytracker_db_password: "{{ POSTGRES_PASSWORD_BABYTRACKER | default(omit) }}"
+        housefinder_db_password: "{{ HOUSEFINDER_DB_PASSWORD | default(omit) }}"
 
     - name: Ensure Postgres certs volume exists
       community.docker.docker_volume:
