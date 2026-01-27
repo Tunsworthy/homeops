@@ -145,19 +145,6 @@
         path: /var/lib/docker/volumes/postgres_data/_data/postgres_ssl.sql
       register: ssl_sql_exists
 
-    - name: Wait for Postgres container to be running and ready
-      community.docker.docker_container_info:
-        name: "{{ container_name }}"
-      register: pg_container_info
-      retries: 24
-      delay: 5
-      until: >
-        pg_container_info.container is defined and
-        pg_container_info.container.State.Running and
-        pg_container_info.container.State.Status == 'running'
-    - pause:
-      seconds: 5
-      
     - name: Wait for Postgres to be ready
       ansible.builtin.command: >
         docker exec {{ container_name }}
