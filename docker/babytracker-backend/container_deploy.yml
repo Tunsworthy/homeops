@@ -1,0 +1,74 @@
+- name: Deploying Container
+  hosts: all
+  become: true
+  collections:
+    - community.docker
+
+  vars:
+    fqdn: "{{fqdn}}"
+    container_name: "{{container_name}}"
+    dedicated_ip: "{{dedicated_ip}}"
+    POSTGRES_URI: "{{ POSTGRES_URI | default(omit) }}"
+    HTTPS_PORT: "{{ HTTPS_PORT | default(omit) }}"
+    SSL_KEY_PATH: "{{ SSL_KEY_PATH | default(omit) }}"
+    SSL_CERT_PATH: "{{ SSL_CERT_PATH | default(omit) }}"
+    BASE_URL: "{{ BASE_URL | default(omit) }}"
+    SESSION_SECRET: "{{ SESSION_SECRET | default(omit) }}"
+
+  tasks:
+
+    - name: Creates/Ensures data volume exists
+      community.docker.docker_volume:
+       name: "{{container_name}}_data"
+       state: present
+
+    - name: Checks Host folder exists
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/{{container_name}}_data/_data
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Create internal Docker network for housefinder
+      community.docker.docker_network:
+        name: housefinder_net
+        state: present
+        driver: bridge
+
+    - name: Remove existing container (if present)
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        state: absent
+    
+    - name: Ensure letsencrypt volume exists
+      community.docker.docker_volume:
+       name: letsencrypt
+       state: present
+
+    - name: Run backend job (one-shot)
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        image: ghcr.io/tunsworthy/baby_organiser_backend_api:latest
+        pull: yes
+        state: started
+        recreate: true
+        auto_remove: false   # keep container for logs/debugging
+        env:
+          POSTGRES_URI: "{{ POSTGRES_URI }}"
+          HTTPS_PORT: "{{ HTTPS_PORT }}"
+          SSL_KEY_PATH: "{{ SSL_KEY_PATH }}"
+          SSL_CERT_PATH: "{{ SSL_CERT_PATH }}"
+          BASE_URL: "{{ BASE_URL }}"
+          SESSION_SECRET: "{{ SESSION_SECRET }}"
+        volumes:
+          - "{{ container_name }}_data:/data"
+          - letsencrypt:/etc/letsencrypt:ro
+        networks:
+          - name: VLAN26
+            ipv4_address: "{{ dedicated_ip | default(omit) }}"
+          - name: housefinder_net
+
+
+
+    

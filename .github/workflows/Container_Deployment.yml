@@ -65,6 +65,12 @@ jobs:
           CLOUDFLARE_TOKEN: "${{ secrets.CLOUDFLARE_TOKEN }}"
           TELEGRAM_CHAT_ID: "${{ secrets.TELEGRAM_CHAT_ID }}"
           TELEGRAM_BOT_TOKEN: "${{ secrets.TELEGRAM_BOT_TOKEN }}"
+          POSTGRES_URI: "${{ secrets.POSTGRES_URI }}"
+          HTTPS_PORT: "${{ vars.HTTPS_PORT }}"
+          SSL_KEY_PATH: "${{ vars.SSL_KEY_PATH }}"
+          SSL_CERT_PATH: "${{ vars.SSL_CERT_PATH }}"
+          BASE_URL: "${{ vars.BASE_URL }}"
+          SESSION_SECRET: "${{ secrets.SESSION_SECRET }}"
           EOF
           chmod 600 extra_vars.yml
           # run playbook using the vars file so sensitive values are not echoed in CLI args
