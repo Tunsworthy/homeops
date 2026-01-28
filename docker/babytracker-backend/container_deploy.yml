@@ -28,6 +28,10 @@
        name: "{{container_name}}_nginx_data"
        state: present
 
+    - name: Creates/Ensures data volume exists (Frontend)
+      community.docker.docker_volume:
+       name: "{{container_name}}_frontend_data"
+       state: present
 
     - name: Checks Host folder exists (backend API)
       ansible.builtin.file:
@@ -74,7 +78,7 @@
           window.APP_CONFIG = {
             VITE_BACKEND_API_URL: 'https://{{ fqdn }}/api'
           };
-        dest: "/opt/babytracker/config.js"
+        dest: "/var/lib/docker/volumes/{{container_name}}_frontend_data/_data/config.js"
 
     - name: Deploy backend API container
       community.docker.docker_container:
@@ -176,7 +180,7 @@
         recreate: true
         auto_remove: false
         volumes:
-          - "/opt/babytracker/config.js:/usr/share/nginx/html/config.js:ro"  # ADD THIS
+          - "{{ container_name }}_frontend_data:/usr/share/nginx/html/data"
         networks:
           - name: babytracker
 
