@@ -76,7 +76,7 @@
       copy:
         content: |
           window.APP_CONFIG = {
-            VITE_BACKEND_API_URL: 'https://{{ fqdn }}/api'
+            VITE_BACKEND_API_URL: 'https://{{ fqdn }}'
           };
         dest: "/var/lib/docker/volumes/{{container_name}}_frontend_data/_data/config.js"
 
@@ -180,7 +180,7 @@
         recreate: true
         auto_remove: false
         volumes:
-          - "{{ container_name }}_frontend_data:/usr/share/nginx/html:ro"
+          - "{{ container_name }}_frontend_data:/usr/share/nginx/html"
         networks:
           - name: babytracker
 
