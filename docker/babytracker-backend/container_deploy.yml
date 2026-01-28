@@ -76,7 +76,7 @@
       copy:
         content: |
           window.APP_CONFIG = {
-            VITE_BACKEND_API_URL: 'https://{{ fqdn }}'
+            VITE_BACKEND_API_URL: 'https://routie.click1'
           };
         dest: "/var/lib/docker/volumes/{{container_name}}_frontend_data/_data/config.js"
 
