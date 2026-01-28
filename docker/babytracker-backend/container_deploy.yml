@@ -14,6 +14,7 @@
     SSL_CERT_PATH: "{{ SSL_CERT_PATH | default(omit) }}"
     BASE_URL: "{{ BASE_URL | default(omit) }}"
     SESSION_SECRET: "{{ SESSION_SECRET | default(omit) }}"
+    VITE_BACKEND_API_URL: "https://{{ fqdn }}/api"  # Add this
 
   tasks:
 
@@ -26,6 +27,11 @@
       community.docker.docker_volume:
        name: "{{container_name}}_nginx_data"
        state: present
+
+    - name: Creates/Ensures frontend volume exists
+      community.docker.docker_volume:
+        name: "{{container_name}}_frontend_data"
+        state: present
 
     - name: Checks Host folder exists (backend API)
       ansible.builtin.file:
@@ -43,6 +49,14 @@
         group: root
         mode: '0755'
 
+    - name: Checks Host folder exists (frontend)
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/{{container_name}}_frontend_data/_data
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
     - name: Create internal Docker network for housefinder
       community.docker.docker_network:
         name: babytracker
@@ -54,13 +68,18 @@
       community.docker.docker_container:
         name: "{{ container_name }}-backend"
         state: absent
-    
+
+    - name: Remove existing frontend container (if present)
+      community.docker.docker_container:
+        name: "{{ container_name }}-frontend"
+        state: absent
+
     - name: Ensure letsencrypt volume exists
       community.docker.docker_volume:
        name: letsencrypt
        state: present
 
-    - name: Run backend job
+    - name: Deploy backend API container
       community.docker.docker_container:
         name: "{{ container_name }}-backend"
         image: ghcr.io/tunsworthy/baby_organiser_backend_api:latest
@@ -100,6 +119,25 @@
             ssl_certificate_key /etc/letsencrypt/live/{{ fqdn }}/privkey.pem;
             ssl_protocols TLSv1.2 TLSv1.3;
 
+            # Frontend - serve static files
+            location / {
+              proxy_pass http://{{ container_name }}-frontend:80;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+              
+              # Cache static assets
+              location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+                expires 1y;
+                add_header Cache-Control "public, immutable";
+              }
+              
+              # Serve index.html for all routes (SPA routing)
+              try_files $uri $uri/ /index.html;
+            }
+
+            # Backend API
             location /api {
               proxy_pass https://{{ container_name }}-backend:443;
               proxy_ssl_verify off;
@@ -107,10 +145,6 @@
               proxy_set_header X-Real-IP $remote_addr;
               proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
               proxy_set_header X-Forwarded-Proto $scheme;
-            }
-
-            location / {
-              return 404;
             }
           }
         owner: root
@@ -136,5 +170,20 @@
         networks:
           - name: VLAN26
             ipv4_address: "{{ dedicated_ip | default(omit) }}"
+          - name: babytracker
+    
+    - name: Run frontend job
+      community.docker.docker_container:
+        name: "{{ container_name }}-frontend"
+        image: ghcr.io/tunsworthy/baby_organiser_frontend_v2:latest
+        pull: yes
+        state: started
+        recreate: true
+        auto_remove: false
+        env:
+          VITE_BACKEND_API_URL: "{{ VITE_BACKEND_API_URL }}"
+        volumes:
+          - "{{ container_name }}_frontend_data:/usr/share/nginx/html"
+        networks:
           - name: babytracker
 
