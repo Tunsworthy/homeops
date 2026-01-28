@@ -82,9 +82,9 @@
           - name: babytracker
           - name: databases
 
-    - name: Deploy nginx config for housefinder
+    - name: Deploy nginx config
       ansible.builtin.copy:
-        dest: /var/lib/docker/volumes/{{container_name}}_nginx_data/_data/nginx/babytracker.conf
+        dest: /var/lib/docker/volumes/{{container_name}}_nginx_data/_data/babytracker.conf
         content: |
           server {
             listen 80;
@@ -126,7 +126,7 @@
         restart_policy: unless-stopped
         recreate: true
         volumes:
-          - "/var/lib/docker/volumes/{{ container_name }}_nginx_data/_data/nginx:/etc/nginx/conf.d:ro"
+          - "/var/lib/docker/volumes/{{ container_name }}_nginx_data/_data/:/etc/nginx/conf.d:ro"
           - letsencrypt:/etc/letsencrypt:ro
         networks:
           - name: VLAN26
