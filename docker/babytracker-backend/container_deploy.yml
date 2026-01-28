@@ -180,7 +180,7 @@
         recreate: true
         auto_remove: false
         volumes:
-          - "{{ container_name }}_frontend_data:/usr/share/nginx/html/data"
+          - "{{ container_name }}_frontend_data:/usr/share/nginx/html:ro"
         networks:
           - name: babytracker
 
