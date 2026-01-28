@@ -14,7 +14,7 @@
     SSL_CERT_PATH: "{{ SSL_CERT_PATH | default(omit) }}"
     BASE_URL: "{{ BASE_URL | default(omit) }}"
     SESSION_SECRET: "{{ SESSION_SECRET | default(omit) }}"
-    VITE_BACKEND_API_URL: "https://{{ fqdn }}/api"  # Add this
+    VITE_BACKEND_API_URL: "https://{{ fqdn }}"  # Add this
 
   tasks:
 
