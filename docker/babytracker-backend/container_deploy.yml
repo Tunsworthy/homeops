@@ -52,7 +52,7 @@
 
     - name: Remove existing container (if present)
       community.docker.docker_container:
-        name: "{{ container_name }}_backend"
+        name: "{{ container_name }}-backend"
         state: absent
     
     - name: Ensure letsencrypt volume exists
