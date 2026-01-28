@@ -28,10 +28,6 @@
        name: "{{container_name}}_nginx_data"
        state: present
 
-    - name: Creates/Ensures frontend volume exists
-      community.docker.docker_volume:
-        name: "{{container_name}}_frontend_data"
-        state: present
 
     - name: Checks Host folder exists (backend API)
       ansible.builtin.file:
@@ -49,13 +45,6 @@
         group: root
         mode: '0755'
 
-    - name: Checks Host folder exists (frontend)
-      ansible.builtin.file:
-        path: /var/lib/docker/volumes/{{container_name}}_frontend_data/_data
-        state: directory
-        owner: root
-        group: root
-        mode: '0755'
 
     - name: Create internal Docker network for housefinder
       community.docker.docker_network:
@@ -182,8 +171,8 @@
         auto_remove: false
         env:
           VITE_BACKEND_API_URL: "{{ VITE_BACKEND_API_URL }}"
-        volumes:
-          - "{{ container_name }}_frontend_data:/usr/share/nginx/html"
+        #volumes:
+        #  - "{{ container_name }}_frontend_data:/usr/share/nginx/html"
         networks:
           - name: babytracker
 
