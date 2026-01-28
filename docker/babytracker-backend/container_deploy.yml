@@ -45,7 +45,6 @@
         group: root
         mode: '0755'
 
-
     - name: Create internal Docker network for housefinder
       community.docker.docker_network:
         name: babytracker
@@ -108,22 +107,20 @@
             ssl_certificate_key /etc/letsencrypt/live/{{ fqdn }}/privkey.pem;
             ssl_protocols TLSv1.2 TLSv1.3;
 
-            # Frontend - serve static files
+            # Cache static assets
+            location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+              proxy_pass http://{{ container_name }}-frontend:80;
+              expires 1y;
+              add_header Cache-Control "public, immutable";
+            }
+
+            # Frontend - serve static files & SPA routing
             location / {
               proxy_pass http://{{ container_name }}-frontend:80;
               proxy_set_header Host $host;
               proxy_set_header X-Real-IP $remote_addr;
               proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
               proxy_set_header X-Forwarded-Proto $scheme;
-              
-              # Cache static assets
-              location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-                expires 1y;
-                add_header Cache-Control "public, immutable";
-              }
-              
-              # Serve index.html for all routes (SPA routing)
-              try_files $uri $uri/ /index.html;
             }
 
             # Backend API
