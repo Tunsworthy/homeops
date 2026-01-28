@@ -68,13 +68,13 @@
        state: present
 
     - name: Generate config.js with runtime values
+      become: yes
       copy:
         content: |
           window.APP_CONFIG = {
             VITE_BACKEND_API_URL: 'https://{{ fqdn }}/api'
           };
         dest: "/opt/babytracker/config.js"
-        become: yes
 
     - name: Deploy backend API container
       community.docker.docker_container:
