@@ -175,10 +175,8 @@
         state: started
         recreate: true
         auto_remove: false
-        env:
-          VITE_BACKEND_API_URL: "{{ VITE_BACKEND_API_URL }}"
-        #volumes:
-        #  - "{{ container_name }}_frontend_data:/usr/share/nginx/html"
+        volumes:
+          - "/opt/babytracker/config.js:/usr/share/nginx/html/config.js:ro"  # ADD THIS
         networks:
           - name: babytracker
 
