@@ -24,10 +24,18 @@
 
     - name: Creates/Ensures data volume exists
       community.docker.docker_volume:
-       name: "{{container_name}}_backend_data"
+       name: "{{container_name}}_nginx_data"
        state: present
 
-    - name: Checks Host folder exists
+    - name: Checks Host folder exists (backend API)
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/{{container_name}}_backend_data/_data
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Checks Host folder exists (nginx)
       ansible.builtin.file:
         path: /var/lib/docker/volumes/{{container_name}}_nginx_data/_data
         state: directory
