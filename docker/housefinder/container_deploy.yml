@@ -61,7 +61,7 @@
         name: "{{ container_name }}-backend"
         image: ghcr.io/tunsworthy/housefinder_backend:latest
         pull: yes
-        state: started
+        state: present
         recreate: true
         auto_remove: false   # keep container for logs/debugging
         env:
