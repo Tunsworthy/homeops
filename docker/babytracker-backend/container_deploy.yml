@@ -67,15 +67,6 @@
        name: letsencrypt
        state: present
 
-    - name: Create runtime config
-      docker_container:
-        name: babytracker-frontend-config
-        image: "{{ frontend_image }}"
-        command: cat /usr/share/nginx/html/config.js
-        volumes:
-          - "/opt/babytracker/config.js:/usr/share/nginx/html/config.js:ro"
-      register: default_config
-
     - name: Generate config.js with runtime values
       copy:
         content: |
@@ -83,6 +74,7 @@
             VITE_BACKEND_API_URL: 'https://{{ fqdn }}/api'
           };
         dest: "/opt/babytracker/config.js"
+        become: yes
 
     - name: Deploy backend API container
       community.docker.docker_container:
