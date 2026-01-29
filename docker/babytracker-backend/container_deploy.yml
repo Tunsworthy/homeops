@@ -179,8 +179,8 @@
         state: started
         recreate: true
         auto_remove: false
-        volumes:
-          - "{{ container_name }}_frontend_data:/usr/share/nginx/html"
+        #volumes:
+        #  - "{{ container_name }}_frontend_data:/usr/share/nginx/html"
         networks:
           - name: babytracker
 
