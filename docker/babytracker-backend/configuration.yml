@@ -1,5 +1,5 @@
-name: babytracker-backend-test
-fqdn: routie.click
+name: babytracker-test
+fqdn: demo.routie.click
 #defines the hosts that the container will be deployed onto
 container_host: pi4
 #defines the network the container will be deployed to
