@@ -1,0 +1,186 @@
+- name: Deploying Container
+  hosts: all
+  become: true
+  collections:
+    - community.docker
+
+  vars:
+    fqdn: "{{fqdn}}"
+    container_name: "{{container_name}}"
+    dedicated_ip: "{{dedicated_ip}}"
+    POSTGRES_URI: "{{ POSTGRES_URI | default(omit) }}"
+    HTTPS_PORT: "{{ HTTPS_PORT | default(omit) }}"
+    SSL_KEY_PATH: "{{ SSL_KEY_PATH | default(omit) }}"
+    SSL_CERT_PATH: "{{ SSL_CERT_PATH | default(omit) }}"
+    BASE_URL: "{{ BASE_URL | default(omit) }}"
+    SESSION_SECRET: "{{ SESSION_SECRET | default(omit) }}"
+    VITE_BACKEND_API_URL: "https://{{ fqdn }}"  # Add this
+
+  tasks:
+
+    - name: Creates/Ensures data volume exists
+      community.docker.docker_volume:
+       name: "{{container_name}}_backend_data"
+       state: present
+
+    - name: Creates/Ensures data volume exists
+      community.docker.docker_volume:
+       name: "{{container_name}}_nginx_data"
+       state: present
+
+    - name: Creates/Ensures data volume exists (Frontend)
+      community.docker.docker_volume:
+       name: "{{container_name}}_frontend_data"
+       state: present
+
+    - name: Checks Host folder exists (backend API)
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/{{container_name}}_backend_data/_data
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Checks Host folder exists (nginx)
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/{{container_name}}_nginx_data/_data
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Create internal Docker network for housefinder
+      community.docker.docker_network:
+        name: babytracker
+        state: present
+        driver: bridge
+        internal: true
+
+    - name: Remove existing container (if present)
+      community.docker.docker_container:
+        name: "{{ container_name }}-backend"
+        state: absent
+
+    - name: Remove existing frontend container (if present)
+      community.docker.docker_container:
+        name: "{{ container_name }}-frontend"
+        state: absent
+
+    - name: Ensure letsencrypt volume exists
+      community.docker.docker_volume:
+       name: letsencrypt
+       state: present
+
+    - name: Generate config.js with runtime values
+      become: yes
+      copy:
+        content: |
+          window.APP_CONFIG = {
+            VITE_BACKEND_API_URL: 'https://routie.click1'
+          };
+        dest: "/var/lib/docker/volumes/{{container_name}}_frontend_data/_data/config.js"
+
+    - name: Deploy backend API container
+      community.docker.docker_container:
+        name: "{{ container_name }}-backend"
+        image: ghcr.io/tunsworthy/baby_organiser_backend_api:latest
+        pull: yes
+        state: started
+        recreate: true
+        auto_remove: false   # keep container for logs/debugging
+        env:
+          POSTGRES_URI: "{{ POSTGRES_URI }}"
+          HTTPS_PORT: "{{ HTTPS_PORT }}"
+          SSL_KEY_PATH: "{{ SSL_KEY_PATH }}"
+          SSL_CERT_PATH: "{{ SSL_CERT_PATH }}"
+          BASE_URL: "https://{{ container_name }}-backend.routie.click"
+          SESSION_SECRET: "{{ SESSION_SECRET }}"
+        volumes:
+          - "{{ container_name }}_backend_data:/data"
+          - letsencrypt:/etc/letsencrypt:ro
+        networks:
+          - name: babytracker
+          - name: databases
+
+    - name: Deploy nginx config
+      ansible.builtin.copy:
+        dest: /var/lib/docker/volumes/{{container_name}}_nginx_data/_data/babytracker.conf
+        content: |
+          server {
+            listen 80;
+            server_name {{ fqdn }};
+            return 301 https://$host$request_uri;
+          }
+
+          server {
+            listen 443 ssl;
+            server_name {{ fqdn }};
+
+            ssl_certificate /etc/letsencrypt/live/{{ fqdn }}/fullchain.pem;
+            ssl_certificate_key /etc/letsencrypt/live/{{ fqdn }}/privkey.pem;
+            ssl_protocols TLSv1.2 TLSv1.3;
+
+            # Cache static assets
+            location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+              proxy_pass http://{{ container_name }}-frontend:80;
+              expires 1y;
+              add_header Cache-Control "public, immutable";
+            }
+
+            # Frontend - serve static files & SPA routing
+            location / {
+              proxy_pass http://{{ container_name }}-frontend:80;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+            }
+
+            # Backend API
+            location /api {
+              proxy_pass https://{{ container_name }}-backend:443;
+              proxy_ssl_verify off;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+            }
+          }
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Remove existing nginx container
+      community.docker.docker_container:
+        name: "{{ container_name }}-nginx"
+        state: absent
+
+    - name: Deploy nginx reverse-proxy (external IP on VLAN26)
+      community.docker.docker_container:
+        name: "{{ container_name }}-nginx"
+        image: nginx:stable
+        pull: yes
+        state: started
+        restart_policy: unless-stopped
+        recreate: true
+        volumes:
+          - "/var/lib/docker/volumes/{{ container_name }}_nginx_data/_data/:/etc/nginx/conf.d:ro"
+          - letsencrypt:/etc/letsencrypt:ro
+        networks:
+          - name: VLAN26
+            ipv4_address: "{{ dedicated_ip | default(omit) }}"
+          - name: babytracker
+    
+    - name: Run frontend job
+      community.docker.docker_container:
+        name: "{{ container_name }}-frontend"
+        image: ghcr.io/tunsworthy/baby_organiser_frontend_v2:latest
+        pull: yes
+        state: started
+        recreate: true
+        auto_remove: false
+        #volumes:
+        #  - "{{ container_name }}_frontend_data:/usr/share/nginx/html"
+        networks:
+          - name: babytracker
+
