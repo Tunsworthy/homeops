@@ -40,6 +40,7 @@
       vars:
         babytracker_db_user: "{{ POSTGRES_USER_BABYTRACKER | default(omit) }}"
         babytracker_db_password: "{{ POSTGRES_PASSWORD_BABYTRACKER | default(omit) }}"
+        babytracker_prod_db_password: "{{ POSTGRES_PASSWORD_BABYTRACKER_PROD | default(omit) }}"
         housefinder_db_password: "{{ HOUSEFINDER_DB_PASSWORD | default(omit) }}"
 
     - name: Ensure Postgres certs volume exists
