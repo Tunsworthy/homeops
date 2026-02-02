@@ -71,14 +71,6 @@
        name: letsencrypt
        state: present
 
-    - name: Generate config.js with runtime values
-      become: yes
-      copy:
-        content: |
-          window.APP_CONFIG = {
-            VITE_BACKEND_API_URL: 'https://routie.click1'
-          };
-        dest: "/var/lib/docker/volumes/{{container_name}}_frontend_data/_data/config.js"
 
     - name: Deploy backend API container
       community.docker.docker_container:
@@ -93,7 +85,7 @@
           HTTPS_PORT: "{{ HTTPS_PORT }}"
           SSL_KEY_PATH: "{{ SSL_KEY_PATH }}"
           SSL_CERT_PATH: "{{ SSL_CERT_PATH }}"
-          BASE_URL: "https://{{ container_name }}-backend.routie.click"
+          BASE_URL: "https://{{ container_name }}.routie.click"
           SESSION_SECRET: "{{ SESSION_SECRET }}"
         volumes:
           - "{{ container_name }}_backend_data:/data"
