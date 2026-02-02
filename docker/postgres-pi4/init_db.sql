@@ -15,4 +15,4 @@ GRANT ALL PRIVILEGES ON DATABASE babytracker TO {{ babytracker_db_user | default
 
 CREATE ROLE {{ babytracker_prod_db_user | default("babytracker-prod") }} WITH LOGIN ENCRYPTED PASSWORD '{{ babytracker_prod_db_password | default("change_me_replace") }}';
 CREATE DATABASE babytracker OWNER {{ babytracker_prod_db_user | default("babytracker-prod") }};
-GRANT ALL PRIVILEGES ON DATABASE babytracker TO {{ babytracker_db_user | default("babytracker-prod") }};
+GRANT ALL PRIVILEGES ON DATABASE babytracker_prod TO {{ babytracker_prod_db_user | default("babytracker-prod") }};
