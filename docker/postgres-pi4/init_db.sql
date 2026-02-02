@@ -12,3 +12,7 @@ GRANT ALL PRIVILEGES ON DATABASE housefinder TO housefinder;
 CREATE ROLE {{ babytracker_db_user | default("babytracker") }} WITH LOGIN ENCRYPTED PASSWORD '{{ babytracker_db_password | default("change_me_replace") }}';
 CREATE DATABASE babytracker OWNER {{ babytracker_db_user | default("babytracker") }};
 GRANT ALL PRIVILEGES ON DATABASE babytracker TO {{ babytracker_db_user | default("babytracker") }};
+
+CREATE ROLE {{ babytracker_prod_db_user | default("babytracker-prod") }} WITH LOGIN ENCRYPTED PASSWORD '{{ babytracker_prod_db_password | default("change_me_replace") }}';
+CREATE DATABASE babytracker OWNER {{ babytracker_prod_db_user | default("babytracker-prod") }};
+GRANT ALL PRIVILEGES ON DATABASE babytracker TO {{ babytracker_db_user | default("babytracker-prod") }};
