@@ -199,7 +199,7 @@
         minute: "0"
         hour: "*/2"
         job: "docker start {{ container_name }}-backend"
-        state: present
+        state: absent
         user: root
 
     - name: Schedule rejection scanner to run every 2 hours (5 min after backend)
