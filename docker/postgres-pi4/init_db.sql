@@ -13,6 +13,11 @@ CREATE ROLE {{ babytracker_db_user | default("babytracker") }} WITH LOGIN ENCRYP
 CREATE DATABASE babytracker OWNER {{ babytracker_db_user | default("babytracker") }};
 GRANT ALL PRIVILEGES ON DATABASE babytracker TO {{ babytracker_db_user | default("babytracker") }};
 
+-- Idempotent creation of `babytracker_test` role and database (cloned from babytracker).
+CREATE ROLE {{ babytracker_test_db_user | default("babytracker_test") }} WITH LOGIN ENCRYPTED PASSWORD '{{ BABYTRACKER_TEST_DB_PASSWORD }}';
+CREATE DATABASE babytracker_test OWNER {{ babytracker_test_db_user | default("babytracker_test") }} TEMPLATE babytracker;
+GRANT ALL PRIVILEGES ON DATABASE babytracker_test TO {{ babytracker_test_db_user | default("babytracker_test") }};
+
 CREATE ROLE {{ babytracker_prod_db_user | default("babytracker_prod") }} WITH LOGIN ENCRYPTED PASSWORD '{{ babytracker_prod_db_password | default("change_me_replace") }}';
 CREATE DATABASE babytracker_prod OWNER {{ babytracker_prod_db_user | default("babytracker_prod") }};
 GRANT ALL PRIVILEGES ON DATABASE babytracker_prod TO {{ babytracker_prod_db_user | default("babytracker_prod") }};
