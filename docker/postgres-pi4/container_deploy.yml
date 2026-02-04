@@ -38,11 +38,8 @@
         group: root
         mode: '0644'
       vars:
-        babytracker_db_user: "{{ POSTGRES_USER_BABYTRACKER | default(omit) }}"
         babytracker_db_password: "{{ POSTGRES_PASSWORD_BABYTRACKER | default(omit) }}"
-        babytracker_test_db_user: "{{ POSTGRES_USER_BABYTRACKER_TEST | default(omit) }}"
         babytracker_test_db_password: "{{ POSTGRES_PASSWORD_BABYTRACKER_TEST | default(omit) }}"
-        babytracker_prod_db_user: "{{ POSTGRES_USER_BABYTRACKER_PROD | default(omit) }}"
         babytracker_prod_db_password: "{{ POSTGRES_PASSWORD_BABYTRACKER_PROD | default(omit) }}"
         housefinder_db_password: "{{ HOUSEFINDER_DB_PASSWORD | default(omit) }}"
 
