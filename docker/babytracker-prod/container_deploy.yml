@@ -130,7 +130,7 @@
 
             # Backend API
             location /api {
-              proxy_pass https://{{ container_name }}-backend:443;
+              proxy_pass https://{{ container_name }}-backend:3000;
               proxy_ssl_verify off;
               proxy_set_header Host $host;
               proxy_set_header X-Real-IP $remote_addr;
