@@ -172,3 +172,11 @@
     - name: Execute init_db.sql inside container (if present)
       ansible.builtin.command: docker exec -i {{ container_name }} psql -U {{ postgres_user }} -d {{ postgres_db }} -f /var/lib/postgresql/data/init_db.sql
       when: init_sql_exists.stat.exists
+    - name: Clone babytracker database to babytracker_test (post-init)
+      ansible.builtin.command: >
+        docker exec -i {{ container_name }}
+        sh -c "pg_dump -U {{ postgres_user }} babytracker | psql -U {{ postgres_user }} -d babytracker_test"
+      register: clone_result
+      failed_when: clone_result.rc not in [0, 1]  # Allow error code 1 for re-runs (tables may already exist)
+      changed_when: clone_result.rc == 0
+      ignore_errors: yes
