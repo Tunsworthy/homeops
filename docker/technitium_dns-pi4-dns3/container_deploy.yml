@@ -6,7 +6,7 @@
 
   vars:
     fqdn: "{{fqdn}}"
-    container_name: "{{name}}"
+    container_name: "{{container_name}}"
     dedicated_ip: "{{dedicated_ip}}"
     dns_admin_password: "{{dns_admin_password}}"
     pfx_password: "{{pfx_password}}"
@@ -33,7 +33,7 @@
 
     - name: Remove existing container
       community.docker.docker_container:
-        name: technitium-dns
+        name:  "{{ container_name }}"
         state: absent
     
     - name: Create PFX from Let's Encrypt certs
@@ -58,7 +58,7 @@
 
     - name: Deploy Technitium DNS container
       community.docker.docker_container:
-        name: technitium-dns
+        name: "{{ container_name }}"
         image: technitium/dns-server:14.3.0
         pull: yes
         state: started
