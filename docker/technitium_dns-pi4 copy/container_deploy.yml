@@ -1,0 +1,90 @@
+- name: Deploying Container
+  hosts: all
+  become: true
+  collections:
+    - community.docker
+
+  vars:
+    fqdn: "{{fqdn}}"
+    container_name: "{{name}}"
+    dedicated_ip: "{{dedicated_ip}}"
+    dns_admin_password: "{{dns_admin_password}}"
+    pfx_password: "{{pfx_password}}"
+
+#becuase we want to SSL we need to use the letsencrypt volume
+  tasks:
+    - name: Ensure letsencrypt volume exists
+      community.docker.docker_volume:
+       name: letsencrypt
+       state: present
+
+    - name: Creates/Ensures technitium volume exists
+      community.docker.docker_volume:
+       name: technitium-data
+       state: present
+
+    - name: Creates/Ensures technitium exists
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/technitium-data/_data
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Remove existing container
+      community.docker.docker_container:
+        name: technitium-dns
+        state: absent
+    
+    - name: Create PFX from Let's Encrypt certs
+      ansible.builtin.command: >
+        openssl pkcs12 -export
+        -out /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/{{ fqdn }}.pfx
+        -inkey /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/privkey.pem
+        -in /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/cert.pem
+        -certfile /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/chain.pem
+        -passout pass:{{ pfx_password | default('test') }}
+      args:
+        creates: /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/{{ fqdn }}.pfx
+      become: true
+
+    - name: Set permissions on generated PFX
+      ansible.builtin.file:
+        path: /var/lib/docker/volumes/letsencrypt/_data/live/{{ fqdn }}/{{ fqdn }}.pfx
+        owner: root
+        group: root
+        mode: '0600'
+      become: true
+
+    - name: Deploy Technitium DNS container
+      community.docker.docker_container:
+        name: technitium-dns
+        image: technitium/dns-server:14.3.0
+        pull: yes
+        state: started
+        restart_policy: unless-stopped
+        env:
+          DNS_SERVER_DOMAIN: "{{ fqdn }}"
+          #DNS_SERVER_ADMIN_PASSWORD: "{{ dns_admin_password }}"
+          DNS_SERVER_ENABLE_API: "true"
+          DNS_SERVER_WEB_SERVICE_HTTP_PORT: "80"
+          DNS_SERVER_WEB_SERVICE_HTTPS_PORT: "53443"
+          DNS_SERVER_WEB_SERVICE_ENABLE_HTTPS: "true"
+          DNS_SERVER_WEB_SERVICE_USE_SELF_SIGNED_CERT: "false"
+          DNS_SERVER_OPTIONAL_PROTOCOL_DNS_OVER_HTTP: "false"
+          DNS_SERVER_RECURSION: "AllowOnlyForPrivateNetworks"
+          DNS_SERVER_ENABLE_BLOCKING: "true"
+          DNS_SERVER_ALLOW_TXT_BLOCKING_REPORT: "true"
+          DNS_SERVER_BLOCK_LIST_URLS: "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts,https://mirror1.malwaredomains.com/files/justdomains,https://someonewhocares.org/hosts/zero/hosts"
+          DNS_SERVER_FORWARDERS: "1.1.1.1,8.8.8.8"
+          DNS_SERVER_FORWARDER_PROTOCOL: "HTTPS"
+          DNS_SERVER_LOG_USING_LOCAL_TIME: "true"
+          DNS_SERVER_WEB_SERVICE_TLS_CERTIFICATE_PATH: "/etc/letsencrypt/live/{{ fqdn }}/{{ fqdn }}.pfx"
+          DNS_SERVER_WEB_SERVICE_TLS_CERTIFICATE_PASSWORD: "{{ pfx_password | default('test') }}"
+          DNS_SERVER_WEB_SERVICE_HTTP_TO_TLS_REDIRECT: "true"
+        volumes:
+          - technitium-data:/etc/dns
+          - letsencrypt:/etc/letsencrypt:ro
+        networks:
+          - name: VLAN26
+            ipv4_address: "{{ dedicated_ip | default(omit) }}"
