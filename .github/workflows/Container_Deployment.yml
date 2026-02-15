@@ -26,6 +26,8 @@ on:
         required: false
       PFX_PASSWORD:
         required: false
+      DNS_ADMIN_PASSWORD:
+        required: false
       CONTAINER_PASSWORD:
         required: false
       GOOGLEMAPS_API_KEY:
@@ -57,6 +59,7 @@ jobs:
           dedicated_ip: "${{ inputs.allocated_ip }}"
           fqdn: "${{ inputs.fqdn }}"
           pfx_password: "${{ secrets.PFX_PASSWORD }}"
+          dns_admin_password: "${{ secrets.DNS_ADMIN_PASSWORD }}"
           container_password: "${{ secrets.CONTAINER_PASSWORD }}"
           googlemaps_api_key: "${{ secrets.GOOGLEMAPS_API_KEY }}"
           googlemaps_map_id: "${{ secrets.GOOGLEMAPS_MAP_ID }}"

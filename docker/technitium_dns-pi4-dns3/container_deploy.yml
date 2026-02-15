@@ -20,12 +20,12 @@
 
     - name: Creates/Ensures technitium volume exists
       community.docker.docker_volume:
-       name: technitium-data
+       name: "{{ container_name }}-data"
        state: present
 
     - name: Creates/Ensures technitium exists
       ansible.builtin.file:
-        path: /var/lib/docker/volumes/technitium-data/_data
+        path: /var/lib/docker/volumes/{{ container_name }}-data/_data
         state: directory
         owner: root
         group: root
@@ -65,7 +65,7 @@
         restart_policy: unless-stopped
         env:
           DNS_SERVER_DOMAIN: "{{ fqdn }}"
-          #DNS_SERVER_ADMIN_PASSWORD: "{{ dns_admin_password }}"
+          DNS_SERVER_ADMIN_PASSWORD: "{{ dns_admin_password }}"
           DNS_SERVER_ENABLE_API: "true"
           DNS_SERVER_WEB_SERVICE_HTTP_PORT: "80"
           DNS_SERVER_WEB_SERVICE_HTTPS_PORT: "53443"
@@ -83,7 +83,7 @@
           DNS_SERVER_WEB_SERVICE_TLS_CERTIFICATE_PASSWORD: "{{ pfx_password | default('test') }}"
           DNS_SERVER_WEB_SERVICE_HTTP_TO_TLS_REDIRECT: "true"
         volumes:
-          - technitium-data:/etc/dns
+          - "{{ container_name }}-data:/etc/dns"
           - letsencrypt:/etc/letsencrypt:ro
         networks:
           - name: VLAN26

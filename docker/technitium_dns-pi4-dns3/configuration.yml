@@ -3,7 +3,7 @@ fqdn: dns3.tomunsworth.net
 #defines the hosts that the container will be deployed onto
 container_host: pi4
 #defines the network the container will be deployed to
-container_environment: technitium-dns3
+container_environment: technitium-dns2
 
 # High-level flags for GitHub Actions orchestration
 certificate: true             # needs Let's Encrypt cert
