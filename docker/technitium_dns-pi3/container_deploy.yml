@@ -72,7 +72,6 @@
         pull: yes
         state: started
         restart_policy: unless-stopped
-        recreate: true
         env:
           DNS_SERVER_DOMAIN: "{{ fqdn }}"
           #DNS_SERVER_ADMIN_PASSWORD: "{{ dns_admin_password }}"
