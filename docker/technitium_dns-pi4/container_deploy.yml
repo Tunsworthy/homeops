@@ -34,7 +34,7 @@
     - name: Remove existing container
       community.docker.docker_container:
         name: technitium-dns
-        state: recreate
+        state: started
     
     - name: Create PFX from Let's Encrypt certs
       ansible.builtin.command: >
