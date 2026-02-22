@@ -31,12 +31,26 @@ jobs:
 
       - name: Ensure Ansible is installed
         run: |
+          INSTALL_NEEDED=false
           if ! command -v ansible >/dev/null 2>&1; then
-            echo "Ansible not found. Installing..."
+            echo "Ansible not found."
+            INSTALL_NEEDED=true
+          fi
+          if ! command -v python3 >/dev/null 2>&1; then
+            echo "Python3 not found."
+            INSTALL_NEEDED=true
+          fi
+          if ! command -v pip3 >/dev/null 2>&1; then
+            echo "pip3 not found."
+            INSTALL_NEEDED=true
+          fi
+          
+          if [ "$INSTALL_NEEDED" = true ]; then
+            echo "Installing missing dependencies..."
             echo "${{ secrets.SUDO }}" | sudo -S apt update
             echo "${{ secrets.SUDO }}" | sudo -S apt install -y ansible python3 python3-pip
           else
-            echo "Ansible already installed."
+            echo "All dependencies already installed."
           fi
 
       - name: Install Python dependencies
