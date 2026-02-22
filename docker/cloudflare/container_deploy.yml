@@ -14,7 +14,7 @@
     - name: Deploy cloudflare container
       community.docker.docker_container:
         name: "{{ container_name }}"
-        image: cloudflare/cloudflared
+        image: cloudflare/cloudflared:latest
         pull: yes
         state: started
         restart_policy: unless-stopped
