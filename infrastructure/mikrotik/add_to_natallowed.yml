@@ -18,46 +18,46 @@
       when: container_name is not defined or allocated_ip is not defined
 
     - name: Check if address already exists in NATAllowed list
-      community.routeros.api:
+      community.routeros.api_info:
         hostname: "{{ mikrotik_host }}"
         username: "{{ mikrotik_user }}"
         password: "{{ mikrotik_password }}"
         port: "{{ mikrotik_port }}"
-        path: "ip/firewall/address-list"
-        query:
-          list: "{{ address_list_name }}"
-          address: "{{ container_ip }}"
-      register: existing_address
-      no_log: false
+        path: "ip firewall address-list"
+      register: existing_addresses
+      no_log: true
       
+    - name: Filter for matching IP
+      set_fact:
+        matching_entries: "{{ existing_addresses.result | selectattr('list', 'equalto', address_list_name) | selectattr('address', 'equalto', container_ip) | list }}"
+
     - name: Display existing addresses
       debug:
-        msg: "Found {{ existing_address.msg | length }} existing entries for {{ container_ip }}"
-        verbosity: 1
+        msg: "Found {{ matching_entries | length }} existing entries for {{ container_ip }}"
 
     - name: Add IP to NATAllowed address list
-      community.routeros.api:
+      community.routeros.api_modify:
         hostname: "{{ mikrotik_host }}"
         username: "{{ mikrotik_user }}"
         password: "{{ mikrotik_password }}"
         port: "{{ mikrotik_port }}"
-        path: "ip/firewall/address-list"
+        path: "ip firewall address-list"
         data:
-          list: "{{ address_list_name }}"
-          address: "{{ container_ip }}"
-          comment: "{{ container_name }}"
+          - list: "{{ address_list_name }}"
+            address: "{{ container_ip }}"
+            comment: "{{ container_name }}"
       register: add_result
-      when: existing_address.msg | length == 0
+      when: matching_entries | length == 0
       no_log: true
       
     - name: Display add result
       debug:
         msg: |
           IP {{ container_ip }} ({{ container_name }}) successfully added to {{ address_list_name }} address list.
-      when: existing_address.msg | length == 0
+      when: matching_entries | length == 0
 
     - name: Display skip message
       debug:
         msg: |
           IP {{ container_ip }} already exists in {{ address_list_name }} address list. Skipping add.
-      when: existing_address.msg | length > 0
+      when: matching_entries | length > 0
