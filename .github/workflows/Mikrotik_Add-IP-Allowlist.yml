@@ -29,46 +29,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install Ansible and RouterOS collection
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install ansible
           ansible-galaxy collection install community.routeros
 
-      - name: Create inventory file
-        run: |
-          mkdir -p ./ansible_tmp
-          cat > ./ansible_tmp/hosts.yml <<EOF
-          all:
-            hosts:
-              mikrotik:
-                ansible_host: ${{ vars.MIKROTIK_IP }}
-                ansible_user: ${{ vars.MIKROTIK_USER }}
-                ansible_password: ${{ secrets.MIKROTIK_PASSWORD }}
-                ansible_port: ${{ vars.MIKROTIK_PORT || 8728 }}
-          EOF
-
       - name: Add IP to NATAllowed address list
         run: |
           ansible-playbook \
-            -i ./ansible_tmp/hosts.yml \
             -e "container_name=${{ inputs.container_name }}" \
             -e "allocated_ip=${{ inputs.allocated_ip }}" \
+            -e "vars_mikrotik_ip=${{ vars.MIKROTIK_IP }}" \
+            -e "vars_mikrotik_user=${{ vars.MIKROTIK_USER }}" \
+            -e "vars_mikrotik_port=${{ vars.MIKROTIK_PORT || 8728 }}" \
+            -e "ansible_password=${{ secrets.MIKROTIK_PASSWORD }}" \
             infrastructure/mikrotik/add_to_natallowed.yml
         env:
           ANSIBLE_HOST_KEY_CHECKING: "False"
-
-      - name: Verify IP in allowlist
-        run: |
-          ansible mikrotik \
-            -i ./ansible_tmp/hosts.yml \
-            -m community.routeros.command \
-            -a "commands='/ip firewall address-list print where list=NATAllowed and address=${{ inputs.allocated_ip }}'" \
-            -e "ansible_network_os=community.routeros.routeros" \
-            -v
-        env:
-          ANSIBLE_HOST_KEY_CHECKING: "False"
-        continue-on-error: true
 
       - name: Cleanup
         if: always()
