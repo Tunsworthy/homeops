@@ -29,10 +29,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install dependencies
+      - name: Ensure Ansible is installed
         run: |
-          python -m pip install --upgrade pip
-          pip install ansible librouteros
+          if ! command -v ansible >/dev/null 2>&1; then
+            echo "Ansible not found. Installing..."
+            echo "${{ secrets.SUDO }}" | sudo -S apt update
+            echo "${{ secrets.SUDO }}" | sudo -S apt install -y ansible python3 python3-pip
+          else
+            echo "Ansible already installed."
+          fi
+
+      - name: Install Python dependencies
+        run: |
+          python3 -m pip install --user librouteros
+
+      - name: Install RouterOS collection
+        run: |
           ansible-galaxy collection install community.routeros
 
       - name: Add IP to NATAllowed address list
