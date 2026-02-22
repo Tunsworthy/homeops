@@ -28,7 +28,7 @@
           list: "{{ address_list_name }}"
           address: "{{ container_ip }}"
       register: existing_address
-      no_log: true
+      no_log: flase
       
     - name: Display existing addresses
       debug:
