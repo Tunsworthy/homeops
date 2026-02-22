@@ -55,7 +55,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          python3 -m pip install --user librouteros
+          python3 -m pip install --user --break-system-packages librouteros
 
       - name: Install RouterOS collection
         run: |
