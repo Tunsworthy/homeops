@@ -1,0 +1,60 @@
+---
+- name: Add container IP to Mikrotik NATAllowed address list
+  hosts: mikrotik
+  gather_facts: no
+  
+  vars:
+    address_list_name: "NATAllowed"
+    container_ip: "{{ allocated_ip }}"
+  
+  tasks:
+    - name: Validate input variables
+      fail:
+        msg: "Required variables not set: container_name={{ container_name }}, allocated_ip={{ allocated_ip }}"
+      when: container_name is not defined or allocated_ip is not defined
+
+    - name: Connect to Mikrotik
+      community.routeros.api:
+        hostname: "{{ ansible_host }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        port: "{{ ansible_port | default(8728) }}"
+      no_log: true
+      register: mikrotik_connection
+
+    - name: Check if address already exists in NATAllowed list
+      community.routeros.command:
+        commands:
+          - "/ip firewall address-list print where list={{ address_list_name }} and address={{ container_ip }}"
+      register: existing_address
+      
+    - name: Display existing addresses
+      debug:
+        var: existing_address
+        verbosity: 1
+
+    - name: Add IP to NATAllowed address list
+      community.routeros.command:
+        commands:
+          - "/ip firewall address-list add list={{ address_list_name }} address={{ container_ip }} comment={{ container_name }}"
+      register: add_result
+      when: existing_address.stdout | length == 0
+      
+    - name: Display add result
+      debug:
+        var: add_result
+        verbosity: 1
+      when: existing_address.stdout | length == 0
+
+    - name: Display result message
+      debug:
+        msg: |
+          IP {{ container_ip }} ({{ container_name }}) successfully added to {{ address_list_name }} address list.
+          Comment: {{ container_name }}
+      when: existing_address.stdout | length == 0
+
+    - name: Display skip message
+      debug:
+        msg: |
+          IP {{ container_ip }} already exists in {{ address_list_name }} address list. Skipping add.
+      when: existing_address.stdout | length > 0

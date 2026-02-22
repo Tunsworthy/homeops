@@ -66,6 +66,7 @@ jobs:
       cert: ${{ steps.read-config.outputs.cert }}
       external: ${{ steps.read-config.outputs.external }}
       dedicated-ip: ${{ steps.read-config.outputs.dedicated_ip }}
+      internet-access: ${{ steps.read-config.outputs.internet_access }}
       container-environment: ${{ steps.read-config.outputs.container_environment }}
       container-host: ${{ steps.read-config.outputs.container_host }}
       container-folder: ${{ steps.get-config.outputs.CONTAINER_FOLDER }}
@@ -93,6 +94,7 @@ jobs:
           CERT=$(yq -r '.certificate' "$CONFIG_PATH")
           EXTERNAL=$(yq -r '.external_access' "$CONFIG_PATH")
           DEDICATED_IP=$(yq -r '.dedicated_ip' "$CONFIG_PATH")
+          INTERNET_ACCESS=$(yq -r '.internet_access // false' "$CONFIG_PATH")
           CONTAINER_ENVIRONMENT=$(yq -r '.container_environment' "$CONFIG_PATH")
           CONTAINER_HOST=$(yq -r '.container_host' "$CONFIG_PATH")
           
@@ -102,6 +104,7 @@ jobs:
           echo "cert=$CERT" >> $GITHUB_OUTPUT
           echo "external=$EXTERNAL" >> $GITHUB_OUTPUT
           echo "dedicated_ip=$DEDICATED_IP" >> $GITHUB_OUTPUT
+          echo "internet_access=$INTERNET_ACCESS" >> $GITHUB_OUTPUT
           echo "container_environment=$CONTAINER_ENVIRONMENT" >> $GITHUB_OUTPUT
           echo "container_host=$CONTAINER_HOST" >> $GITHUB_OUTPUT
           
@@ -126,6 +129,19 @@ jobs:
       environment: ${{ needs.read-config.outputs.container-environment}}
       container_name: ${{ needs.read-config.outputs.container-name }}
       docker_host: ${{ needs.read-config.outputs.container-host }}
+
+  add-to-nat-allowlist:
+    needs:
+      - allocate-ip
+      - read-config
+    if: ${{ needs.read-config.outputs.internet-access == 'true' && needs.allocate-ip.result == 'success' }}
+    uses: ./.github/workflows/Mikrotik_Add-IP-Allowlist.yml
+    with:
+      environment: ${{ needs.read-config.outputs.container-environment}}
+      container_name: ${{ needs.read-config.outputs.container-name }}
+      allocated_ip: ${{ needs.allocate-ip.outputs.ip_address }}
+      docker_host: ${{ needs.read-config.outputs.container-host }}
+    secrets: inherit
   
   create-internal-a-record:
       needs:
@@ -145,6 +161,7 @@ jobs:
     needs:
       - read-config
       - allocate-ip
+      - add-to-nat-allowlist
     uses: ./.github/workflows/Container_Deployment.yml
     with:
       environment: ${{ needs.read-config.outputs.container-environment }}
