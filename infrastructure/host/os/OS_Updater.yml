@@ -2,10 +2,13 @@
 # OS Updater - Ansible playbook to update Ubuntu hosts
 # This playbook:
 # 1) Checks for available updates
-# 2) Installs updates if available
-# 3) Checks if a reboot is required
-# 4) Reboots if needed with a timer to allow the playbook to complete
-# 5) Sets a fact that can be used to trigger follow-up actions
+# 2) Installs updates if they don't require a reboot
+# 3) If reboot is required:
+#    - Captures list of running containers
+#    - Installs updates and reboots
+#    - Waits for system to come back online
+#    - Verifies all containers are running again
+# 4) Sets facts for GitHub Actions
 
 - name: Update Ubuntu OS
   hosts: all
@@ -14,20 +17,25 @@
 
   vars:
     # Time to wait before rebooting (seconds)
-    reboot_delay: 30
-    # Fact name to set when reboot is required
-    reboot_required_fact: "reboot_required"
+    reboot_delay: 10
+    # Time to wait for system to come back (seconds)
+    reboot_timeout: 600
+    # Time to wait after reboot before checking containers
+    post_reboot_delay: 60
 
   tasks:
     - name: Check if updates are available
-      ansible.builtin.command: apt-get -s upgrade | grep -c "^Inst"
-      register: updates_available
+      ansible.builtin.shell: apt-get -s upgrade | grep -c "^Inst" || echo "0"
+      register: updates_check
       changed_when: false
-      ignore_errors: true
 
     - name: Set fact - updates available
       ansible.builtin.set_fact:
-        updates_available: "{{ updates_available.stdout | int > 0 }}"
+        updates_available: "{{ updates_check.stdout | int > 0 }}"
+
+    - name: Display update status
+      ansible.builtin.debug:
+        msg: "{{ updates_available | ternary('Updates available', 'No updates available') }}"
 
     - name: Exit if no updates available
       ansible.builtin.meta: end_host
@@ -38,6 +46,43 @@
         update_cache: true
       when: updates_available
 
+    - name: Check if reboot will be required (pre-check)
+      ansible.builtin.shell: |
+        apt-get -s upgrade | grep -q "^Inst.*linux-image\|^Inst.*linux-headers\|^Inst.*libc" && echo "reboot_needed" || echo "no_reboot"
+      register: reboot_precheck
+      changed_when: false
+      when: updates_available
+
+    - name: Set fact - reboot will be required
+      ansible.builtin.set_fact:
+        reboot_will_be_needed: "{{ reboot_precheck.stdout == 'reboot_needed' }}"
+      when: updates_available
+
+    - name: Display reboot requirement
+      ansible.builtin.debug:
+        msg: "Updates {{ reboot_will_be_needed | ternary('WILL', 'will NOT') }} require a reboot"
+      when: updates_available
+
+    # Get running containers before any updates
+    - name: Get list of running Docker containers (before updates)
+      ansible.builtin.shell: docker ps --format "{{ '{{' }}.Names{{ '}}' }}" | sort
+      register: containers_before
+      changed_when: false
+      failed_when: false
+      when: updates_available and reboot_will_be_needed
+
+    - name: Display running containers before update
+      ansible.builtin.debug:
+        msg: "Running containers: {{ containers_before.stdout_lines | default([]) }}"
+      when: updates_available and reboot_will_be_needed
+
+    - name: Save container list to file
+      ansible.builtin.copy:
+        content: "{{ containers_before.stdout }}"
+        dest: /tmp/containers_before_update.txt
+      when: updates_available and reboot_will_be_needed
+
+    # Install updates
     - name: Install available updates
       ansible.builtin.apt:
         upgrade: dist
@@ -45,38 +90,134 @@
       register: update_result
       when: updates_available
 
-    - name: Check if reboot is required
+    - name: Display update result
+      ansible.builtin.debug:
+        msg: "Updates installed successfully"
+      when: updates_available
+
+    # Check if reboot is actually required after updates
+    - name: Check if reboot is required (post-update)
       ansible.builtin.stat:
         path: /var/run/reboot-required
       register: reboot_required_file
+      when: updates_available
 
     - name: Set fact - reboot required
       ansible.builtin.set_fact:
-        reboot_required: "{{ reboot_required_file.stat.exists }}"
+        reboot_required: "{{ reboot_required_file.stat.exists | default(false) }}"
+      when: updates_available
 
-    - name: Set output for GitHub Actions
-      ansible.builtin.set_fact:
-        github_output: "{{ reboot_required | ternary('reboot_required=true', 'reboot_required=false') }}"
-      when: reboot_required
+    - name: Display completion message for non-reboot updates
+      ansible.builtin.debug:
+        msg: "Updates completed successfully. No reboot required."
+      when: updates_available and not reboot_required
 
-    - name: Reboot if required
+    # Reboot if required
+    - name: Reboot system if required
       ansible.builtin.reboot:
-        msg: "Reboot initiated by Ansible"
+        msg: "Reboot initiated by Ansible OS Updater"
         connect_timeout: 5
-        reboot_timeout: 600
+        reboot_timeout: "{{ reboot_timeout }}"
         pre_reboot_delay: "{{ reboot_delay }}"
-        post_reboot_delay: 30
-      when: reboot_required
+        post_reboot_delay: "{{ post_reboot_delay }}"
+        test_command: uptime
+      when: updates_available and reboot_required
       register: reboot_result
 
-    - name: Display reboot status
+    - name: Display reboot completion
       ansible.builtin.debug:
-        msg: "Reboot {{ reboot_result.changed | ternary('initiated', 'not needed') }}"
+        msg: "System rebooted successfully and is back online"
+      when: updates_available and reboot_required
 
-    - name: Write GitHub output file
-      ansible.builtin.copy:
-        content: "{{ github_output }}"
-        dest: /tmp/github_output.txt
-      when: reboot_required
-      delegate_to: localhost
-      run_once: true
+    # Verify Docker service is running after reboot
+    - name: Wait for Docker service to be active
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+      register: docker_service
+      retries: 10
+      delay: 5
+      until: docker_service.status.ActiveState == "active"
+      when: updates_available and reboot_required
+
+    - name: Give containers time to start
+      ansible.builtin.pause:
+        seconds: 30
+      when: updates_available and reboot_required
+
+    # Get running containers after reboot
+    - name: Get list of running Docker containers (after reboot)
+      ansible.builtin.shell: docker ps --format "{{ '{{' }}.Names{{ '}}' }}" | sort
+      register: containers_after
+      changed_when: false
+      failed_when: false
+      when: updates_available and reboot_required
+
+    - name: Read expected container list
+      ansible.builtin.slurp:
+        src: /tmp/containers_before_update.txt
+      register: containers_before_file
+      when: updates_available and reboot_required
+
+    - name: Set fact - containers before (from file)
+      ansible.builtin.set_fact:
+        expected_containers: "{{ (containers_before_file.content | b64decode).split('\n') | select() | sort | list }}"
+      when: updates_available and reboot_required
+
+    - name: Set fact - containers after
+      ansible.builtin.set_fact:
+        actual_containers: "{{ containers_after.stdout_lines | sort | list }}"
+      when: updates_available and reboot_required
+
+    - name: Compare container lists
+      ansible.builtin.set_fact:
+        containers_match: "{{ expected_containers == actual_containers }}"
+        missing_containers: "{{ expected_containers | difference(actual_containers) }}"
+        extra_containers: "{{ actual_containers | difference(expected_containers) }}"
+      when: updates_available and reboot_required
+
+    - name: Display container status
+      ansible.builtin.debug:
+        msg: |
+          Container Status:
+          - Expected: {{ expected_containers | length }} containers
+          - Running: {{ actual_containers | length }} containers
+          - Match: {{ containers_match }}
+          {% if missing_containers | length > 0 %}
+          - Missing: {{ missing_containers | join(', ') }}
+          {% endif %}
+          {% if extra_containers | length > 0 %}
+          - Extra: {{ extra_containers | join(', ') }}
+          {% endif %}
+      when: updates_available and reboot_required
+
+    - name: Warn if containers don't match
+      ansible.builtin.debug:
+        msg: "WARNING: Not all containers are running after reboot!"
+      when: updates_available and reboot_required and not containers_match
+
+    - name: Cleanup temporary file
+      ansible.builtin.file:
+        path: /tmp/containers_before_update.txt
+        state: absent
+      when: updates_available and reboot_required
+
+    # Final summary
+    - name: Set summary facts
+      ansible.builtin.set_fact:
+        update_summary:
+          updates_installed: "{{ updates_available }}"
+          reboot_performed: "{{ reboot_required | default(false) }}"
+          containers_verified: "{{ containers_match | default(true) }}"
+          missing_containers: "{{ missing_containers | default([]) }}"
+
+    - name: Display final summary
+      ansible.builtin.debug:
+        msg: |
+          OS Update Summary:
+          - Updates Installed: {{ update_summary.updates_installed }}
+          - Reboot Performed: {{ update_summary.reboot_performed }}
+          - Containers Verified: {{ update_summary.containers_verified }}
+          {% if update_summary.missing_containers | length > 0 %}
+          - Action Required: Restart missing containers: {{ update_summary.missing_containers | join(', ') }}
+          {% endif %}
