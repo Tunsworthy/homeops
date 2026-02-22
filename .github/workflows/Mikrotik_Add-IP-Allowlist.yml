@@ -22,7 +22,7 @@ on:
 
 jobs:
   add-ip-to-nat-allowlist:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ${{ inputs.environment }}]
     environment: ${{ inputs.environment }}
     
     steps:
