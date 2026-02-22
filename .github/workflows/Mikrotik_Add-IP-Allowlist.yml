@@ -22,7 +22,7 @@ on:
 
 jobs:
   add-ip-to-nat-allowlist:
-    runs-on: [self-hosted, ${{ inputs.environment }}]
+    runs-on: ${{ inputs.docker_host }}
     environment: ${{ inputs.environment }}
     
     steps:
