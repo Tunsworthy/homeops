@@ -1,0 +1,65 @@
+---
+# Manual SSH Key Exchange Helper
+# Run this manually after both Pis have generated SSH keys
+# This helps automate the key exchange process
+
+- name: Exchange SSH Keys (Manual Helper)
+  hosts: localhost
+  connection: local
+  become: true
+  gather_facts: true
+
+  vars:
+    ssh_user: "ansible-admin"
+    ssh_key_path: "/home/{{ ssh_user }}/.ssh/id_ed25519.pub"
+    authorized_keys_path: "/home/{{ ssh_user }}/.ssh/authorized_keys"
+    
+    # Define the other Pi's details
+    other_pi_ip: "{{ '10.2.4.10' if ansible_hostname == 'pi3' else '10.2.4.20' }}"
+    other_pi_name: "{{ 'pi4' if ansible_hostname == 'pi3' else 'pi3' }}"
+
+  tasks:
+    - name: Display current host
+      ansible.builtin.debug:
+        msg: "Running on {{ ansible_hostname }}, will fetch key from {{ other_pi_name }} ({{ other_pi_ip }})"
+
+    - name: Read local public key
+      ansible.builtin.slurp:
+        src: "{{ ssh_key_path }}"
+      register: local_public_key
+
+    - name: Display local public key
+      ansible.builtin.debug:
+        msg: "Local public key: {{ local_public_key.content | b64decode | trim }}"
+
+    - name: Add local key to authorized_keys (self)
+      ansible.builtin.authorized_key:
+        user: "{{ ssh_user }}"
+        key: "{{ local_public_key.content | b64decode | trim }}"
+        state: present
+
+    - name: Manual instruction for remote key
+      ansible.builtin.debug:
+        msg: |
+          ========================================
+          MANUAL STEP:
+          ========================================
+          Now SSH to {{ other_pi_name }} and run:
+          
+          sudo -u {{ ssh_user }} bash -c "echo 'YOUR_PUBLIC_KEY_HERE' >> {{ authorized_keys_path }}"
+          
+          Where YOUR_PUBLIC_KEY_HERE is the public key displayed above
+          
+          Or, run this playbook on {{ other_pi_name }} and copy its public key here
+          ========================================
+
+    - name: Test SSH connectivity to other Pi (optional)
+      ansible.builtin.command:
+        cmd: "sudo -u {{ ssh_user }} ssh -o BatchMode=yes -o ConnectTimeout=5 {{ ssh_user }}@{{ other_pi_ip }} echo 'SSH connection successful'"
+      register: ssh_test
+      failed_when: false
+      changed_when: false
+
+    - name: Display SSH test result
+      ansible.builtin.debug:
+        msg: "{{ ssh_test.stdout if ssh_test.rc == 0 else 'SSH test failed - keys not yet exchanged' }}"

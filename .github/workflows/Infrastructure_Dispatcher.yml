@@ -16,6 +16,8 @@ on:
           - docker install
           - docker network
           - host OS Update
+          - ssh create-user
+          - ssh setup-keys
           - all
 jobs:
   dispatch:
@@ -82,4 +84,24 @@ jobs:
       host: ${{ github.event.inputs.host }}
       environment: ${{ needs.dispatch.outputs.env }}
       runs_on: ${{ needs.dispatch.outputs.runner }}
+    needs: dispatch
+
+  call_ssh_create_user:
+    if: ${{ github.event.inputs.setup_type == 'ssh create-user' || github.event.inputs.setup_type == 'all' }}
+    uses: ./.github/workflows/SSH_Setup.yml
+    with:
+      host: ${{ github.event.inputs.host }}
+      environment: ${{ needs.dispatch.outputs.env }}
+      runs_on: ${{ needs.dispatch.outputs.runner }}
+      step: 'create-user'
+    needs: dispatch
+
+  call_ssh_setup_keys:
+    if: ${{ github.event.inputs.setup_type == 'ssh setup-keys' }}
+    uses: ./.github/workflows/SSH_Setup.yml
+    with:
+      host: ${{ github.event.inputs.host }}
+      environment: ${{ needs.dispatch.outputs.env }}
+      runs_on: ${{ needs.dispatch.outputs.runner }}
+      step: 'setup-keys'
     needs: dispatch

@@ -1,9 +1,10 @@
 ---
 # Create dedicated admin user for cross-Pi SSH administration
-# This user will have sudo privileges and SSH access
+# This playbook runs LOCALLY on each Pi runner
 
 - name: Create Ansible Admin User
-  hosts: all
+  hosts: localhost
+  connection: local
   become: true
   gather_facts: true
 
@@ -44,4 +45,4 @@
 
     - name: Display user creation status
       ansible.builtin.debug:
-        msg: "User {{ admin_user }} created successfully on {{ inventory_hostname }}"
+        msg: "User {{ admin_user }} created successfully on {{ ansible_hostname }}"

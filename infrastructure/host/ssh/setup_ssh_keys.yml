@@ -1,0 +1,111 @@
+---
+# SSH Key Setup - Generate SSH keys on localhost
+# Runs LOCALLY on each Pi runner
+# Manual step required: Exchange public keys between Pis
+
+- name: Setup SSH Keys for Cross-Pi Administration
+  hosts: localhost
+  connection: local
+  become: true
+  gather_facts: true
+
+  vars:
+    ssh_key_type: "ed25519"
+    ssh_user: "ansible-admin"
+    ssh_key_path: "/home/{{ ssh_user }}/.ssh/id_{{ ssh_key_type }}"
+    
+  tasks:
+    - name: Check if ansible-admin user exists
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ ssh_user }}"
+      register: user_check
+      failed_when: false
+
+    - name: Fail if ansible-admin user doesn't exist
+      ansible.builtin.fail:
+        msg: "User {{ ssh_user }} does not exist. Run create_admin_user.yml first!"
+      when: user_check.ansible_facts is not defined or ssh_user not in user_check.ansible_facts.getent_passwd
+
+    - name: Ensure .ssh directory exists
+      ansible.builtin.file:
+        path: "/home/{{ ssh_user }}/.ssh"
+        state: directory
+        mode: '0700'
+        owner: "{{ ssh_user }}"
+        group: "{{ ssh_user }}"
+
+    - name: Check if SSH key already exists
+      ansible.builtin.stat:
+        path: "{{ ssh_key_path }}"
+      register: ssh_key_stat
+
+    - name: Generate SSH key pair
+      ansible.builtin.command:
+        cmd: "ssh-keygen -t {{ ssh_key_type }} -f {{ ssh_key_path }} -N '' -C 'ansible-admin@{{ ansible_hostname }}'"
+        creates: "{{ ssh_key_path }}"
+      become_user: "{{ ssh_user }}"
+      when: not ssh_key_stat.stat.exists
+
+    - name: Set correct permissions on private key
+      ansible.builtin.file:
+        path: "{{ ssh_key_path }}"
+        mode: '0600'
+        owner: "{{ ssh_user }}"
+        group: "{{ ssh_user }}"
+
+    - name: Set correct permissions on public key
+      ansible.builtin.file:
+        path: "{{ ssh_key_path }}.pub"
+        mode: '0644'
+        owner: "{{ ssh_user }}"
+        group: "{{ ssh_user }}"
+
+    - name: Read public key
+      ansible.builtin.slurp:
+        src: "{{ ssh_key_path }}.pub"
+      register: public_key
+
+    - name: Store public key as fact
+      ansible.builtin.set_fact:
+        host_public_key: "{{ public_key.content | b64decode | trim }}"
+
+    - name: Display public key
+      ansible.builtin.debug:
+        msg: "Public key for {{ ansible_hostname }}: {{ host_public_key }}"
+
+    - name: Create SSH config for cross-Pi access
+      ansible.builtin.copy:
+        dest: "/home/{{ ssh_user }}/.ssh/config"
+        owner: "{{ ssh_user }}"
+        group: "{{ ssh_user }}"
+        mode: '0600'
+        content: |
+          Host pi3
+            HostName 10.2.4.20
+            User {{ ssh_user }}
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+          
+          Host pi4
+            HostName 10.2.4.10
+            User {{ ssh_user }}
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+
+    - name: Display manual step instructions
+      ansible.builtin.debug:
+        msg: |
+          ========================================
+          MANUAL STEP REQUIRED:
+          ========================================
+          After running this on BOTH Pis, exchange the public keys:
+          
+          1. On pi3, run:
+             sudo cat /home/{{ ssh_user }}/.ssh/id_{{ ssh_key_type }}.pub | sudo tee -a /home/{{ ssh_user }}/.ssh/authorized_keys
+             
+          2. Copy pi4's public key to pi3's authorized_keys
+          3. Copy pi3's public key to pi4's authorized_keys
+          
+          Or use the exchange_keys.yml playbook (if created)
+          ========================================

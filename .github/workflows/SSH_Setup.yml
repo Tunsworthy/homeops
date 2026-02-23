@@ -1,89 +1,59 @@
 name: SSH Setup
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      step:
-        description: 'Which step to run'
+      host:
         required: true
-        type: choice
-        options:
-          - create-user
-          - setup-keys
-          - both
+        type: string
+      environment:
+        required: true
+        type: string
+      runs_on:
+        required: true
+        type: string
+      step:
+        required: true
+        type: string
+        description: 'Which step: create-user or setup-keys'
 
 jobs:
-  create-admin-user:
-    if: ${{ github.event.inputs.step == 'create-user' || github.event.inputs.step == 'both' }}
-    runs-on: self-hosted
-    
+  ssh-setup:
+    runs-on: ${{ inputs.runs_on }}
+    environment: ${{ inputs.environment }}
+
+    env:
+      BASE_DIR: 'infrastructure/host/ssh'
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Ensure Ansible is installed
         run: |
-          sudo apt update
-          sudo apt install -y ansible
+          if ! command -v ansible >/dev/null 2>&1; then
+            echo "Ansible not found. Installing..."
+            sudo apt update
+            sudo apt install -y ansible
+          else
+            echo "Ansible already installed."
+          fi
 
-      - name: Create temporary inventory with password auth
+      - name: Create Ansible inventory
         run: |
-          cat > /tmp/inventory.yml <<EOF
-          all:
-            hosts:
-              pi3:
-                ansible_host: 10.2.4.20
-                ansible_user: runner
-                ansible_become_password: "${{ secrets.SUDO }}"
-              pi4:
-                ansible_host: 10.2.4.10
-                ansible_user: runner
-                ansible_become_password: "${{ secrets.SUDO }}"
-          EOF
+          cd $BASE_DIR
+          echo "localhost ansible_connection=local" > inventory.ini
 
-      - name: Create ansible-admin user on all hosts
+      - name: Run create-user playbook
+        if: ${{ inputs.step == 'create-user' }}
         run: |
-          ansible-playbook \
-            -i /tmp/inventory.yml \
-            infrastructure/ssh/create_admin_user.yml \
-            --become
-        env:
-          ANSIBLE_HOST_KEY_CHECKING: "False"
+          cd $BASE_DIR
+          echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook create_admin_user.yml \
+            -i inventory.ini
 
-  setup-ssh-keys:
-    if: ${{ github.event.inputs.step == 'setup-keys' || github.event.inputs.step == 'both' }}
-    needs: create-admin-user
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Ensure Ansible is installed
+      - name: Run setup-keys playbook
+        if: ${{ inputs.step == 'setup-keys' }}
         run: |
-          sudo apt update
-          sudo apt install -y ansible
-
-      - name: Create temporary inventory with password auth
-        run: |
-          cat > /tmp/inventory.yml <<EOF
-          all:
-            hosts:
-              pi3:
-                ansible_host: 10.2.4.20
-                ansible_user: runner
-                ansible_become_password: "${{ secrets.SUDO }}"
-              pi4:
-                ansible_host: 10.2.4.10
-                ansible_user: runner
-                ansible_become_password: "${{ secrets.SUDO }}"
-          EOF
-
-      - name: Setup SSH keys
-        run: |
-          ansible-playbook \
-            -i /tmp/inventory.yml \
-            infrastructure/ssh/setup_ssh_keys.yml \
-            --become
-        env:
-          ANSIBLE_HOST_KEY_CHECKING: "False"
+          cd $BASE_DIR
+          echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook setup_ssh_keys.yml \
+            -i inventory.ini

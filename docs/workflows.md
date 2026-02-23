@@ -20,9 +20,41 @@ This document lists all GitHub Actions workflows, their purpose, and the relatio
 - Docker installation
 - Docker network configuration
 - Host OS updates
-- All (runs all configurations)
+- SSH create-user (creates ansible-admin service account)
+- SSH setup-keys (generates SSH keys for cross-Pi access)
+- All (runs all configurations except SSH setup)
 
-**Calls:** Network_Setup, Docker_Setup, Docker_Network_Setup, OS_Update
+**Calls:** Network_Setup, Docker_Setup, Docker_Network_Setup, OS_Update, SSH_Setup
+
+---
+
+### SSH_Setup
+**Purpose:** Configure cross-Pi SSH administration  
+**Scope:** Host  
+**Trigger:** Called from Infrastructure_Dispatcher  
+**Description:**  
+- Creates dedicated `ansible-admin` service account
+- Generates ED25519 SSH keys for cross-Pi access
+- Runs locally on each Pi (localhost execution)
+- Enables OS updates to run from one Pi to another
+
+**Steps:**
+- create-user: Creates ansible-admin user with passwordless sudo
+- setup-keys: Generates SSH key pair and SSH config
+
+**Inputs:**
+- host: Target host identifier
+- environment: Environment name
+- runs_on: Runner to execute on
+- step: Which step to execute (create-user or setup-keys)
+
+**Playbooks:** 
+- `infrastructure/host/ssh/create_admin_user.yml`
+- `infrastructure/host/ssh/setup_ssh_keys.yml`
+
+**Called by:** Infrastructure_Dispatcher
+
+**Note:** After running on both Pis, public keys must be manually exchanged. See `infrastructure/host/ssh/README.md`
 
 ---
 
@@ -31,14 +63,22 @@ This document lists all GitHub Actions workflows, their purpose, and the relatio
 **Scope:** Host  
 **Trigger:** Called from Infrastructure_Dispatcher  
 **Description:**  
+- **Cross-Pi Execution:** Runs on the OPPOSITE Pi (pi4 updates pi3, pi3 updates pi4)
 - Uses Ansible playbook (`infrastructure/host/os/OS_Updater.yml`) to update OS packages
-- Handles reboot if required
+- Executes as `ansible-admin` user via SSH
+- Handles reboot if required (survives via remote SSH connection)
+- Captures running Docker containers before update
+- Verifies all containers are running after reboot
 - Checks for available updates before proceeding
 
 **Inputs:**
-- host: Target host identifier
+- host: Target host identifier (the Pi to be updated)
 - environment: Environment name
-- runs_on: Runner to execute on
+- runs_on: Runner to execute on (automatically set to opposite host)
+
+**Prerequisites:** SSH setup must be completed (`ansible-admin` user with SSH keys)
+
+**Playbooks:** `infrastructure/host/os/OS_Updater.yml`
 
 **Called by:** Infrastructure_Dispatcher
 
