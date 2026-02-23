@@ -1,0 +1,47 @@
+---
+# Create dedicated admin user for cross-Pi SSH administration
+# This user will have sudo privileges and SSH access
+
+- name: Create Ansible Admin User
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    admin_user: "ansible-admin"
+    admin_shell: "/bin/bash"
+
+  tasks:
+    - name: Create ansible-admin user
+      ansible.builtin.user:
+        name: "{{ admin_user }}"
+        shell: "{{ admin_shell }}"
+        create_home: yes
+        state: present
+        comment: "Ansible Cross-Pi Administration Account"
+
+    - name: Add ansible-admin to sudo group
+      ansible.builtin.user:
+        name: "{{ admin_user }}"
+        groups: sudo
+        append: yes
+
+    - name: Configure passwordless sudo for ansible-admin
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers.d/ansible-admin
+        line: "{{ admin_user }} ALL=(ALL) NOPASSWD: ALL"
+        create: yes
+        mode: '0440'
+        validate: 'visudo -cf %s'
+
+    - name: Ensure .ssh directory exists
+      ansible.builtin.file:
+        path: "/home/{{ admin_user }}/.ssh"
+        state: directory
+        mode: '0700'
+        owner: "{{ admin_user }}"
+        group: "{{ admin_user }}"
+
+    - name: Display user creation status
+      ansible.builtin.debug:
+        msg: "User {{ admin_user }} created successfully on {{ inventory_hostname }}"

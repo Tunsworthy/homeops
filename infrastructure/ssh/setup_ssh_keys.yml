@@ -1,0 +1,171 @@
+---
+# SSH Key Setup - Configure passwordless SSH between Raspberry Pis
+# Uses dedicated ansible-admin user for cross-Pi administration
+
+- name: Setup SSH Keys for Cross-Pi Administration
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    ssh_key_type: "ed25519"
+    ssh_key_comment: "ansible-admin-{{ inventory_hostname }}"
+    ssh_user: "ansible-admin"  # Dedicated admin user
+    ssh_key_path: "/home/{{ ssh_user }}/.ssh/id_{{ ssh_key_type }}"
+    
+  tasks:
+    - name: Check if ansible-admin user exists
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ ssh_user }}"
+      register: user_check
+      failed_when: false
+
+    - name: Fail if ansible-admin user doesn't exist
+      ansible.builtin.fail:
+        msg: "User {{ ssh_user }} does not exist. Run create_admin_user.yml first!"
+      when: user_check.ansible_facts is not defined or ssh_user not in user_check.ansible_facts.getent_passwd
+
+    - name: Ensure .ssh directory exists
+      ansible.builtin.file:
+        path: "/home/{{ ssh_user }}/.ssh"
+        state: directory
+        mode: '0700'
+        owner: "{{ ssh_user }}"
+        group: "{{ ssh_user }}"
+
+    - name: Check if SSH key already exists
+      ansible.builtin.stat:
+        path: "{{ ssh_key_path }}"
+      register: ssh_key_stat
+
+    - name: Generate SSH key pair
+      ansible.builtin.command:
+        cmd: "ssh-keygen -t {{ ssh_key_type }} -f {{ ssh_key_path }} -N '' -C '{{ ssh_key_comment }}'"
+        creates: "{{ ssh_key_path }}"
+      become_user: "{{ ssh_user }}"
+      when: not ssh_key_stat.stat.exists
+
+    - name: Set correct permissions on private key
+      ansible.builtin.file:
+        path: "{{ ssh_key_path }}"
+        mode: '0600'
+        owner: "{{ ssh_user }}"
+        group: "{{ ssh_user }}"
+
+    - name: Set correct permissions on public key
+      ansible.builtin.file:
+        path: "{{ ssh_key_path }}.pub"
+        mode: '0644'
+        owner: "{{ ssh_user }}"
+        group: "{{ ssh_user }}"
+
+    - name: Read public key
+      ansible.builtin.slurp:
+        src: "{{ ssh_key_path }}.pub"
+      register: public_key
+
+    - name: Store public key as fact
+      ansible.builtin.set_fact:
+        host_public_key: "{{ public_key.content | b64decode | trim }}"
+
+    - name: Display public key
+      ansible.builtin.debug:
+        msg: "Public key for {{ inventory_hostname }}: {{ host_public_key }}"
+
+- name: Exchange SSH Keys Between Hosts
+  hosts: all
+  become: true
+  gather_facts: false
+
+  vars:
+    ssh_user: "ansible-admin"
+
+  tasks:
+    - name: Gather public keys from all hosts
+      ansible.builtin.set_fact:
+        all_host_keys: "{{ groups['all'] | map('extract', hostvars, 'host_public_key') | list }}"
+
+    - name: Add all public keys to authorized_keys
+      ansible.builtin.authorized_key:
+        user: "{{ ssh_user }}"
+        key: "{{ item }}"
+        state: present
+      loop: "{{ all_host_keys }}"
+      when: item != hostvars[inventory_hostname]['host_public_key']
+
+    - name: Ensure known_hosts file exists
+      ansible.builtin.file:
+        path: "/home/{{ ssh_user }}/.ssh/known_hosts"
+        state: touch
+        mode: '0644'
+        owner: "{{ ssh_user }}"
+        group: "{{ ssh_user }}"
+        modification_time: preserve
+        access_time: preserve
+
+    - name: Get SSH host keys from all hosts
+      ansible.builtin.shell: ssh-keyscan {{ item }}
+      loop: "{{ groups['all'] }}"
+      register: ssh_host_keys
+      changed_when: false
+      when: item != inventory_hostname
+
+    - name: Add host keys to known_hosts
+      ansible.builtin.known_hosts:
+        name: "{{ item.item }}"
+        key: "{{ item.stdout }}"
+        path: "/home/{{ ssh_user }}/.ssh/known_hosts"
+        state: present
+      loop: "{{ ssh_host_keys.results }}"
+      when: item.stdout is defined and item.stdout != ""
+
+    - name: Configure SSH client settings
+      ansible.builtin.blockinfile:
+        path: "/home/{{ ssh_user }}/.ssh/config"
+        create: yes
+        mode: '0644'
+        owner: "{{ ssh_user }}"
+        group: "{{ ssh_user }}"
+        marker: "# {mark} ANSIBLE MANAGED - Cross-Pi SSH"
+        block: |
+          Host pi3 pi4 10.2.4.20 10.2.4.10
+              StrictHostKeyChecking accept-new
+              UserKnownHostsFile /home/{{ ssh_user }}/.ssh/known_hosts
+              IdentityFile /home/{{ ssh_user }}/.ssh/id_ed25519
+              User {{ ssh_user }}
+
+- name: Test SSH Connectivity
+  hosts: all
+  become: true
+  gather_facts: false
+
+  vars:
+    ssh_user: "ansible-admin"
+
+  tasks:
+    - name: Test SSH connection to other hosts
+      ansible.builtin.command:
+        cmd: "ssh -o BatchMode=yes -o ConnectTimeout=5 {{ ssh_user }}@{{ item }} echo 'SSH test from {{ inventory_hostname }} successful'"
+      loop: "{{ groups['all'] }}"
+      when: item != inventory_hostname
+      register: ssh_test
+      changed_when: false
+      become_user: "{{ ssh_user }}"
+
+    - name: Display SSH test results
+      ansible.builtin.debug:
+        msg: "{{ item.stdout }}"
+      loop: "{{ ssh_test.results }}"
+      when: item.stdout is defined
+
+    - name: Summary
+      ansible.builtin.debug:
+        msg: |
+          SSH Setup Complete:
+          - User: {{ ssh_user }}
+          - SSH keys generated for {{ inventory_hostname }}
+          - Public keys exchanged with all hosts
+          - Passwordless SSH configured
+          - Passwordless sudo enabled
+          - Connectivity tested successfully

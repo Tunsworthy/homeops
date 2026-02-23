@@ -1,4 +1,5 @@
-name: VLAN Setup
+name: OS Update
+
 on:
   workflow_call:
     inputs:
@@ -11,37 +12,51 @@ on:
       runs_on:
         required: true
         type: string
+
 jobs:
-  setup-vlans:
-    runs-on: ${{ inputs.runs_on }}
+  update-os:
+    # Run FROM the opposite host (cross-Pi update)
+    runs-on: ${{ inputs.host == 'pi3' && 'pi4' || 'pi3' }}
     environment: ${{ inputs.environment }}
 
     env:
       BASE_DIR: 'infrastructure/host/os'
+      ADMIN_USER: 'ansible-admin'
 
     steps:
       - name: Run OS Update
         run: |
-          echo "Running OS Update for host: ${{ inputs.host }}"
+          echo "Running OS Update for host: ${{ inputs.host }} from $(hostname)"
+          echo "Using user: $ADMIN_USER"
+          
       - name: Checkout repository
         uses: actions/checkout@v3
+        
       - name: Ensure Ansible is Installed
         run: |
           if ! command -v ansible >/dev/null 2>&1; then
             echo "Ansible not found. Installing..."
-            sudo apt update
-            sudo apt install -y ansible
+            echo "${{ secrets.SUDO }}" | sudo -S apt update
+            echo "${{ secrets.SUDO }}" | sudo -S apt install -y ansible
           else
             echo "Ansible already installed."
           fi
 
-      - name: Create Ansible inventory
+      - name: Create temporary inventory for target host
         run: |
           cd $BASE_DIR
-          echo "localhost ansible_connection=local" > inventory.ini
+          cat > inventory.ini <<EOF
+          [${{ inputs.host }}]
+          ${{ inputs.host == 'pi3' && '10.2.4.20' || '10.2.4.10' }} ansible_user=$ADMIN_USER
+          EOF
+          cat inventory.ini
 
-      - name: Run Ansible playbook
+      - name: Run OS Updater playbook (as ansible-admin user)
         run: |
           cd $BASE_DIR
-          echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook OS_Updater.yml \
-            -i inventory.ini -e "runner=${{inputs.host}}"
+          # Run as ansible-admin user which has passwordless sudo
+          sudo -u $ADMIN_USER ansible-playbook OS_Updater.yml \
+            -i inventory.ini \
+            --limit ${{ inputs.host }}
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"

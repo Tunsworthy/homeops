@@ -1,0 +1,89 @@
+name: SSH Setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      step:
+        description: 'Which step to run'
+        required: true
+        type: choice
+        options:
+          - create-user
+          - setup-keys
+          - both
+
+jobs:
+  create-admin-user:
+    if: ${{ github.event.inputs.step == 'create-user' || github.event.inputs.step == 'both' }}
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Ensure Ansible is installed
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+
+      - name: Create temporary inventory with password auth
+        run: |
+          cat > /tmp/inventory.yml <<EOF
+          all:
+            hosts:
+              pi3:
+                ansible_host: 10.2.4.20
+                ansible_user: runner
+                ansible_become_password: "${{ secrets.SUDO }}"
+              pi4:
+                ansible_host: 10.2.4.10
+                ansible_user: runner
+                ansible_become_password: "${{ secrets.SUDO }}"
+          EOF
+
+      - name: Create ansible-admin user on all hosts
+        run: |
+          ansible-playbook \
+            -i /tmp/inventory.yml \
+            infrastructure/ssh/create_admin_user.yml \
+            --become
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+
+  setup-ssh-keys:
+    if: ${{ github.event.inputs.step == 'setup-keys' || github.event.inputs.step == 'both' }}
+    needs: create-admin-user
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Ensure Ansible is installed
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+
+      - name: Create temporary inventory with password auth
+        run: |
+          cat > /tmp/inventory.yml <<EOF
+          all:
+            hosts:
+              pi3:
+                ansible_host: 10.2.4.20
+                ansible_user: runner
+                ansible_become_password: "${{ secrets.SUDO }}"
+              pi4:
+                ansible_host: 10.2.4.10
+                ansible_user: runner
+                ansible_become_password: "${{ secrets.SUDO }}"
+          EOF
+
+      - name: Setup SSH keys
+        run: |
+          ansible-playbook \
+            -i /tmp/inventory.yml \
+            infrastructure/ssh/setup_ssh_keys.yml \
+            --become
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
