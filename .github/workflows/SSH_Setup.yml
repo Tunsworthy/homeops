@@ -15,7 +15,7 @@ on:
 jobs:
   create-admin-user:
     if: ${{ github.event.inputs.step == 'create-user' || github.event.inputs.step == 'both' }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     
     steps:
       - name: Checkout repository
