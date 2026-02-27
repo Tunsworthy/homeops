@@ -4,74 +4,90 @@
 
 This setup creates a dedicated `ansible-admin` user on each Pi for cross-Pi SSH administration. This enables OS updates to run from one Pi to another, surviving reboots.
 
+**Key Feature:** Uses a **shared SSH key pair** stored in GitHub secrets - **no manual key exchange required!**
+
 ## Architecture
 
 - **Local Execution**: Each runner executes playbooks locally (not via SSH)
 - **Dedicated User**: `ansible-admin` service account with passwordless sudo
-- **Cross-Pi SSH**: ansible-admin can SSH between Pi3 ↔ Pi4
-- **Manual Key Exchange**: Public keys must be manually exchanged after generation
+- **Shared SSH Keys**: Single key pair stored in GitHub secrets, deployed to both Pis
+- **Cross-Pi SSH**: ansible-admin can SSH between Pi3 ↔ Pi4 using the shared key
+- **Zero Manual Steps**: Fully automated setup
+
+## Prerequisites
+
+### Create SSH Key Pair (One-Time Setup)
+
+On your local machine or any system with SSH:
+
+```bash
+# Generate ED25519 key pair (recommended for security and performance)
+ssh-keygen -t ed25519 -f ~/.ssh/ansible-admin -N '' -C 'ansible-admin@homelab'
+
+# View private key (you'll paste this into GitHub)
+cat ~/.ssh/ansible-admin
+
+# View public key (you'll paste this into GitHub)
+cat ~/.ssh/ansible-admin.pub
+```
+
+### Add to GitHub Secrets
+
+In your GitHub repository:
+
+1. Go to: **Settings** → **Secrets and variables** → **Actions**
+2. Add two new **Repository secrets**:
+
+   - **Name:** `SSH_ADMIN_PRIVATE_KEY`  
+     **Value:** Paste the entire contents of the **private key** including `-----BEGIN OPENSSH PRIVATE KEY-----` and `-----END OPENSSH PRIVATE KEY-----`
+
+   - **Name:** `SSH_ADMIN_PUBLIC_KEY`  
+     **Value:** Paste the entire contents of the **public key** (single line starting with `ssh-ed25519 ...`)
 
 ## Setup Process
 
 ### Step 1: Create ansible-admin User (on both Pis)
 
 Run via Infrastructure_Dispatcher:
-- Host: pi3
-- Setup Type: `ssh create-user`
+- Host: **pi3**
+- Setup Type: **ssh create-user**
 
 Then repeat for:
-- Host: pi4  
-- Setup Type: `ssh create-user`
+- Host: **pi4**  
+- Setup Type: **ssh create-user**
 
 This creates the `ansible-admin` user with:
 - Passwordless sudo (`/etc/sudoers.d/ansible-admin`)
 - Home directory with `.ssh/` folder
 - Member of sudo group
 
-### Step 2: Generate SSH Keys (on both Pis)
+### Step 2: Deploy SSH Keys (on both Pis)
 
 Run via Infrastructure_Dispatcher:
-- Host: pi3
-- Setup Type: `ssh setup-keys`
+- Host: **pi3**
+- Setup Type: **ssh setup-keys**
 
 Then repeat for:
-- Host: pi4
-- Setup Type: `ssh setup-keys`
+- Host: **pi4**
+- Setup Type: **ssh setup-keys**
 
-This generates:
-- ED25519 SSH key pair at `/home/ansible-admin/.ssh/id_ed25519`
-- SSH config file with pi3/pi4 host entries
-- Displays public key for manual exchange
+This automatically:
+- ✅ Deploys private key from GitHub secret to `/home/ansible-admin/.ssh/id_ed25519`
+- ✅ Deploys public key from GitHub secret to `/home/ansible-admin/.ssh/id_ed25519.pub`
+- ✅ Adds public key to `/home/ansible-admin/.ssh/authorized_keys`
+- ✅ Creates SSH config with pi3/pi4 host entries
+- ✅ Tests SSH connectivity to the other Pi
+- ✅ **No manual steps required!**
 
-### Step 3: Exchange Public Keys (Manual)
+### Step 3: Verify (Optional)
 
-After both Pis have generated keys:
+SSH to either Pi and test:
 
-**Option A: Manual SSH**
-1. SSH to pi3: `ssh tom@pi3.tomunsworth.net`
-2. Get pi3's public key:
-   ```bash
-   sudo cat /home/ansible-admin/.ssh/id_ed25519.pub
-   ```
-3. Copy to pi4's authorized_keys:
-   ```bash
-   ssh tom@pi4.tomunsworth.net
-   sudo -u ansible-admin bash -c "echo 'PASTE_PI3_KEY_HERE' >> /home/ansible-admin/.ssh/authorized_keys"
-   ```
-4. Repeat in reverse (pi4's key → pi3)
-
-**Option B: Use Helper Playbook**
-The `exchange_keys.yml` playbook can help display keys and test connectivity, but still requires manual copy/paste between systems.
-
-### Step 4: Verify SSH Connectivity
-
-Test from pi3:
 ```bash
+# On pi3, test connection to pi4
 sudo -u ansible-admin ssh ansible-admin@10.2.4.10 echo "Success from pi3 to pi4"
-```
 
-Test from pi4:
-```bash
+# On pi4, test connection to pi3
 sudo -u ansible-admin ssh ansible-admin@10.2.4.20 echo "Success from pi4 to pi3"
 ```
 
@@ -80,15 +96,36 @@ sudo -u ansible-admin ssh ansible-admin@10.2.4.20 echo "Success from pi4 to pi3"
 ```
 infrastructure/host/ssh/
 ├── create_admin_user.yml    # Creates ansible-admin user locally
-├── setup_ssh_keys.yml        # Generates SSH keys locally
-└── exchange_keys.yml         # Helper for manual key exchange
+├── setup_ssh_keys.yml        # Deploys SSH keys from GitHub secrets
+└── exchange_keys.yml         # (Deprecated - not needed with shared keys)
 ```
 
-## Workflows
+## Required GitHub Secrets
 
-### SSH_Setup.yml (Reusable Workflow)
-- Inputs: host, environment, runs_on, step
-- Steps: create-user | setup-keys
+| Secret Name | Description | Example |
+|-------------|-------------|---------|
+| `SSH_ADMIN_PRIVATE_KEY` | Private SSH key for ansible-admin | `-----BEGIN OPENSSH PRIVATE KEY-----\n...` |
+| `SSH_ADMIN_PUBLIC_KEY` | Public SSH key for ansible-admin | `ssh-ed25519 AAAA... ansible-admin@homelab` |
+| `SUDO` | Sudo password for runner user | `your_sudo_password` |
+- **Automatically deploys SSH keys from GitHub secrets**
+
+### Infrastructure_Dispatcher.yml
+- New options:
+  - `ssh create-user` - Creates ansible-admin user
+  - `ssh setup-keys` - Deploys shared SSH keys from GitHub secrets
+- Calls SSH_Setup.yml with appropriate parameters
+
+## Why Shared Keys?
+
+**Benefits:**
+- ✅ **Zero manual steps** - fully automated
+- ✅ **One-time setup** - generate key once, use everywhere
+- ✅ **Consistent keys** - same key on all hosts
+- ✅ **Easy rotation** - update GitHub secret, re-run workflow
+- ✅ **Secure storage** - keys stored in GitHub encrypted secrets
+
+**Security Note:**
+The shared key is only used for cross-Pi administration within your internal network (10.2.4.x). It's not exposed externally.
 - Runs locally on specified runner
 - Called by Infrastructure_Dispatcher
 

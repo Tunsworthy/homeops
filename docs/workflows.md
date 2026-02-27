@@ -34,13 +34,14 @@ This document lists all GitHub Actions workflows, their purpose, and the relatio
 **Trigger:** Called from Infrastructure_Dispatcher  
 **Description:**  
 - Creates dedicated `ansible-admin` service account
-- Generates ED25519 SSH keys for cross-Pi access
+- Deploys shared SSH key pair from GitHub secrets
 - Runs locally on each Pi (localhost execution)
 - Enables OS updates to run from one Pi to another
+- **No manual key exchange required!**
 
 **Steps:**
 - create-user: Creates ansible-admin user with passwordless sudo
-- setup-keys: Generates SSH key pair and SSH config
+- setup-keys: Deploys shared SSH keys from GitHub secrets and configures authorized_keys
 
 **Inputs:**
 - host: Target host identifier
@@ -48,13 +49,18 @@ This document lists all GitHub Actions workflows, their purpose, and the relatio
 - runs_on: Runner to execute on
 - step: Which step to execute (create-user or setup-keys)
 
+**Required Secrets:**
+- `SSH_ADMIN_PRIVATE_KEY`: Private SSH key for ansible-admin
+- `SSH_ADMIN_PUBLIC_KEY`: Public SSH key for ansible-admin
+- `SUDO`: Sudo password for runner user
+
 **Playbooks:** 
 - `infrastructure/host/ssh/create_admin_user.yml`
 - `infrastructure/host/ssh/setup_ssh_keys.yml`
 
 **Called by:** Infrastructure_Dispatcher
 
-**Note:** After running on both Pis, public keys must be manually exchanged. See `infrastructure/host/ssh/README.md`
+**Setup:** Generate keys once using `infrastructure/host/ssh/generate_keys.ps1` (Windows) or `generate_keys.sh` (Linux/Mac), then add to GitHub secrets
 
 ---
 

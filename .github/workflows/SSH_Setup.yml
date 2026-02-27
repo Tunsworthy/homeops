@@ -56,4 +56,9 @@ jobs:
         run: |
           cd $BASE_DIR
           echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook setup_ssh_keys.yml \
-            -i inventory.ini
+            -i inventory.ini \
+            -e "ssh_private_key='$SSH_PRIVATE_KEY'" \
+            -e "ssh_public_key='$SSH_PUBLIC_KEY'"
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_ADMIN_PRIVATE_KEY }}
+          SSH_PUBLIC_KEY: ${{ secrets.SSH_ADMIN_PUBLIC_KEY }}

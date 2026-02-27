@@ -1,7 +1,7 @@
 ---
-# SSH Key Setup - Generate SSH keys on localhost
+# SSH Key Setup - Deploy shared SSH keys from GitHub secrets
 # Runs LOCALLY on each Pi runner
-# Manual step required: Exchange public keys between Pis
+# Uses shared key pair stored in GitHub secrets - no manual exchange needed!
 
 - name: Setup SSH Keys for Cross-Pi Administration
   hosts: localhost
@@ -10,9 +10,11 @@
   gather_facts: true
 
   vars:
-    ssh_key_type: "ed25519"
     ssh_user: "ansible-admin"
-    ssh_key_path: "/home/{{ ssh_user }}/.ssh/id_{{ ssh_key_type }}"
+    ssh_key_path: "/home/{{ ssh_user }}/.ssh/id_ed25519"
+    # These will be passed from GitHub secrets via -e flag
+    # ssh_private_key: "{{ lookup('env', 'SSH_PRIVATE_KEY') }}"
+    # ssh_public_key: "{{ lookup('env', 'SSH_PUBLIC_KEY') }}"
     
   tasks:
     - name: Check if ansible-admin user exists
@@ -35,44 +37,27 @@
         owner: "{{ ssh_user }}"
         group: "{{ ssh_user }}"
 
-    - name: Check if SSH key already exists
-      ansible.builtin.stat:
-        path: "{{ ssh_key_path }}"
-      register: ssh_key_stat
-
-    - name: Generate SSH key pair
-      ansible.builtin.command:
-        cmd: "ssh-keygen -t {{ ssh_key_type }} -f {{ ssh_key_path }} -N '' -C 'ansible-admin@{{ ansible_hostname }}'"
-        creates: "{{ ssh_key_path }}"
-      become_user: "{{ ssh_user }}"
-      when: not ssh_key_stat.stat.exists
-
-    - name: Set correct permissions on private key
-      ansible.builtin.file:
-        path: "{{ ssh_key_path }}"
+    - name: Deploy private SSH key from GitHub secret
+      ansible.builtin.copy:
+        content: "{{ ssh_private_key }}"
+        dest: "{{ ssh_key_path }}"
         mode: '0600'
         owner: "{{ ssh_user }}"
         group: "{{ ssh_user }}"
 
-    - name: Set correct permissions on public key
-      ansible.builtin.file:
-        path: "{{ ssh_key_path }}.pub"
+    - name: Deploy public SSH key from GitHub secret
+      ansible.builtin.copy:
+        content: "{{ ssh_public_key }}"
+        dest: "{{ ssh_key_path }}.pub"
         mode: '0644'
         owner: "{{ ssh_user }}"
         group: "{{ ssh_user }}"
 
-    - name: Read public key
-      ansible.builtin.slurp:
-        src: "{{ ssh_key_path }}.pub"
-      register: public_key
-
-    - name: Store public key as fact
-      ansible.builtin.set_fact:
-        host_public_key: "{{ public_key.content | b64decode | trim }}"
-
-    - name: Display public key
-      ansible.builtin.debug:
-        msg: "Public key for {{ ansible_hostname }}: {{ host_public_key }}"
+    - name: Add public key to authorized_keys
+      ansible.builtin.authorized_key:
+        user: "{{ ssh_user }}"
+        key: "{{ ssh_public_key }}"
+        state: present
 
     - name: Create SSH config for cross-Pi access
       ansible.builtin.copy:
@@ -93,19 +78,26 @@
             StrictHostKeyChecking no
             UserKnownHostsFile /dev/null
 
-    - name: Display manual step instructions
+    - name: Test SSH connectivity to other Pi
+      ansible.builtin.command:
+        cmd: "ssh -o BatchMode=yes -o ConnectTimeout=5 {{ 'pi4' if ansible_hostname == 'pi3' else 'pi3' }} echo 'SSH test successful'"
+      become_user: "{{ ssh_user }}"
+      register: ssh_test
+      failed_when: false
+      changed_when: false
+
+    - name: Display SSH test result
+      ansible.builtin.debug:
+        msg: "{{ 'SSH connectivity verified!' if ssh_test.rc == 0 else 'SSH test failed - this is normal if other Pi has not been configured yet' }}"
+
+    - name: Display completion status
       ansible.builtin.debug:
         msg: |
           ========================================
-          MANUAL STEP REQUIRED:
+          SSH Setup Complete on {{ ansible_hostname }}!
           ========================================
-          After running this on BOTH Pis, exchange the public keys:
-          
-          1. On pi3, run:
-             sudo cat /home/{{ ssh_user }}/.ssh/id_{{ ssh_key_type }}.pub | sudo tee -a /home/{{ ssh_user }}/.ssh/authorized_keys
-             
-          2. Copy pi4's public key to pi3's authorized_keys
-          3. Copy pi3's public key to pi4's authorized_keys
-          
-          Or use the exchange_keys.yml playbook (if created)
+          - Private key deployed from GitHub secret
+          - Public key deployed and added to authorized_keys
+          - SSH config created for cross-Pi access
+          - Ready for cross-Pi administration
           ========================================
