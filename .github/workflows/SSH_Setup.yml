@@ -57,13 +57,17 @@ jobs:
           cd $BASE_DIR
           
           # Write keys to temporary files to preserve formatting
-          cat > /tmp/ssh_private_key <<'EOFKEY'
+          cat > /tmp/ssh_private_key << "EOFKEY"
           ${{ secrets.SSH_ADMIN_PRIVATE_KEY }}
           EOFKEY
           
-          cat > /tmp/ssh_public_key <<'EOFKEY'
+          cat > /tmp/ssh_public_key << "EOFKEY"
           ${{ secrets.SSH_ADMIN_PUBLIC_KEY }}
           EOFKEY
+          
+          # Verify keys were written
+          echo "Private key file size: $(wc -c < /tmp/ssh_private_key) bytes"
+          echo "Public key file size: $(wc -c < /tmp/ssh_public_key) bytes"
           
           # Run playbook with keys from files
           echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook setup_ssh_keys.yml \
