@@ -55,10 +55,22 @@ jobs:
         if: ${{ inputs.step == 'setup-keys' }}
         run: |
           cd $BASE_DIR
+          
+          # Write keys to temporary files to preserve formatting
+          cat > /tmp/ssh_private_key <<'EOFKEY'
+          ${{ secrets.SSH_ADMIN_PRIVATE_KEY }}
+          EOFKEY
+          
+          cat > /tmp/ssh_public_key <<'EOFKEY'
+          ${{ secrets.SSH_ADMIN_PUBLIC_KEY }}
+          EOFKEY
+          
+          # Run playbook with keys from files
           echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook setup_ssh_keys.yml \
             -i inventory.ini \
-            -e "ssh_private_key='$SSH_PRIVATE_KEY'" \
-            -e "ssh_public_key='$SSH_PUBLIC_KEY'"
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_ADMIN_PRIVATE_KEY }}
-          SSH_PUBLIC_KEY: ${{ secrets.SSH_ADMIN_PUBLIC_KEY }}
+            -e "ssh_private_key_file=/tmp/ssh_private_key" \
+            -e "ssh_public_key_file=/tmp/ssh_public_key"
+          
+          # Clean up temporary files
+          rm -f /tmp/ssh_private_key /tmp/ssh_public_key
+
