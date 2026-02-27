@@ -53,24 +53,49 @@ jobs:
 
       - name: Run setup-keys playbook
         if: ${{ inputs.step == 'setup-keys' }}
+        env:
+          SSH_ADMIN_PRIVATE_KEY: ${{ secrets.SSH_ADMIN_PRIVATE_KEY }}
+          SSH_ADMIN_PUBLIC_KEY: ${{ secrets.SSH_ADMIN_PUBLIC_KEY }}
         run: |
           cd $BASE_DIR
           
-          # Write keys to temporary files to preserve formatting
-          cat > /tmp/ssh_private_key << "EOFKEY"
-          ${{ secrets.SSH_ADMIN_PRIVATE_KEY }}
-          EOFKEY
+          echo "========================================="
+          echo "DEBUG: SSH Keys Setup"
+          echo "========================================="
           
-          cat > /tmp/ssh_public_key << "EOFKEY"
-          ${{ secrets.SSH_ADMIN_PUBLIC_KEY }}
-          EOFKEY
+          # Verify secrets are available
+          echo "Private key length: $(echo -n "$SSH_ADMIN_PRIVATE_KEY" | wc -c) characters"
+          echo "Public key length: $(echo -n "$SSH_ADMIN_PUBLIC_KEY" | wc -c) characters"
+          echo ""
           
-          # Verify keys were written
-          echo "Private key file size: $(wc -c < /tmp/ssh_private_key) bytes"
-          echo "Public key file size: $(wc -c < /tmp/ssh_public_key) bytes"
+          if [ $(echo -n "$SSH_ADMIN_PRIVATE_KEY" | wc -c) -lt 100 ]; then
+            echo "❌ ERROR: SSH_ADMIN_PRIVATE_KEY is too short or empty!"
+            echo "First 50 chars: $(echo -n "$SSH_ADMIN_PRIVATE_KEY" | head -c 50)"
+            exit 1
+          fi
           
-          # Run playbook with keys from files
-          echo "${{ secrets.SUDO }}" | sudo -S ansible-playbook setup_ssh_keys.yml \
+          if [ $(echo -n "$SSH_ADMIN_PUBLIC_KEY" | wc -c) -lt 30 ]; then
+            echo "❌ ERROR: SSH_ADMIN_PUBLIC_KEY is too short or empty!"
+            exit 1
+          fi
+          
+          echo "✅ Secrets verified - proceeding with playbook"
+          echo ""
+          
+          # Write keys to temporary files as backup
+          echo "$SSH_ADMIN_PRIVATE_KEY" > /tmp/ssh_private_key
+          echo "$SSH_ADMIN_PUBLIC_KEY" > /tmp/ssh_public_key
+          
+          echo "Temporary files written:"
+          echo "  Private key: $(wc -c < /tmp/ssh_private_key) bytes"
+          echo "  Public key: $(wc -c < /tmp/ssh_public_key) bytes"
+          echo ""
+          
+          # Run playbook - pass both as env vars for Ansible lookup AND as files
+          echo "${{ secrets.SUDO }}" | sudo -S \
+            SSH_ADMIN_PRIVATE_KEY="$SSH_ADMIN_PRIVATE_KEY" \
+            SSH_ADMIN_PUBLIC_KEY="$SSH_ADMIN_PUBLIC_KEY" \
+            ansible-playbook setup_ssh_keys.yml \
             -i inventory.ini \
             -e "ssh_private_key_file=/tmp/ssh_private_key" \
             -e "ssh_public_key_file=/tmp/ssh_public_key"
