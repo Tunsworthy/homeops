@@ -9,5 +9,5 @@ container_environment: pi4
 certificate: true             # needs Let's Encrypt cert
 external_access: false         # should be exposed via Cloudflare Tunnel
 dedicated_ip: true            # should get an IP from IP allocation CSV
-update: true
+update: false
 internet_access: true        # should be added to Mikrotik NATAllowed address list for internet access
