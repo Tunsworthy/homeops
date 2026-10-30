@@ -54,7 +54,7 @@
     - name: Deploy Container
       community.docker.docker_container:
         name: "{{container_name}}"
-        image: homeassistant/home-assistant:2025.6
+        image: homeassistant/home-assistant:2026.10.4
         pull: yes
         state: started
         restart_policy: unless-stopped
