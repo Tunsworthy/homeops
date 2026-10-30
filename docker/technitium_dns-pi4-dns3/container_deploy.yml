@@ -59,7 +59,7 @@
     - name: Deploy Technitium DNS container
       community.docker.docker_container:
         name: "{{ container_name }}"
-        image: technitium/dns-server:14.3.0
+        image: technitium/dns-server:15.6.2
         pull: yes
         state: started
         restart_policy: unless-stopped
